@@ -241,11 +241,15 @@ const { title, description = 'Bidwell Capital - Building generational wealth thr
           gap: 1.25rem;
           border-bottom: 1px solid var(--border);
           transform: translateY(-110%);
-          transition: transform 0.3s ease;
+          visibility: hidden;
+          opacity: 0;
+          transition: transform 0.3s ease, visibility 0.3s ease, opacity 0.3s ease;
         }
 
         .nav-links.open {
           transform: translateY(0);
+          visibility: visible;
+          opacity: 1;
         }
       }
 
