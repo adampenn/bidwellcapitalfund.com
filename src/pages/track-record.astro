@@ -1,0 +1,365 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Track Record — Bidwell Capital Fund" description="Private Commercial Credit Fund portfolio dashboard: deal-by-deal transparency.">
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">Track Record</span>
+      <h1 class="fade-up fade-up-2">PCCF Portfolio Dashboard</h1>
+      <p class="fade-up fade-up-3">Deal-by-deal transparency. Every position in our Private Commercial Credit Fund, updated regularly.</p>
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="section" style="padding-top: 2rem;">
+    <div class="container">
+      <div class="grid-3" id="kpi-grid">
+        <div class="card stat-card">
+          <span class="stat-label">Portfolio Size</span>
+          <span class="stat-value" id="kpi-size">&mdash;</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Gross Yield</span>
+          <span class="stat-value" id="kpi-yield">&mdash;</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Combined LTV/LTC</span>
+          <span class="stat-value" id="kpi-ltv">&mdash;</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Position Type Pills -->
+  <section style="padding: 0 0 1rem;">
+    <div class="container">
+      <div class="pills" id="pccf-pills"></div>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section style="padding: 1rem 0 2rem;">
+    <div class="container">
+      <div class="grid-2" id="charts-grid">
+        <div class="card chart-card">
+          <h3>Portfolio Asset Mix</h3>
+          <canvas id="chart-asset" width="400" height="300"></canvas>
+          <div class="chart-legend" id="legend-asset"></div>
+        </div>
+        <div class="card chart-card">
+          <h3>Position Type Breakdown</h3>
+          <canvas id="chart-position" width="400" height="300"></canvas>
+          <div class="chart-legend" id="legend-pos"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deal Cards -->
+  <section class="section" style="padding-top: 1rem;">
+    <div class="container">
+      <span class="section-label">Active &amp; Completed Positions</span>
+      <div id="deal-cards" class="deal-cards"></div>
+    </div>
+  </section>
+
+  <section style="padding: 0 0 3rem;">
+    <div class="container">
+      <p class="disclaimer">Past performance is not indicative of future results. The information presented is for informational purposes only and does not constitute an offer to sell or solicitation of an offer to buy any securities. All investments involve risk, including the possible loss of principal. These materials are intended for accredited investors only.</p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero-sm {
+    padding: 5rem 0 2rem;
+  }
+  .hero-sm h1 { margin: 0.5rem 0 1rem; }
+  .hero-sm p { font-size: 1.125rem; max-width: 60ch; }
+
+  .stat-card {
+    text-align: center;
+    padding: 1.5rem;
+  }
+  .stat-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-top: 0.5rem;
+  }
+  .stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+
+  .chart-card {
+    padding: 1.5rem;
+  }
+  .chart-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+  }
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .deal-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Deal card styles */
+  :global(.deal-card) {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  :global(.deal-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  :global(.deal-tags) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  :global(.deal-tag) {
+    font-size: 0.6875rem;
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+  :global(.deal-tag-paid) {
+    background: #198754;
+  }
+  :global(.deal-body) {
+    padding: 1rem;
+  }
+  :global(.deal-grid) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  @media (max-width: 768px) {
+    :global(.deal-grid) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  :global(.deal-field) {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8125rem;
+  }
+  :global(.deal-field-label) {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.15rem;
+  }
+  :global(.deal-rates) {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  :global(.deal-rates-title) {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const PREF_COLOR = '#c48a5a';
+  const MEZZ_COLOR = '#7a9e7e';
+  const PAID_COLOR = '#6b655a';
+
+  const ASSET_COLORS = {
+    'Multifamily': '#c48a5a',
+    'Industrial': '#7a9e7e',
+    'Retail': '#b8a078',
+    'Medical Office': '#8a7e6b',
+    'Manufactured Housing': '#9e8a6e',
+    'Student Housing': '#6e8a9e',
+  };
+
+  const POS_COLORS = {
+    'Preferred Equity': PREF_COLOR,
+    'Mezzanine Debt': MEZZ_COLOR,
+  };
+
+  const fmtMoney = (n) => Number(n).toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+  fetch('/pccf-data.json')
+    .then(r => r.json())
+    .then(({ meta, deals }) => {
+      // KPIs
+      document.getElementById('kpi-size').textContent = fmtMoney(meta.portfolioSize);
+      document.getElementById('kpi-yield').textContent = meta.grossYield.toFixed(1) + '%';
+      document.getElementById('kpi-ltv').textContent = meta.ltv + '%';
+
+      // Pills
+      const pillsEl = document.getElementById('pccf-pills');
+      const totals = deals.reduce((a, d) => {
+        const amt = Number(d.amt) || 0;
+        if (d.paidOff) {
+          a['Paid Off'] = (a['Paid Off'] || 0) + amt;
+          return a;
+        }
+        const key = /mezz/i.test(d.posType || '') ? 'Mezzanine Debt' : 'Preferred Equity';
+        a[key] = (a[key] || 0) + amt;
+        return a;
+      }, {});
+
+      const makePill = (name, val, color) => {
+        const span = document.createElement('span');
+        span.style.cssText = `display:inline-flex;align-items:center;gap:0.375rem;font-size:0.8125rem;padding:0.4rem 0.75rem;border-radius:999px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-secondary);`;
+        span.innerHTML = `<span style="width:8px;height:8px;border-radius:2px;background:${color};display:inline-block;"></span>${name}: <strong style="color:var(--text-primary);">${fmtMoney(val)}</strong>`;
+        return span;
+      };
+
+      pillsEl.appendChild(makePill('Preferred Equity', totals['Preferred Equity'] || 0, PREF_COLOR));
+      pillsEl.appendChild(makePill('Mezzanine Debt', totals['Mezzanine Debt'] || 0, MEZZ_COLOR));
+      pillsEl.appendChild(makePill('Paid Off', totals['Paid Off'] || 0, PAID_COLOR));
+
+      // Charts - detect theme for colors
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light' ||
+        (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: light)').matches);
+      Chart.defaults.color = isLight ? '#5c574d' : '#a09a8e';
+      Chart.defaults.borderColor = isLight ? 'rgba(26,25,21,0.08)' : 'rgba(242,239,232,0.06)';
+
+      const byKey = (key) => deals.filter(d => !d.paidOff).reduce((a, d) => {
+        const k = d[key] || 'Other';
+        a[k] = (a[k] || 0) + (Number(d.amt) || 0);
+        return a;
+      }, {});
+
+      const assetMap = byKey('asset');
+      const assetLabels = Object.keys(assetMap);
+      const assetData = assetLabels.map(k => assetMap[k]);
+      const assetColors = assetLabels.map(k => ASSET_COLORS[k] || '#888');
+
+      const posMap = byKey('posType');
+      const posLabels = Object.keys(posMap);
+      const posData = posLabels.map(k => posMap[k]);
+      const posColors = posLabels.map(k => POS_COLORS[k] || '#888');
+
+      const makePie = (canvasId, labels, data, colors) => {
+        return new Chart(document.getElementById(canvasId), {
+          type: 'doughnut',
+          data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+          options: {
+            cutout: '55%',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: isLight ? '#ffffff' : '#1e1d1a',
+                titleColor: isLight ? '#1a1915' : '#f2efe8',
+                bodyColor: isLight ? '#5c574d' : '#a09a8e',
+                borderColor: isLight ? 'rgba(26,25,21,0.12)' : 'rgba(242,239,232,0.1)',
+                borderWidth: 1,
+                callbacks: {
+                  label: (c) => {
+                    const v = c.raw;
+                    const total = c.dataset.data.reduce((x, y) => x + y, 0);
+                    const p = ((v / total) * 100).toFixed(1) + '%';
+                    return `${c.label}: ${fmtMoney(v)} (${p})`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      };
+
+      makePie('chart-asset', assetLabels, assetData, assetColors);
+      makePie('chart-position', posLabels, posData, posColors);
+
+      const legend = (elId, labels, colors, data) => {
+        const el = document.getElementById(elId);
+        const total = data.reduce((a, b) => a + b, 0) || 1;
+        el.innerHTML = labels.map((l, i) => {
+          const p = ((data[i] / total) * 100).toFixed(0);
+          return `<span style="display:flex;align-items:center;gap:0.35rem;"><span style="width:8px;height:8px;border-radius:2px;background:${colors[i]};display:inline-block;"></span>${l}: ${p}%</span>`;
+        }).join('');
+      };
+
+      legend('legend-asset', assetLabels, assetColors, assetData);
+      legend('legend-pos', posLabels, posColors, posData);
+
+      // Deal Cards
+      const cardsEl = document.getElementById('deal-cards');
+      deals.forEach(d => {
+        let headerColor = /mezz/i.test(d.posType || '') ? MEZZ_COLOR : PREF_COLOR;
+        if (d.paidOff) headerColor = PAID_COLOR;
+
+        const rates = Array.isArray(d.rate) ? d.rate : (typeof d.rate === 'string' ? d.rate.split(',') : []);
+        const cleanRates = rates.map(s => String(s).replace(/^"+|"+$/g, '').trim()).filter(Boolean);
+
+        const card = document.createElement('article');
+        card.className = 'deal-card';
+        card.innerHTML = `
+          <div class="deal-header" style="background:${headerColor};">
+            <div><strong>${d.num || ''}</strong> &mdash; ${d.location || ''}</div>
+            <div class="deal-tags">
+              ${d.paidOff ? '<span class="deal-tag deal-tag-paid">Paid Off</span>' : ''}
+              <span class="deal-tag">${d.asset || ''}</span>
+            </div>
+          </div>
+          <div class="deal-body">
+            <span class="badge">${d.posType || ''}</span>
+            <div class="deal-grid">
+              <div class="deal-field"><span class="deal-field-label">Position Amount</span>${fmtMoney(d.amt || 0)}</div>
+              <div class="deal-field"><span class="deal-field-label">Combined LTV/LTC</span>${d.ltv !== undefined ? d.ltv + '%' : ''}</div>
+              <div class="deal-field"><span class="deal-field-label">Est. Gross YTM</span>${d.ytm !== undefined ? d.ytm + '%' : ''}</div>
+              <div class="deal-field"><span class="deal-field-label">Term</span>${d.term || ''}</div>
+              <div class="deal-field"><span class="deal-field-label">Security</span>${d.security || ''}</div>
+              <div class="deal-field"><span class="deal-field-label">Takeout Strategy</span>${d.takeout || ''}</div>
+              <div class="deal-field"><span class="deal-field-label">Origination Date</span>${d.date || ''}</div>
+            </div>
+            ${cleanRates.length ? `
+              <div class="deal-rates">
+                <div class="deal-rates-title">Rate Details</div>
+                ${cleanRates.map(r => '&bull; ' + r).join('<br/>')}
+              </div>
+            ` : ''}
+            ${d.notes ? `<div class="deal-rates" style="border-top:none;padding-top:0.25rem;"><div class="deal-rates-title">Notes</div>${d.notes}</div>` : ''}
+          </div>
+        `;
+        cardsEl.appendChild(card);
+      });
+    })
+    .catch(e => console.error('PCCF data error:', e));
+</script>

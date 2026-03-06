@@ -1,0 +1,131 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Contact — Bidwell Capital Fund" description="Get in touch with Bidwell Capital Fund.">
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">Contact</span>
+      <h1 class="fade-up fade-up-2">Let's talk</h1>
+      <p class="fade-up fade-up-3">Interested in learning more about our current offerings? Reach out directly.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+        <div>
+          <div class="card contact-card">
+            <span class="section-label">Email</span>
+            <a href="mailto:me@adampenn.com" class="contact-link">me@adampenn.com</a>
+            <p style="margin-top: 0.75rem;">Best way to reach me. I typically respond within 24 hours.</p>
+          </div>
+
+          <div class="card contact-card" style="margin-top: 1.5rem;">
+            <span class="section-label">Location</span>
+            <p style="color: var(--text-primary); font-size: 1.125rem; margin-bottom: 0.5rem;">Northern California</p>
+            <p>Chico, CA area. Available for virtual meetings nationwide.</p>
+          </div>
+
+          <div class="card contact-card" style="margin-top: 1.5rem;">
+            <span class="section-label">Podcast</span>
+            <p style="color: var(--text-primary); margin-bottom: 0.5rem;">Wealth Independence Podcast</p>
+            <p>Conversations about building wealth through real assets, tax strategy, and financial independence.</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="padding: 2rem;">
+            <h3 style="margin-bottom: 0.5rem;">What to expect</h3>
+            <p style="margin-bottom: 1.5rem;">When you reach out, here is what the process looks like:</p>
+            <div class="process-steps">
+              <div class="step">
+                <span class="step-num">01</span>
+                <div>
+                  <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Initial conversation</strong>
+                  <p>We will discuss your investment goals, experience, and what you are looking for.</p>
+                </div>
+              </div>
+              <div class="step">
+                <span class="step-num">02</span>
+                <div>
+                  <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Review materials</strong>
+                  <p>If there is a mutual fit, we will share our current offering documents and fund details.</p>
+                </div>
+              </div>
+              <div class="step">
+                <span class="step-num">03</span>
+                <div>
+                  <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Invest</strong>
+                  <p>Complete subscription documents and fund your investment. We handle the rest.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero-sm {
+    padding: 5rem 0 2rem;
+  }
+  .hero-sm h1 { margin: 0.5rem 0 1rem; }
+  .hero-sm p { font-size: 1.125rem; max-width: 60ch; }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .contact-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+  }
+
+  .contact-card {
+    padding: 1.5rem;
+  }
+
+  .contact-link {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--accent);
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .contact-link:hover {
+    color: var(--accent-hover);
+  }
+
+  .process-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--accent);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 2rem;
+  }
+
+  .step p {
+    font-size: 0.875rem;
+  }
+</style>

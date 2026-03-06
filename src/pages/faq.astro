@@ -1,0 +1,126 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const faqs = [
+  {
+    q: 'Who can invest with Bidwell Capital Fund?',
+    a: 'Our offerings are available to accredited investors as defined by the SEC. This generally means individuals with a net worth exceeding $1 million (excluding primary residence) or annual income exceeding $200,000 ($300,000 with a spouse) for the last two years.'
+  },
+  {
+    q: 'What is the minimum investment?',
+    a: 'Minimums vary by offering. Contact us directly for current minimums and available investment opportunities.'
+  },
+  {
+    q: 'What is preferred equity?',
+    a: 'Preferred equity sits between common equity and debt in the capital stack. It receives priority distributions before common equity holders, and in our structures, includes forced sale and take-over rights for additional downside protection.'
+  },
+  {
+    q: 'What is mezzanine debt?',
+    a: 'Mezzanine debt is subordinate to senior debt but senior to equity. It provides higher yields than senior debt due to its position, and our positions include forced sale rights to protect capital.'
+  },
+  {
+    q: 'How are returns distributed?',
+    a: 'Most PCCF positions include a current pay component (paid monthly or quarterly) and an accrued component that compounds and is paid at exit. Specific terms vary by deal.'
+  },
+  {
+    q: 'What are the tax benefits?',
+    a: 'Tax benefits vary by strategy. Our commercial credit positions may offer favorable tax treatment depending on structure. Short-term rental and energy strategies can offer significant deductions through depreciation and intangible drilling costs. Consult your tax advisor for details specific to your situation.'
+  },
+  {
+    q: 'How liquid are these investments?',
+    a: 'These are illiquid investments with typical hold periods of 1 to 5 years. They are not suitable for capital you may need on short notice. This illiquidity is part of what drives the premium returns compared to public markets.'
+  },
+  {
+    q: 'How is my capital protected?',
+    a: 'We structure every deal with downside protection mechanisms. Preferred equity positions include forced sale and take-over rights. Mezzanine debt is secured by real property. We underwrite the exit strategy before committing capital. That said, all investments carry risk, including the possible loss of principal.'
+  },
+  {
+    q: 'How do I get started?',
+    a: 'Reach out via our contact page or email me@adampenn.com. We will schedule a conversation to understand your goals, discuss current opportunities, and determine if there is a mutual fit.'
+  }
+];
+---
+
+<Layout title="FAQ — Bidwell Capital Fund" description="Frequently asked questions about investing with Bidwell Capital Fund.">
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">FAQ</span>
+      <h1 class="fade-up fade-up-2">Common questions</h1>
+      <p class="fade-up fade-up-3">Answers to the questions we hear most from prospective investors.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="faq-list">
+        {faqs.map((faq, i) => (
+          <details class="faq-item">
+            <summary class="faq-q">{faq.q}</summary>
+            <p class="faq-a">{faq.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <hr class="divider" />
+
+      <div style="text-align: center;">
+        <p style="margin-bottom: 1.5rem;">Have a question that is not answered here?</p>
+        <a href="/contact" class="btn btn-primary">Get in Touch</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero-sm {
+    padding: 5rem 0 2rem;
+  }
+  .hero-sm h1 { margin: 0.5rem 0 1rem; }
+  .hero-sm p { font-size: 1.125rem; max-width: 60ch; }
+
+  .faq-list {
+    max-width: 48rem;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 0;
+  }
+
+  .faq-q {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .faq-q::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-q::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  details[open] .faq-q::after {
+    content: '\2212';
+  }
+
+  .faq-a {
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 65ch;
+  }
+</style>

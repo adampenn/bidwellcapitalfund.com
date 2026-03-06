@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Strategy — Bidwell Capital Fund" description="Our investment thesis: income-producing real assets with downside protection and tax advantages.">
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">Strategy</span>
+      <h1 class="fade-up fade-up-2">How we think about investing</h1>
+      <p class="fade-up fade-up-3">We build portfolios around real assets that generate income, provide tax benefits, and are secured by tangible collateral. Every deal is underwritten for downside protection first.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="thesis-grid">
+        <div>
+          <span class="section-label">Investment Thesis</span>
+          <h2>Income first, appreciation second</h2>
+          <p>Most investors are overexposed to equities and underexposed to real assets. Index funds are excellent tools, but they offer no tax advantages, no income diversification, and no downside protection beyond broad market diversification.</p>
+          <p style="margin-top: 1rem;">Bidwell Capital Fund exists to fill that gap. We allocate investor capital into positions that are secured by real property, generate contractual income, and often come with significant tax benefits.</p>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <h3>Downside Protection</h3>
+            <p>Every position is structured with forced sale rights, take-over rights, or physical collateral. We underwrite the exit before the entry.</p>
+          </div>
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <h3>Tax Efficiency</h3>
+            <p>Our strategies are designed to be tax-advantaged. Cost segregation, bonus depreciation, intangible drilling costs, and preferred return structures all work in the investor's favor.</p>
+          </div>
+          <div class="card">
+            <h3>Operator Alignment</h3>
+            <p>We invest alongside our LPs. Our track record, deal flow, and underwriting are all driven by direct operational experience in real estate and energy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+      <span class="section-label">Current Focus</span>
+      <h2>Private Commercial Credit Fund (PCCF)</h2>
+      <p style="margin-bottom: 2rem;">Our flagship strategy deploys capital into preferred equity and mezzanine debt positions across commercial real estate. These are structured, income-producing positions with contractual protections.</p>
+      <div class="grid-3">
+        <div class="card">
+          <span class="badge">Asset Types</span>
+          <p style="margin-top: 1rem;">Multifamily, industrial, medical office, manufactured housing, student housing, and neighborhood retail.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Position Types</span>
+          <p style="margin-top: 1rem;">Preferred equity with forced sale and take-over rights. Mezzanine debt secured by real property with forced sale rights.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Target Returns</span>
+          <p style="margin-top: 1rem;">Gross yields in the mid-to-high teens, with a combination of current pay interest and accrued interest. Terms typically range from 1 to 5 years.</p>
+        </div>
+      </div>
+      <div style="margin-top: 2rem; text-align: center;">
+        <a href="/track-record" class="btn btn-primary">View PCCF Portfolio</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <span class="section-label">About the Founder</span>
+      <h2>Adam Penn</h2>
+      <p>Software engineer turned real estate operator and fund manager. Adam started his first short-term rental in 2017 while working in tech, eventually building a portfolio of 35+ units, a property management company, and launching Bidwell Capital Fund. He is based in Northern California and co-hosts the Wealth Independence Podcast.</p>
+      <p style="margin-top: 1rem;">Adam's approach is rooted in engineering: systematic underwriting, data-driven decision making, and a focus on building repeatable, scalable systems. He holds a BS in Computer Science.</p>
+      <div style="margin-top: 2rem;">
+        <a href="https://adampenn.com" target="_blank" rel="noopener" class="btn btn-outline">Visit adampenn.com</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero-sm {
+    padding: 5rem 0 2rem;
+  }
+
+  .hero-sm h1 {
+    margin: 0.5rem 0 1rem;
+  }
+
+  .hero-sm p {
+    font-size: 1.125rem;
+    max-width: 60ch;
+  }
+
+  .thesis-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  @media (min-width: 768px) {
+    .thesis-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+  }
+</style>
