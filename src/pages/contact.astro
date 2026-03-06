@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Contact — Bidwell Capital Fund" description="Get in touch with Bidwell Capital Fund.">
+<Layout title="Contact — Bidwell Capital" description="Get in touch with Bidwell Capital.">
   <section class="hero-sm">
     <div class="container">
       <span class="section-label fade-up fade-up-1">Contact</span>
@@ -17,7 +17,7 @@ import Layout from '../layouts/Layout.astro';
         <div>
           <div class="card contact-card">
             <span class="section-label">Email</span>
-            <a href="mailto:me@adampenn.com" class="contact-link">me@adampenn.com</a>
+            <a href="mailto:adam@bidwellcapitalfund.com" class="contact-link">adam@bidwellcapitalfund.com</a>
             <p style="margin-top: 0.75rem;">Best way to reach me. I typically respond within 24 hours.</p>
           </div>
 
@@ -29,7 +29,7 @@ import Layout from '../layouts/Layout.astro';
 
           <div class="card contact-card" style="margin-top: 1.5rem;">
             <span class="section-label">Podcast</span>
-            <p style="color: var(--text-primary); margin-bottom: 0.5rem;">Wealth Independence Podcast</p>
+            <a href="https://www.wealthindependencepod.com/" target="_blank" rel="noopener" style="color: var(--text-primary); font-size: 1.125rem; display: block; margin-bottom: 0.5rem; text-decoration: none;">Wealth Independence Podcast <span style="font-size: 0.875rem; color: var(--accent);">&rarr;</span></a>
             <p>Conversations about building wealth through real assets, tax strategy, and financial independence.</p>
           </div>
         </div>
@@ -60,13 +60,58 @@ import Layout from '../layouts/Layout.astro';
                   <p>Complete subscription documents and fund your investment. We handle the rest.</p>
                 </div>
               </div>
+              <div class="step">
+                <span class="step-num">04</span>
+                <div>
+                  <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Stay informed</strong>
+                  <p>We are always available to answer questions. Most of our deals provide monthly updates so you know exactly how your capital is working. Want to see our communication style before investing? Ask about our Deal Observer program — you can follow along on active deals even if you haven't invested yet.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Calendly -->
+  <section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+      <span class="section-label">Schedule a Call</span>
+      <h2>Book a consultation</h2>
+      <p style="margin-bottom: 2rem; max-width: 55ch; margin-left: auto; margin-right: auto;">Pick a time that works for you. No commitment, no pressure — just a conversation about your goals.</p>
+      <div class="calendly-wrap">
+        <div id="calendly-dark" class="calendly-inline-widget" data-url="https://calendly.com/adampenn/bc-consultation?background_color=1a1816&text_color=e8e0d6&primary_color=c48a5a" style="min-width:320px;height:700px;"></div>
+        <div id="calendly-light" class="calendly-inline-widget" data-url="https://calendly.com/adampenn/bc-consultation?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a" style="min-width:320px;height:700px;"></div>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<script is:inline src="https://assets.calendly.com/assets/external/widget.js" async></script>
+<script is:inline>
+  function updateCalendly() {
+    var theme = document.documentElement.getAttribute('data-theme');
+    var isDark = theme !== 'light';
+    var darkEl = document.getElementById('calendly-dark');
+    var lightEl = document.getElementById('calendly-light');
+    if (darkEl) darkEl.style.display = isDark ? 'block' : 'none';
+    if (lightEl) lightEl.style.display = isDark ? 'none' : 'block';
+  }
+  // Run on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateCalendly);
+  } else {
+    updateCalendly();
+  }
+  // Watch for theme changes
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.attributeName === 'data-theme') updateCalendly();
+    });
+  });
+  observer.observe(document.documentElement, { attributes: true });
+</script>
 
 <style>
   .hero-sm {
@@ -127,5 +172,12 @@ import Layout from '../layouts/Layout.astro';
 
   .step p {
     font-size: 0.875rem;
+  }
+
+  .calendly-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
   }
 </style>

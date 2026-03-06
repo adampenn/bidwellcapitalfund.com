@@ -2,13 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Bidwell Capital Fund — Building Generational Wealth Through Real Assets">
+<Layout title="Bidwell Capital — Building Generational Wealth Through Real Assets">
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <span class="section-label fade-up fade-up-1">Bidwell Capital Fund</span>
+      <span class="section-label fade-up fade-up-1">Bidwell Capital</span>
       <h1 class="fade-up fade-up-2">Building generational wealth<br/>through real assets</h1>
-      <p class="hero-sub fade-up fade-up-3">We invest in tax-advantaged, income-producing real assets: commercial credit, short-term rentals, and energy. Over $10 million in investor capital raised across multiple strategies.</p>
+      <p class="hero-sub fade-up fade-up-3">We invest in tax-advantaged, income-producing real assets: commercial real estate credit, multifamily real estate, and energy. Over $10 million in investor capital raised across multiple strategies.</p>
       <div class="hero-actions fade-up fade-up-4">
         <a href="/about" class="btn btn-primary">Our Strategy</a>
         <a href="/contact" class="btn btn-outline">Get in Touch</a>
@@ -42,15 +42,15 @@ import Layout from '../layouts/Layout.astro';
     <div class="container">
       <span class="section-label">What We Do</span>
       <h2>Real assets, real returns</h2>
-      <p style="margin-bottom: 2.5rem;">Bidwell Capital Fund focuses on asset classes that generate income, provide tax advantages, and are backed by tangible collateral. We are operators and allocators, not salespeople.</p>
+      <p style="margin-bottom: 2.5rem;">Bidwell Capital focuses on asset classes that generate income, provide tax advantages, and are backed by tangible collateral. We are operators and allocators, not salespeople.</p>
       <div class="grid-3">
         <div class="card">
           <h3>Commercial Credit</h3>
           <p>Preferred equity and mezzanine debt positions in commercial real estate. Structured with downside protection through forced sale and take-over rights.</p>
         </div>
         <div class="card">
-          <h3>Short-Term Rentals</h3>
-          <p>Direct ownership and management of vacation rental properties. Tax-advantaged through cost segregation and bonus depreciation.</p>
+          <h3>Multifamily Real Estate</h3>
+          <p>Direct ownership and management of multifamily properties. Tax-advantaged through cost segregation and bonus depreciation.</p>
         </div>
         <div class="card">
           <h3>Energy</h3>
@@ -63,12 +63,45 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- CTA -->
+  <!-- Investor Club -->
   <section class="section">
+    <div class="container">
+      <div class="club-grid">
+        <div>
+          <span class="section-label">Investor Club</span>
+          <h2>Get access before the public</h2>
+          <p>Bidwell Capital offerings are available exclusively through our Investor Club under SEC Regulation D, Rule 506(b). That means our deals are not publicly advertised — they are shared directly with qualified members.</p>
+          <p style="margin-top: 1rem;">Club members get first look at new deals, access to our Deal Observer program to follow active positions in real time, monthly updates on portfolio performance, and direct access to our team.</p>
+          <p style="margin-top: 1rem;">Membership is free. We just need to verify that you qualify as an accredited investor through a short introductory call.</p>
+          <div style="margin-top: 2rem;">
+            <a href="/contact" class="btn btn-primary">Schedule a Qualification Call</a>
+          </div>
+          <p class="disclaimer" style="margin-top: 1.5rem;">Under SEC Rule 506(b), securities may only be offered to accredited investors and up to 35 sophisticated non-accredited investors. No general solicitation or advertising is permitted. All investors must be pre-qualified before receiving offering materials.</p>
+        </div>
+        <div class="club-perks">
+          <div class="card">
+            <h3>Early Deal Access</h3>
+            <p>See new opportunities before they close. Many of our deals fill quickly.</p>
+          </div>
+          <div class="card" style="margin-top: 1rem;">
+            <h3>Deal Observer</h3>
+            <p>Not ready to invest? Watch how our active deals perform with real monthly updates — no commitment required.</p>
+          </div>
+          <div class="card" style="margin-top: 1rem;">
+            <h3>Direct Communication</h3>
+            <p>No gatekeepers. You get direct access to our team and transparent reporting on every deal.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
       <span class="section-label">Get Started</span>
-      <h2>Interested in learning more?</h2>
-      <p style="margin: 1rem auto 2rem;">We work with accredited investors who want alternatives to traditional markets. Reach out to start a conversation.</p>
+      <h2>Ready to learn more?</h2>
+      <p style="margin: 1rem auto 2rem; max-width: 55ch;">Schedule a quick call to see if Bidwell Capital is the right fit. No pressure, no obligation — just a conversation about your goals.</p>
       <a href="/contact" class="btn btn-primary">Contact Us</a>
     </div>
   </section>
@@ -116,5 +149,19 @@ import Layout from '../layouts/Layout.astro';
   .stat-label {
     font-size: 0.875rem;
     color: var(--text-secondary);
+  }
+
+  .club-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  @media (min-width: 768px) {
+    .club-grid {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
   }
 </style>

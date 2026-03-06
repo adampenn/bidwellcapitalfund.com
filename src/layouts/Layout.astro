@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'Bidwell Capital Fund — Building generational wealth through real assets.' } = Astro.props;
+const { title, description = 'Bidwell Capital — Building generational wealth through real assets.' } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -65,16 +65,16 @@ const { title, description = 'Bidwell Capital Fund — Building generational wea
           <div class="footer-left">
             <img src="/logo-white.svg" alt="Bidwell Capital" class="footer-logo-img nav-logo-dark" />
             <img src="/logo-black.svg" alt="Bidwell Capital" class="footer-logo-img nav-logo-light" />
-            <p class="footer-copy">&copy; {new Date().getFullYear()} Bidwell Capital Fund. All rights reserved.</p>
+            <p class="footer-copy">&copy; {new Date().getFullYear()} Bidwell Capital. All rights reserved.</p>
           </div>
           <div class="footer-links">
-            <a href="https://adampenn.com" target="_blank" rel="noopener">adampenn.com</a>
+            <a href="https://www.wealthindependencepod.com/" target="_blank" rel="noopener">Podcast</a>
             <a href="/contact">Contact</a>
           </div>
         </div>
         <hr class="divider" style="margin: 1.5rem 0;" />
         <p class="disclaimer">
-          This website is for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. Any such offer will only be made through a Private Placement Memorandum or other appropriate offering document. Past performance is not indicative of future results. Investments involve risk, including the possible loss of principal. Bidwell Capital Fund offerings are available only to accredited investors as defined by SEC regulations.
+          This website is for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. Any such offer will only be made through a Private Placement Memorandum or other appropriate offering document. Past performance is not indicative of future results. Investments involve risk, including the possible loss of principal. Bidwell Capital offerings are available only to accredited investors as defined by SEC regulations.
         </p>
       </div>
     </footer>
@@ -107,7 +107,7 @@ const { title, description = 'Bidwell Capital Fund — Building generational wea
       }
 
       .nav-logo-img {
-        height: 2rem;
+        height: 3rem;
         width: auto;
         transition: opacity var(--transition);
       }
@@ -116,18 +116,18 @@ const { title, description = 'Bidwell Capital Fund — Building generational wea
         opacity: 0.8;
       }
 
-      /* Logo visibility: dark logo hidden by default (dark theme shows white) */
-      .nav-logo-light { display: none; }
-      .nav-logo-dark { display: block; }
+      /* Logo visibility: dark theme shows white logo */
+      .nav-logo-light { display: none !important; }
+      .nav-logo-dark { display: block !important; }
 
       /* Light theme: show black logo, hide white */
-      :global([data-theme="light"]) .nav-logo-light { display: block; }
-      :global([data-theme="light"]) .nav-logo-dark { display: none; }
+      [data-theme="light"] .nav-logo-light { display: block !important; }
+      [data-theme="light"] .nav-logo-dark { display: none !important; }
 
       /* System light preference (no explicit theme set) */
       @media (prefers-color-scheme: light) {
-        :global(:root:not([data-theme="dark"])) .nav-logo-light { display: block; }
-        :global(:root:not([data-theme="dark"])) .nav-logo-dark { display: none; }
+        :root:not([data-theme="dark"]) .nav-logo-light { display: block !important; }
+        :root:not([data-theme="dark"]) .nav-logo-dark { display: none !important; }
       }
 
       /* Nav right group */
@@ -161,12 +161,12 @@ const { title, description = 'Bidwell Capital Fund — Building generational wea
       .theme-icon-moon { display: none; }
       .theme-icon-sun { display: block; }
 
-      :global([data-theme="light"]) .theme-icon-moon { display: block; }
-      :global([data-theme="light"]) .theme-icon-sun { display: none; }
+      [data-theme="light"] .theme-icon-moon { display: block; }
+      [data-theme="light"] .theme-icon-sun { display: none; }
 
       @media (prefers-color-scheme: light) {
-        :global(:root:not([data-theme="dark"])) .theme-icon-moon { display: block; }
-        :global(:root:not([data-theme="dark"])) .theme-icon-sun { display: none; }
+        :root:not([data-theme="dark"]) .theme-icon-moon { display: block; }
+        :root:not([data-theme="dark"]) .theme-icon-sun { display: none; }
       }
 
       .nav-links {
