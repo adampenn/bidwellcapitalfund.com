@@ -129,6 +129,14 @@ import Layout from '../layouts/Layout.astro';
                 <span class="re-deal-stat-label">Rehabbed Unit Rent</span>
                 <span class="re-deal-stat-value rent-highlight">$725 &rarr; $1,250</span>
               </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Distribution</span>
+                <span class="re-deal-stat-value">Quarterly</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Current Yield</span>
+                <span class="re-deal-stat-value rent-highlight">5% Annual</span>
+              </div>
             </div>
             <div class="re-deal-description">
               <p>20-unit workforce housing community in Chico, CA. A portion of the units are undergoing full gut rehabs, repositioning them from $725/mo to $1,250/mo. The remaining units are being brought to market rents through operational improvements: normalizing leases, implementing RUBS for utility cost recovery, and maintaining high occupancy through active leasing.</p>
@@ -176,7 +184,7 @@ import Layout from '../layouts/Layout.astro';
               <h3>Memphis STR Portfolio</h3>
               <span class="re-deal-location">Memphis, TN</span>
             </div>
-            <span class="re-deal-status re-deal-active">Active</span>
+            <span class="re-deal-status re-deal-paused">Distributions Paused</span>
           </div>
           <div class="re-deal-body">
             <div class="re-deal-stats">
@@ -194,13 +202,15 @@ import Layout from '../layouts/Layout.astro';
               </div>
               <div class="re-deal-stat">
                 <span class="re-deal-stat-label">Distribution</span>
-                <span class="re-deal-stat-value">Quarterly</span>
+                <span class="re-deal-stat-value">Paused</span>
               </div>
             </div>
             <div class="re-deal-description">
-              <p>17-unit portfolio acquired and fully rehabbed, converted to short-term rentals. The properties were acquired, renovated, and are now operated as furnished rentals generating income from nightly and monthly bookings.</p>
+              <p>17-unit portfolio acquired and fully rehabbed, converted to furnished short-term rentals generating income from nightly and monthly bookings. Distributions are currently paused.</p>
             </div>
-            <div class="re-deal-photos" id="memphis-photos"></div>
+            <div class="re-deal-hero">
+              <img src="/photos/memphis/str-after.jpg" alt="Memphis STR unit - post rehab" loading="lazy" />
+            </div>
           </div>
         </article>
 
@@ -538,6 +548,11 @@ import Layout from '../layouts/Layout.astro';
   .re-deal-active {
     background: rgba(25, 135, 84, 0.12);
     color: #198754;
+  }
+
+  .re-deal-paused {
+    background: rgba(196, 138, 90, 0.15);
+    color: var(--accent);
   }
 
   .re-deal-loss {
