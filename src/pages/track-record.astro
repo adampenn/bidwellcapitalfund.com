@@ -692,6 +692,11 @@ import Layout from '../layouts/Layout.astro';
 
   .chart-card {
     padding: 1.5rem;
+    overflow: hidden;
+  }
+  .chart-card canvas {
+    max-width: 100%;
+    height: auto !important;
   }
   .chart-card h3 {
     font-size: 1.125rem;
@@ -704,6 +709,12 @@ import Layout from '../layouts/Layout.astro';
     margin-top: 0.75rem;
     font-size: 0.75rem;
     color: var(--text-secondary);
+  }
+
+  @media (max-width: 400px) {
+    .chart-card {
+      padding: 1rem;
+    }
   }
 
   .deal-cards {
@@ -821,11 +832,11 @@ import Layout from '../layouts/Layout.astro';
 
   const ASSET_COLORS = {
     'Multifamily': '#c48a5a',
-    'Industrial': '#7a9e7e',
-    'Retail': '#b8a078',
-    'Medical Office': '#8a7e6b',
-    'Manufactured Housing': '#9e8a6e',
-    'Student Housing': '#6e8a9e',
+    'Industrial': '#5a8f6e',
+    'Retail': '#d4a054',
+    'Medical Office': '#7b6b99',
+    'Manufactured Housing': '#c4785a',
+    'Student Housing': '#5a7fa0',
   };
 
   const POS_COLORS = {
