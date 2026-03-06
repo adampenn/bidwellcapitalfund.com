@@ -2,65 +2,128 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Track Record - Bidwell Capital" description="Private Commercial Credit Fund portfolio dashboard: deal-by-deal transparency.">
+<Layout title="Track Record - Bidwell Capital" description="Deal-by-deal transparency across all Bidwell Capital strategies.">
   <section class="hero-sm">
     <div class="container">
-      <span class="section-label fade-up fade-up-1">PCCF - One of Our Strategies</span>
-      <h1 class="fade-up fade-up-2">Private Commercial Credit Fund</h1>
-      <p class="fade-up fade-up-3">The PCCF is one of several strategies managed by Bidwell Capital. Below is the deal-by-deal breakdown of this portfolio, updated regularly. <a href="/about" style="color: var(--accent);">See all of our strategies &rarr;</a></p>
+      <span class="section-label fade-up fade-up-1">Track Record</span>
+      <h1 class="fade-up fade-up-2">Our strategies, transparently</h1>
+      <p class="fade-up fade-up-3">We believe in full transparency. Below is a look at our active strategies and their performance. <a href="/about" style="color: var(--accent);">Learn more about how we invest &rarr;</a></p>
     </div>
   </section>
 
-  <!-- KPIs -->
-  <section class="section" style="padding-top: 2rem;">
+  <!-- Company-wide stat -->
+  <section class="section" style="padding-top: 2rem; padding-bottom: 1rem;">
     <div class="container">
-      <div class="grid-3" id="kpi-grid">
+      <div class="grid-3">
         <div class="card stat-card">
-          <span class="stat-label">Portfolio Size</span>
-          <span class="stat-value" id="kpi-size">-</span>
+          <span class="stat-label">Total Distributed</span>
+          <span class="stat-value">$547,270</span>
         </div>
         <div class="card stat-card">
-          <span class="stat-label">Gross Yield</span>
-          <span class="stat-value" id="kpi-yield">-</span>
+          <span class="stat-label">Active Strategies</span>
+          <span class="stat-value">3</span>
         </div>
         <div class="card stat-card">
-          <span class="stat-label">Combined LTV/LTC</span>
-          <span class="stat-value" id="kpi-ltv">-</span>
+          <span class="stat-label">Investor Capital Raised</span>
+          <span class="stat-value">$10M+</span>
         </div>
       </div>
+      <p class="disclaimer" style="margin-top: 1rem; text-align: center;">Past performance is not indicative of future results. All investments carry risk, including loss of principal.</p>
     </div>
   </section>
 
-  <!-- Position Type Pills -->
-  <section style="padding: 0 0 1rem;">
-    <div class="container">
-      <div class="pills" id="pccf-pills"></div>
-    </div>
-  </section>
-
-  <!-- Charts -->
-  <section style="padding: 1rem 0 2rem;">
-    <div class="container">
-      <div class="grid-2" id="charts-grid">
-        <div class="card chart-card">
-          <h3>Portfolio Asset Mix</h3>
-          <canvas id="chart-asset" width="400" height="300"></canvas>
-          <div class="chart-legend" id="legend-asset"></div>
-        </div>
-        <div class="card chart-card">
-          <h3>Position Type Breakdown</h3>
-          <canvas id="chart-position" width="400" height="300"></canvas>
-          <div class="chart-legend" id="legend-pos"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Deal Cards -->
+  <!-- Strategy Tabs -->
   <section class="section" style="padding-top: 1rem;">
     <div class="container">
-      <span class="section-label">Active &amp; Completed Positions</span>
-      <div id="deal-cards" class="deal-cards"></div>
+      <div class="strategy-tabs" id="strategy-tabs">
+        <button class="strategy-tab active" data-tab="credit">Private Credit</button>
+        <button class="strategy-tab" data-tab="realestate">Multifamily Real Estate</button>
+        <button class="strategy-tab" data-tab="energy">Oil &amp; Gas</button>
+      </div>
+
+      <!-- Private Credit Panel -->
+      <div class="tab-panel active" id="panel-credit">
+        <div class="grid-3" style="margin-bottom: 2rem;" id="kpi-grid">
+          <div class="card stat-card">
+            <span class="stat-label">Portfolio Size</span>
+            <span class="stat-value" id="kpi-size">-</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Gross Yield</span>
+            <span class="stat-value" id="kpi-yield">-</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Combined LTV/LTC</span>
+            <span class="stat-value" id="kpi-ltv">-</span>
+          </div>
+        </div>
+
+        <div class="pills" id="pccf-pills" style="margin-bottom: 1.5rem;"></div>
+
+        <div class="grid-2" style="margin-bottom: 2rem;">
+          <div class="card chart-card">
+            <h3>Portfolio Asset Mix</h3>
+            <canvas id="chart-asset" width="400" height="300"></canvas>
+            <div class="chart-legend" id="legend-asset"></div>
+          </div>
+          <div class="card chart-card">
+            <h3>Position Type Breakdown</h3>
+            <canvas id="chart-position" width="400" height="300"></canvas>
+            <div class="chart-legend" id="legend-pos"></div>
+          </div>
+        </div>
+
+        <span class="section-label">Active &amp; Completed Positions</span>
+        <div id="deal-cards" class="deal-cards"></div>
+      </div>
+
+      <!-- Real Estate Panel -->
+      <div class="tab-panel" id="panel-realestate">
+        <div class="grid-3" style="margin-bottom: 2rem;">
+          <div class="card stat-card">
+            <span class="stat-label">Units Owned &amp; Managed</span>
+            <span class="stat-value">35+</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Distribution Frequency</span>
+            <span class="stat-value">Quarterly</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Tax Strategy</span>
+            <span class="stat-value">Cost Seg</span>
+          </div>
+        </div>
+        <div class="card" style="padding: 2rem;">
+          <h3 style="margin-bottom: 1rem;">Multifamily Real Estate</h3>
+          <p>Direct ownership and management of multifamily properties across Northern California. We generate cashflow through rental income and significant tax benefits through cost segregation and bonus depreciation.</p>
+          <p style="margin-top: 1rem;">Distributions are paid quarterly. Our portfolio includes 35+ units that we own and manage directly, giving us full operational control and alignment with our investors.</p>
+          <p style="margin-top: 1rem;">Interested in detailed performance data? Join our <a href="/contact" style="color: var(--accent);">Investor Club</a> or ask about our Deal Observer program to see real monthly updates.</p>
+        </div>
+      </div>
+
+      <!-- Energy Panel -->
+      <div class="tab-panel" id="panel-energy">
+        <div class="grid-3" style="margin-bottom: 2rem;">
+          <div class="card stat-card">
+            <span class="stat-label">Distribution Frequency</span>
+            <span class="stat-value">Monthly</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Tax Strategy</span>
+            <span class="stat-value">IDC</span>
+          </div>
+          <div class="card stat-card">
+            <span class="stat-label">Asset Correlation</span>
+            <span class="stat-value">Commodity</span>
+          </div>
+        </div>
+        <div class="card" style="padding: 2rem;">
+          <h3 style="margin-bottom: 1rem;">Oil &amp; Gas Working Interests</h3>
+          <p>Working interest positions in oil and gas operations. We invest alongside experienced operators and receive monthly distributions based on well production for that month.</p>
+          <p style="margin-top: 1rem;">These positions offer significant tax deductions through intangible drilling costs (IDC), which can often be deducted in the first year. The underlying asset is a commodity backed by real-world demand and correlated to long-term macro trends.</p>
+          <p style="margin-top: 1rem;">Interested in detailed performance data? Join our <a href="/contact" style="color: var(--accent);">Investor Club</a> or ask about our Deal Observer program to see real monthly updates.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -95,6 +158,52 @@ import Layout from '../layouts/Layout.astro';
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.06em;
+  }
+
+  /* Strategy Tabs */
+  .strategy-tabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    background: var(--bg-card);
+  }
+
+  .strategy-tab {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    border-right: 1px solid var(--border);
+  }
+
+  .strategy-tab:last-child {
+    border-right: none;
+  }
+
+  .strategy-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+  }
+
+  .strategy-tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
   }
 
   .pills {
@@ -170,6 +279,16 @@ import Layout from '../layouts/Layout.astro';
     :global(.deal-grid) {
       grid-template-columns: 1fr 1fr;
     }
+    .strategy-tabs {
+      flex-direction: column;
+    }
+    .strategy-tab {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .strategy-tab:last-child {
+      border-bottom: none;
+    }
   }
   :global(.deal-field) {
     display: flex;
@@ -199,6 +318,22 @@ import Layout from '../layouts/Layout.astro';
     margin-bottom: 0.25rem;
   }
 </style>
+
+<!-- Tab switching -->
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    var tabs = document.querySelectorAll('.strategy-tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        var panel = document.getElementById('panel-' + tab.getAttribute('data-tab'));
+        if (panel) panel.classList.add('active');
+      });
+    });
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
