@@ -2,10 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Track Record — Bidwell Capital" description="Private Commercial Credit Fund portfolio dashboard: deal-by-deal transparency.">
+<Layout title="Track Record - Bidwell Capital" description="Private Commercial Credit Fund portfolio dashboard: deal-by-deal transparency.">
   <section class="hero-sm">
     <div class="container">
-      <span class="section-label fade-up fade-up-1">PCCF — One of Our Strategies</span>
+      <span class="section-label fade-up fade-up-1">PCCF - One of Our Strategies</span>
       <h1 class="fade-up fade-up-2">Private Commercial Credit Fund</h1>
       <p class="fade-up fade-up-3">The PCCF is one of several strategies managed by Bidwell Capital. Below is the deal-by-deal breakdown of this portfolio, updated regularly. <a href="/about" style="color: var(--accent);">See all of our strategies &rarr;</a></p>
     </div>
@@ -17,15 +17,15 @@ import Layout from '../layouts/Layout.astro';
       <div class="grid-3" id="kpi-grid">
         <div class="card stat-card">
           <span class="stat-label">Portfolio Size</span>
-          <span class="stat-value" id="kpi-size">&mdash;</span>
+          <span class="stat-value" id="kpi-size">-</span>
         </div>
         <div class="card stat-card">
           <span class="stat-label">Gross Yield</span>
-          <span class="stat-value" id="kpi-yield">&mdash;</span>
+          <span class="stat-value" id="kpi-yield">-</span>
         </div>
         <div class="card stat-card">
           <span class="stat-label">Combined LTV/LTC</span>
-          <span class="stat-value" id="kpi-ltv">&mdash;</span>
+          <span class="stat-value" id="kpi-ltv">-</span>
         </div>
       </div>
     </div>
@@ -332,7 +332,7 @@ import Layout from '../layouts/Layout.astro';
         card.className = 'deal-card';
         card.innerHTML = `
           <div class="deal-header" style="background:${headerColor};">
-            <div><strong>${d.num || ''}</strong> &mdash; ${d.location || ''}</div>
+            <div><strong>${d.num || ''}</strong> - ${d.location || ''}</div>
             <div class="deal-tags">
               ${d.paidOff ? '<span class="deal-tag deal-tag-paid">Paid Off</span>' : ''}
               <span class="deal-tag">${d.asset || ''}</span>
