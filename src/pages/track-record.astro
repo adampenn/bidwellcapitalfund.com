@@ -81,24 +81,99 @@ import Layout from '../layouts/Layout.astro';
       <div class="tab-panel" id="panel-realestate">
         <div class="grid-3" style="margin-bottom: 2rem;">
           <div class="card stat-card">
-            <span class="stat-label">Units Owned &amp; Managed</span>
-            <span class="stat-value">35+</span>
+            <span class="stat-label">Total Units</span>
+            <span class="stat-value">37</span>
           </div>
           <div class="card stat-card">
-            <span class="stat-label">Distribution Frequency</span>
-            <span class="stat-value">Quarterly</span>
+            <span class="stat-label">Active Syndications</span>
+            <span class="stat-value">2</span>
           </div>
           <div class="card stat-card">
             <span class="stat-label">Tax Strategy</span>
             <span class="stat-value">Cost Seg</span>
           </div>
         </div>
-        <div class="card" style="padding: 2rem;">
-          <h3 style="margin-bottom: 1rem;">Multifamily Real Estate</h3>
-          <p>Direct ownership and management of multifamily properties across Northern California. We generate cashflow through rental income and significant tax benefits through cost segregation and bonus depreciation.</p>
-          <p style="margin-top: 1rem;">Distributions are paid quarterly. We own and manage directly, giving us full operational control and alignment with our investors.</p>
-          <p style="margin-top: 1rem;">Interested in detailed performance data? Join our <a href="/contact" style="color: var(--accent);">Investor Club</a> or ask about our Deal Observer program to see real monthly updates.</p>
-        </div>
+
+        <!-- Cherry St Apartments -->
+        <article class="re-deal-card">
+          <div class="re-deal-header">
+            <div>
+              <h3>Cherry St Apartments</h3>
+              <span class="re-deal-location">Chico, CA</span>
+            </div>
+            <span class="re-deal-status re-deal-active">Active</span>
+          </div>
+          <div class="re-deal-body">
+            <div class="re-deal-stats">
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Units</span>
+                <span class="re-deal-stat-value">20</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Acquired</span>
+                <span class="re-deal-stat-value">2025</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Rent at Closing</span>
+                <span class="re-deal-stat-value">$13,760/mo</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Rent Today</span>
+                <span class="re-deal-stat-value rent-highlight">$16,200/mo</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Rent Lift</span>
+                <span class="re-deal-stat-value rent-highlight">+18%</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Unit Type</span>
+                <span class="re-deal-stat-value">1-Bedroom</span>
+              </div>
+            </div>
+            <div class="re-deal-description">
+              <p>20-unit workforce housing community in Chico, CA. The strategy focuses on operational execution: normalizing rents to market, implementing RUBS for utility cost recovery, and maintaining high occupancy through active leasing. No heavy redevelopment - just disciplined management and incremental improvement.</p>
+              <p style="margin-top: 0.75rem;">Investors receive regular updates on leasing activity, rent collections, maintenance, and operational priorities.</p>
+            </div>
+            <div class="re-deal-photos" id="cherry-photos"></div>
+          </div>
+        </article>
+
+        <!-- Memphis STR Portfolio -->
+        <article class="re-deal-card" style="margin-top: 1.5rem;">
+          <div class="re-deal-header">
+            <div>
+              <h3>Memphis STR Portfolio</h3>
+              <span class="re-deal-location">Memphis, TN</span>
+            </div>
+            <span class="re-deal-status re-deal-active">Active</span>
+          </div>
+          <div class="re-deal-body">
+            <div class="re-deal-stats">
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Units</span>
+                <span class="re-deal-stat-value">17</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Acquired</span>
+                <span class="re-deal-stat-value">2023</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Strategy</span>
+                <span class="re-deal-stat-value">Rehab to STR</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Distribution</span>
+                <span class="re-deal-stat-value">Quarterly</span>
+              </div>
+            </div>
+            <div class="re-deal-description">
+              <p>17-unit portfolio acquired and fully rehabbed, converted to short-term rentals. The properties were acquired, renovated, and are now operated as furnished rentals generating income from nightly and monthly bookings.</p>
+            </div>
+            <div class="re-deal-photos" id="memphis-photos"></div>
+          </div>
+        </article>
+
+        <p class="disclaimer" style="margin-top: 1.5rem;">Distribution schedules are targets and not guaranteed. Actual results may vary. Nothing on this page constitutes tax advice - consult your own advisor.</p>
       </div>
 
       <!-- Energy Panel -->
@@ -204,6 +279,102 @@ import Layout from '../layouts/Layout.astro';
 
   .tab-panel.active {
     display: block;
+  }
+
+  /* Real Estate Deal Cards */
+  .re-deal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .re-deal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .re-deal-header h3 {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+
+  .re-deal-location {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .re-deal-status {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.3em 0.75em;
+    border-radius: 999px;
+  }
+
+  .re-deal-active {
+    background: rgba(25, 135, 84, 0.12);
+    color: #198754;
+  }
+
+  .re-deal-body {
+    padding: 1.5rem;
+  }
+
+  .re-deal-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .re-deal-stats {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  .re-deal-stat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .re-deal-stat-label {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.2rem;
+  }
+
+  .re-deal-stat-value {
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .rent-highlight {
+    color: var(--accent);
+  }
+
+  .re-deal-description {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .re-deal-photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .re-deal-photos:empty {
+    display: none;
   }
 
   .pills {
