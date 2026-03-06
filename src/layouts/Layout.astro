@@ -22,10 +22,7 @@ const { title, description = 'Bidwell Capital - Building generational wealth thr
     <script is:inline>
       (function() {
         const stored = localStorage.getItem('theme');
-        if (stored) {
-          document.documentElement.setAttribute('data-theme', stored);
-        }
-        // If no stored preference, system preference is handled by CSS
+        document.documentElement.setAttribute('data-theme', stored || 'light');
       })();
     </script>
   </head>
