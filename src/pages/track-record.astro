@@ -134,7 +134,37 @@ import Layout from '../layouts/Layout.astro';
               <p>20-unit workforce housing community in Chico, CA. The strategy focuses on operational execution: normalizing rents to market, implementing RUBS for utility cost recovery, and maintaining high occupancy through active leasing. No heavy redevelopment - just disciplined management and incremental improvement.</p>
               <p style="margin-top: 0.75rem;">Investors receive regular updates on leasing activity, rent collections, maintenance, and operational priorities.</p>
             </div>
-            <div class="re-deal-photos" id="cherry-photos"></div>
+            <!-- Property Exterior -->
+            <div class="re-deal-hero">
+              <img src="/photos/cherry/exterior.jpg" alt="Cherry St Apartments - Chico, CA" loading="lazy" />
+            </div>
+
+            <!-- Before & After -->
+            <div class="before-after-section">
+              <span class="section-label" style="margin-bottom: 1rem;">Before &amp; After</span>
+              <div class="before-after-grid">
+                <div class="ba-pair">
+                  <div class="ba-img">
+                    <span class="ba-label ba-before">Before</span>
+                    <img src="/photos/cherry/before-kitchen.jpg" alt="Kitchen before renovation" loading="lazy" />
+                  </div>
+                  <div class="ba-img">
+                    <span class="ba-label ba-after">After</span>
+                    <img src="/photos/cherry/after-kitchen.jpg" alt="Kitchen after renovation" loading="lazy" />
+                  </div>
+                </div>
+                <div class="ba-pair">
+                  <div class="ba-img">
+                    <span class="ba-label ba-before">Before</span>
+                    <img src="/photos/cherry/before-bathroom.jpg" alt="Bathroom before renovation" loading="lazy" />
+                  </div>
+                  <div class="ba-img">
+                    <span class="ba-label ba-after">After</span>
+                    <img src="/photos/cherry/after-bathroom.jpg" alt="Bathroom after renovation" loading="lazy" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </article>
 
@@ -371,6 +401,71 @@ import Layout from '../layouts/Layout.astro';
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
     margin-top: 1.5rem;
+  }
+
+  .re-deal-hero {
+    margin-top: 1.5rem;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .re-deal-hero img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .before-after-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .before-after-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .ba-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .ba-img {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .ba-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ba-label {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.25em 0.6em;
+    border-radius: var(--radius-sm);
+  }
+
+  .ba-before {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+  }
+
+  .ba-after {
+    background: var(--accent);
+    color: #fff;
   }
 
   .re-deal-photos:empty {
