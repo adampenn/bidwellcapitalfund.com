@@ -25,6 +25,20 @@ const { title, description = 'Bidwell Capital - Building generational wealth thr
         document.documentElement.setAttribute('data-theme', stored || 'light');
       })();
     </script>
+
+    <!-- Redirect old WordPress links -->
+    <script is:inline>
+      (function() {
+        var defined_redirects = {
+          '213': '/track-record'
+        };
+        var params = new URLSearchParams(window.location.search);
+        var pageId = params.get('page_id');
+        if (pageId && defined_redirects[pageId]) {
+          window.location.replace(defined_redirects[pageId]);
+        }
+      })();
+    </script>
   </head>
   <body>
     <nav class="nav">
