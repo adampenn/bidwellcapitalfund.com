@@ -1,0 +1,295 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const cpaQuestions = [
+  {
+    category: 'Background & Philosophy',
+    questions: [
+      'Can you describe your typical client profile and how you tailor your approach to each client?',
+      'How would you describe your role \u2014 a traditional tax preparer or a proactive tax strategist and advisor?',
+      'How do you stay up to date with changing tax laws, particularly around real estate, oil & gas, and the private investment space?',
+      "What\u2019s your philosophy on balancing aggressive tax planning with audit risk and long-term compliance?",
+      'How do you measure success in your client relationships beyond just filing returns?',
+    ],
+  },
+  {
+    category: 'Client Relationship & Communication',
+    questions: [
+      'How often do you meet or check in with clients outside of tax season?',
+      'Do you schedule mid-year and year-end planning sessions to optimize tax outcomes before filing time?',
+      "How do you ensure clients understand the strategies you\u2019re implementing and their long-term impact?",
+      'What systems do you have for communication and document sharing (portals, secure uploads, etc.)?',
+    ],
+  },
+  {
+    category: 'Real Estate & Active Income Strategies',
+    questions: [
+      'How familiar are you with Real Estate Professional Status (REPS) and how it interacts with W-2 income?',
+      'Can you explain the short-term rental (STR) \u201cloophole\u201d and how it can offset W-2 or active income?',
+      'How do you help clients substantiate material participation for IRS standards?',
+      'Have you guided clients through cost segregation studies or accelerated depreciation planning?',
+      'What is your experience helping clients transition from W-2 to real estate professional status over time?',
+    ],
+  },
+  {
+    category: 'Oil & Gas and Alternative Investments',
+    questions: [
+      "What\u2019s your experience with intangible drilling costs (IDC) and tangible depreciation in oil & gas deals?",
+      'For CA clients: How do you handle state differences, like California\u2019s IDC amortization rules vs. federal treatment?',
+      'Are you familiar with K-1 reporting from private placements?',
+      'What other alternative or tax-advantaged investments do you typically recommend or support?',
+    ],
+  },
+  {
+    category: 'Proactive Tax Strategy & Coordination',
+    questions: [
+      'How do you collaborate with attorneys, financial advisors, or bookkeepers to ensure a cohesive plan?',
+      'Can you walk me through your process for identifying and implementing new tax strategies each year?',
+      "What are some common mistakes you\u2019ve found when reviewing prior client returns?",
+      'What strategies have you found too risky to recommend, and why?',
+      "Can you give examples of clients where you\u2019ve amended returns to capture missed deductions or benefits?",
+    ],
+  },
+  {
+    category: 'Fees, Capacity & Fit',
+    questions: [
+      'What is your typical pricing model for someone with a W-2 income and a few investment properties or private placement K-1s?',
+      'Are planning sessions or advisory calls included, or billed separately?',
+      'How do you handle workload and client support during the busy tax season?',
+      'Can you provide a couple of client references?',
+    ],
+  },
+  {
+    category: 'Forward Planning & Education',
+    questions: [
+      'How do you help clients plan for major financial events \u2014 property sales, business formation, or large investments?',
+      'How do you stay educated on emerging tax law (e.g., bonus depreciation phase-outs, SECURE Act updates)?',
+      'What are the next steps if we want to start with a review of my prior return or set up a tax plan before the next filing season?',
+    ],
+  },
+];
+---
+
+<Layout title="Resources - Bidwell Capital" description="Guides, tools, and resources for private investors from Bidwell Capital.">
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">Resources</span>
+      <h1 class="fade-up fade-up-2">Investor resources</h1>
+      <p class="fade-up fade-up-3">Practical tools and guides to help you make better decisions with your capital.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+
+      <!-- Resource Card: CPA Questions -->
+      <div class="resource-card card fade-up fade-up-4">
+        <div class="resource-header">
+          <div class="resource-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div class="resource-meta">
+            <span class="badge">Guide</span>
+            <h2>CPA Interview Questions for Investors</h2>
+            <p>30 questions designed to identify a CPA who acts as a proactive advisor &mdash; especially for investors looking to minimize tax liability through real estate, oil & gas, or other private placements.</p>
+          </div>
+          <a href="/resources/cpa-interview-questions.pdf" target="_blank" rel="noopener" class="btn btn-primary download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </a>
+        </div>
+      </div>
+
+      <!-- On-page expandable content -->
+      <div class="questions-content">
+        <h3 class="questions-title">Preview the questions</h3>
+        <p class="questions-intro">Click any category below to see the questions, or download the branded PDF above to bring to your next CPA meeting.</p>
+
+        <div class="category-list">
+          {cpaQuestions.map((section) => (
+            <details class="category-item">
+              <summary class="category-name">{section.category}</summary>
+              <ol class="question-list">
+                {section.questions.map((q) => (
+                  <li class="question-item">{q}</li>
+                ))}
+              </ol>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="resources-cta">
+        <p>Have a resource you think we should create? We are always looking for ways to help our investors make better decisions.</p>
+        <a href="/contact" class="btn btn-outline">Suggest a Resource</a>
+      </div>
+
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero-sm {
+    padding: 5rem 0 2rem;
+  }
+  .hero-sm h1 { margin: 0.5rem 0 1rem; }
+  .hero-sm p { font-size: 1.125rem; max-width: 60ch; }
+
+  /* Resource card */
+  .resource-card {
+    padding: 2rem;
+  }
+
+  .resource-card:hover {
+    transform: none;
+  }
+
+  .resource-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 1.5rem;
+  }
+
+  .resource-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    background: var(--accent-subtle);
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .resource-meta {
+    min-width: 0;
+  }
+
+  .resource-meta .badge {
+    margin-bottom: 0.5rem;
+  }
+
+  .resource-meta h2 {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    margin-bottom: 0.5rem;
+  }
+
+  .resource-meta p {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+
+  .download-btn {
+    flex-shrink: 0;
+    align-self: center;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .resource-header {
+      grid-template-columns: 1fr;
+    }
+
+    .resource-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .download-btn {
+      justify-self: start;
+    }
+  }
+
+  /* Questions content */
+  .questions-content {
+    margin-top: 3rem;
+    max-width: 48rem;
+  }
+
+  .questions-title {
+    margin-bottom: 0.5rem;
+  }
+
+  .questions-intro {
+    font-size: 0.9375rem;
+    margin-bottom: 2rem;
+  }
+
+  .category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .category-item {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 0;
+  }
+
+  .category-item:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  .category-name {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .category-name::-webkit-details-marker {
+    display: none;
+  }
+
+  .category-name::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  details[open] .category-name::after {
+    content: '\2212';
+  }
+
+  .question-list {
+    margin-top: 1rem;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .question-item {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    padding-left: 0.25rem;
+  }
+
+  .question-item::marker {
+    color: var(--accent);
+    font-size: 0.875rem;
+  }
+
+  /* CTA */
+  .resources-cta {
+    text-align: center;
+  }
+
+  .resources-cta p {
+    margin: 0 auto 1.5rem;
+    max-width: 50ch;
+  }
+</style>
