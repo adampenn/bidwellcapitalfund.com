@@ -73,10 +73,6 @@
             <input type="date" id="inp-start" />
           </div>
           <div class="field">
-            <label for="inp-wells">Number of Wells</label>
-            <input type="number" id="inp-wells" min="1" max="50" value="10" />
-          </div>
-          <div class="field">
             <label for="inp-mode">Drilling Mode</label>
             <select id="inp-mode">
               <option value="sequential">Sequential</option>
@@ -165,6 +161,33 @@
         </div>
 
       </div>
+
+      <!-- Well List -->
+      <div class="well-list-section">
+        <div class="well-list-header">
+          <h3 class="control-group-title" style="margin-bottom:0;">Wells</h3>
+          <div class="well-list-actions">
+            <input type="number" id="inp-quick-wells" min="1" max="50" value="10" style="width:50px;padding:0.2rem 0.35rem;border:1px solid #d5d5dc;border-radius:5px;font-size:0.75rem;text-align:center;" />
+            <button id="btn-set-wells" class="btn-sm">Set Wells</button>
+            <button id="btn-add-well" class="btn-sm">+ 1</button>
+            <button id="btn-clear-wells" class="btn-sm btn-sm-muted">Clear</button>
+          </div>
+        </div>
+        <div class="well-list-table-wrap">
+          <table class="well-list-table">
+            <thead>
+              <tr>
+                <th style="width:30px;">#</th>
+                <th>Well Name</th>
+                <th style="width:100px;">Rig</th>
+                <th style="width:30px;"></th>
+              </tr>
+            </thead>
+            <tbody id="well-list-body"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -508,6 +531,60 @@ body {
   margin-right: 0.45rem; vertical-align: middle;
 }
 
+/* ---- Well List ---- */
+.well-list-section {
+  margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #ececf0;
+}
+.well-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.well-list-actions { display: flex; gap: 0.35rem; }
+.btn-sm {
+  padding: 0.25rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  background: #fff; font-size: 0.6875rem; font-family: inherit; font-weight: 500;
+  color: #3a3a4a; cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.btn-sm-muted { color: #9b9ba8; }
+.btn-sm-muted:hover { color: #dc2626; border-color: #dc2626; }
+.well-list-table-wrap {
+  max-height: 320px; overflow-y: auto; border: 1px solid #e5e5ea;
+  border-radius: 8px; background: #fff;
+}
+.well-list-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.well-list-table thead th {
+  position: sticky; top: 0; background: #fafafc; text-align: left;
+  padding: 0.4rem 0.5rem; font-size: 0.625rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em; color: #9b9ba8;
+  border-bottom: 1px solid #e5e5ea;
+}
+.well-list-table tbody td {
+  padding: 0.25rem 0.5rem; border-bottom: 1px solid #f0f0f4;
+}
+.well-list-table tbody td:first-child {
+  font-size: 0.6875rem; color: #9b9ba8; text-align: center;
+}
+.well-list-table .well-name-input {
+  width: 100%; border: 1px solid transparent; border-radius: 4px;
+  padding: 0.25rem 0.4rem; font-size: 0.8125rem; font-family: inherit;
+  background: transparent; outline: none; transition: border-color 0.15s;
+}
+.well-list-table .well-name-input:focus {
+  border-color: #3b82f6; background: #fff;
+}
+.well-list-table .well-rig-select {
+  width: 100%; border: 1px solid #e5e5ea; border-radius: 4px;
+  padding: 0.2rem 0.3rem; font-size: 0.75rem; font-family: inherit;
+  background: #fff; outline: none; cursor: pointer;
+}
+.well-list-table .well-rig-select:focus { border-color: #3b82f6; }
+.btn-remove-well {
+  border: none; background: none; color: #d5d5dc; font-size: 1rem;
+  cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; transition: color 0.15s;
+}
+.btn-remove-well:hover { color: #dc2626; }
+
 /* ---- Info Cards (Cashflow & Tax) ---- */
 .info-card {
   background: #fff; border: 1px solid #e5e5ea; border-radius: 10px;
@@ -784,7 +861,6 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
   var outputEl = document.getElementById('output');
 
   var inpStart = document.getElementById('inp-start');
-  var inpWells = document.getElementById('inp-wells');
   var inpMode = document.getElementById('inp-mode');
   var inpOverlap = document.getElementById('inp-overlap');
   var overlapField = document.getElementById('overlap-field');
@@ -818,6 +894,73 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
      ========================================================== */
 
   var generatedData = null;
+
+  /* ==========================================================
+     WELL LIST MANAGEMENT
+     ========================================================== */
+
+  var wellListBody = document.getElementById('well-list-body');
+  var btnAddWell = document.getElementById('btn-add-well');
+  var btnSetWells = document.getElementById('btn-set-wells');
+  var inpQuickWells = document.getElementById('inp-quick-wells');
+  var btnClearWells = document.getElementById('btn-clear-wells');
+
+  function getWellList() {
+    var rows = wellListBody.querySelectorAll('tr');
+    var list = [];
+    for (var i = 0; i < rows.length; i++) {
+      var nameInput = rows[i].querySelector('.well-name-input');
+      var rigSelect = rows[i].querySelector('.well-rig-select');
+      list.push({
+        name: nameInput.value.trim() || ('Well ' + (i + 1)),
+        rig: parseInt(rigSelect.value) || 1
+      });
+    }
+    return list;
+  }
+
+  function addWellRow(name, rig) {
+    var idx = wellListBody.querySelectorAll('tr').length + 1;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + idx + '</td>' +
+      '<td><input type="text" class="well-name-input" value="' + escapeAttr(name || ('Well ' + idx)) + '" placeholder="Well ' + idx + '" /></td>' +
+      '<td><select class="well-rig-select">' +
+        '<option value="1"' + (rig === 1 || !rig ? ' selected' : '') + '>Rig 1</option>' +
+        '<option value="2"' + (rig === 2 ? ' selected' : '') + '>Rig 2</option>' +
+        '<option value="3"' + (rig === 3 ? ' selected' : '') + '>Rig 3</option>' +
+      '</select></td>' +
+      '<td><button class="btn-remove-well" title="Remove">&times;</button></td>';
+    tr.querySelector('.btn-remove-well').addEventListener('click', function() {
+      tr.remove();
+      renumberWells();
+    });
+    wellListBody.appendChild(tr);
+  }
+
+  function renumberWells() {
+    var rows = wellListBody.querySelectorAll('tr');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].querySelector('td:first-child').textContent = i + 1;
+    }
+  }
+
+  function populateDefaultWells(count) {
+    wellListBody.innerHTML = '';
+    for (var i = 0; i < count; i++) {
+      addWellRow('Well ' + (i + 1), 1);
+    }
+  }
+
+  btnAddWell.addEventListener('click', function() { addWellRow(); });
+  btnSetWells.addEventListener('click', function() {
+    var count = Math.max(1, Math.min(50, parseInt(inpQuickWells.value) || 10));
+    populateDefaultWells(count);
+  });
+  btnClearWells.addEventListener('click', function() {
+    wellListBody.innerHTML = '';
+    addWellRow('Well 1', 1);
+  });
 
   /* ==========================================================
      AUTH MODULE
@@ -862,7 +1005,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
   function populateDefaults() {
     inpStart.value = toDateInputValue(new Date());
-    inpWells.value = 10;
+    populateDefaultWells(10);
     inpMode.value = 'sequential';
     inpOverlap.value = 4;
     inpBuffer.value = 0;
@@ -908,19 +1051,21 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
   function generateSchedule() {
     var startDate = parseDateInput(inpStart.value);
-    var numWells = Math.max(1, parseInt(inpWells.value) || 1);
+    var wellDefs = getWellList();
+    var numWells = wellDefs.length;
     var mode = inpMode.value;
     var overlapOffset = Math.max(1, parseInt(inpOverlap.value) || 4);
     var globalBuffer = Math.max(0, parseInt(inpBuffer.value) || 0);
     var a = getAssumptionsFromUI();
 
     if (numWells < 1) {
-      alert('Please enter at least 1 well.');
+      alert('Please add at least 1 well.');
       return null;
     }
 
     var projectPhases = [];
     var wells = [];
+    var wellNames = [];
     var allBars = [];
     var cursor = new Date(startDate);
 
@@ -955,16 +1100,33 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     var facilitiesStart = null;
     var facilitiesEnd = null;
 
+    // Group wells by rig for scheduling
+    var rigWells = {}; // { rigNum: [wellIndex, ...] }
+    for (var rw = 0; rw < wellDefs.length; rw++) {
+      var rigNum = wellDefs[rw].rig;
+      if (!rigWells[rigNum]) rigWells[rigNum] = [];
+      rigWells[rigNum].push(rw);
+    }
+
+    // Track the previous well on each rig for sequencing
+    var rigPrevWell = {}; // { rigNum: wellIndex of last scheduled well }
+
     // First pass: drilling and completion prep for all wells
+    // Process in well order, but sequence within each rig
     for (var w = 0; w < numWells; w++) {
-      var wellName = 'Well ' + (w + 1);
+      var wellName = wellDefs[w].name;
+      var wellRig = wellDefs[w].rig;
+      wellNames.push(wellName);
       var wellPhases = [];
       var wellCursor;
 
-      if (w === 0) {
+      var prevOnRig = rigPrevWell[wellRig];
+
+      if (prevOnRig === undefined) {
+        // First well on this rig — starts at drillingStartBase
         wellCursor = new Date(drillingStartBase);
       } else if (mode === 'sequential') {
-        var prevWell = wells[w - 1];
+        var prevWell = wells[prevOnRig];
         var prevLastDrilling = null;
         for (var p = 0; p < prevWell.length; p++) {
           if (drillingPhaseKeys.indexOf(prevWell[p].key) !== -1) {
@@ -973,9 +1135,11 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
         }
         wellCursor = addDays(prevLastDrilling.end, 1);
       } else {
-        var prevWellStart = wells[w - 1][0].start;
+        var prevWellStart = wells[prevOnRig][0].start;
         wellCursor = addDays(prevWellStart, overlapOffset);
       }
+
+      rigPrevWell[wellRig] = w;
 
       for (var d = 0; d < drillingPhaseKeys.length; d++) {
         var key = drillingPhaseKeys[d];
@@ -1020,7 +1184,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
     // Frac and post-frac phases per well
     for (var w2 = 0; w2 < numWells; w2++) {
-      var wellName2 = 'Well ' + (w2 + 1);
+      var wellName2 = wellNames[w2];
       var wellPhases2 = wells[w2];
       var lastCompletionPrep = null;
 
@@ -1107,7 +1271,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     for (var wf = 0; wf < wells.length; wf++) {
       for (var wfp = 0; wfp < wells[wf].length; wfp++) {
         if (wells[wf][wfp].key === 'flowback') {
-          wellFlowbackDates.push({ well: 'Well ' + (wf + 1), date: wells[wf][wfp].start });
+          wellFlowbackDates.push({ well: wellNames[wf], date: wells[wf][wfp].start });
           break;
         }
       }
@@ -1123,7 +1287,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
           if (!spud || wells[ws][wsp].start < spud) spud = wells[ws][wsp].start;
         }
       }
-      wellSpudDates.push({ well: 'Well ' + (ws + 1), date: spud });
+      wellSpudDates.push({ well: wellNames[ws], date: spud });
     }
 
     var firstSpudDate = null;
@@ -1209,6 +1373,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       finalStabilizedDate: projectEnd,
       projectPhases: projectPhases,
       wells: wells,
+      wellNames: wellNames,
       allBars: allBars,
       assumptions: a,
       // Cashflow
@@ -1509,7 +1674,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
         rows.push({ type: 'phase', label: 'Project', bars: data.projectPhases, isProject: true });
       }
       for (var sw = 0; sw < data.wells.length; sw++) {
-        rows.push({ type: 'phase', label: 'Well ' + (sw + 1), bars: data.wells[sw], isSummary: true });
+        rows.push({ type: 'phase', label: data.wellNames[sw], bars: data.wells[sw], isSummary: true });
       }
     } else {
       // Detailed view
@@ -1520,8 +1685,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
         }
       }
       for (var w = 0; w < data.wells.length; w++) {
-        var wellName = 'Well ' + (w + 1);
-        rows.push({ type: 'header', label: wellName, bars: [] });
+        rows.push({ type: 'header', label: data.wellNames[w], bars: [] });
         var phases = data.wells[w];
         for (var p = 0; p < phases.length; p++) {
           rows.push({ type: 'phase', label: phases[p].name, bars: [phases[p]] });
@@ -1706,12 +1870,12 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     }
 
     for (var w = 0; w < data.wells.length; w++) {
-      var wellName = 'Well ' + (w + 1);
-      html += '<tr class="well-divider"><td colspan="5">' + wellName + '</td></tr>';
+      var wn = data.wellNames[w];
+      html += '<tr class="well-divider"><td colspan="5">' + wn + '</td></tr>';
       var phases = data.wells[w];
       for (var ph = 0; ph < phases.length; ph++) {
         var phase = phases[ph];
-        html += '<tr><td>' + wellName + '</td><td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td><td>' + formatDate(phase.start) + '</td><td>' + formatDate(phase.end) + '</td><td>' + phase.duration + 'd</td></tr>';
+        html += '<tr><td>' + wn + '</td><td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td><td>' + formatDate(phase.start) + '</td><td>' + formatDate(phase.end) + '</td><td>' + phase.duration + 'd</td></tr>';
       }
     }
 
@@ -1800,10 +1964,9 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     }
 
     for (var w = 0; w < d.wells.length; w++) {
-      var wellName = 'Well ' + (w + 1);
       for (var ph = 0; ph < d.wells[w].length; ph++) {
         var phase = d.wells[w][ph];
-        lines.push(wellName + ',"' + phase.name + '",' + formatDate(phase.start) + ',' + formatDate(phase.end) + ',' + phase.duration);
+        lines.push('"' + d.wellNames[w] + '","' + phase.name + '",' + formatDate(phase.start) + ',' + formatDate(phase.end) + ',' + phase.duration);
       }
     }
 
@@ -1842,12 +2005,11 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       '----------------------------------------\n';
 
     for (var w = 0; w < d.wells.length; w++) {
-      var wellName = 'Well ' + (w + 1);
       var phases = d.wells[w];
       if (phases.length > 0) {
         var wellStart = phases[0].start;
         var wellEnd = phases[phases.length - 1].end;
-        text += wellName + ': ' + formatDate(wellStart) + ' — ' + formatDate(wellEnd) + '\n';
+        text += d.wellNames[w] + ': ' + formatDate(wellStart) + ' — ' + formatDate(wellEnd) + '\n';
       }
     }
 
