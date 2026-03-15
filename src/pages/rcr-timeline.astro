@@ -140,9 +140,33 @@
             </div>
           </div>
           <div class="well-list-table-wrap">
+            <div class="bulk-edit-bar" id="bulk-edit-bar" style="display:none;">
+              <span class="bulk-sel-count" id="bulk-sel-count">0 selected</span>
+              <label class="bulk-field">Rig
+                <select id="bulk-rig">
+                  <option value="">—</option>
+                  <option value="1">Rig 1</option><option value="2">Rig 2</option><option value="3">Rig 3</option>
+                </select>
+              </label>
+              <label class="bulk-field">Type
+                <select id="bulk-type">
+                  <option value="">—</option>
+                  <option value="gas">Gas</option><option value="water">Water</option>
+                </select>
+              </label>
+              <label class="bulk-field">Cost ($)
+                <input type="number" id="bulk-cost" placeholder="—" min="0" step="1000" />
+              </label>
+              <label class="bulk-field">WI (%)
+                <input type="number" id="bulk-wi" placeholder="—" min="0" max="100" step="0.001" />
+              </label>
+              <button id="bulk-apply" class="btn-sm">Apply</button>
+              <button id="bulk-delete" class="btn-sm btn-sm-danger">Delete</button>
+            </div>
             <table class="well-list-table">
               <thead>
                 <tr>
+                  <th style="width:28px;"><input type="checkbox" id="well-select-all" title="Select all" /></th>
                   <th style="width:28px;">#</th>
                   <th style="min-width:120px;">Well Name</th>
                   <th style="width:70px;">Rig</th>
@@ -679,6 +703,20 @@ body {
 .btn-sm:hover { border-color: #1a1a2e; color: #1a1a2e; }
 .btn-sm-muted { color: #9b9ba8; }
 .btn-sm-muted:hover { color: #dc2626; border-color: #dc2626; }
+.bulk-edit-bar {
+  display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem;
+  background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px;
+  margin-bottom: 0.5rem; flex-wrap: wrap; font-size: 0.8125rem;
+}
+.bulk-sel-count { font-weight: 600; color: #4338ca; margin-right: 0.25rem; white-space: nowrap; }
+.bulk-field { display: flex; align-items: center; gap: 0.25rem; color: #555; font-size: 0.75rem; white-space: nowrap; }
+.bulk-field select, .bulk-field input {
+  padding: 0.2rem 0.35rem; border: 1px solid #c7d2fe; border-radius: 4px;
+  font-size: 0.8125rem; background: #fff; width: 80px;
+}
+.btn-sm-danger { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fca5a5 !important; }
+.btn-sm-danger:hover { background: #fecaca !important; }
+.well-main-row.bulk-selected { background: #eef2ff; }
 .well-list-table-wrap {
   max-height: 320px; overflow-y: auto; border: 1px solid #e5e5ea;
   border-radius: 8px; background: #fff;
@@ -1083,20 +1121,44 @@ body {
 .pdf-gantt-container { overflow: visible; margin: 1.5rem 0; }
 
 /* ---- Print Styles ---- */
+@page { size: landscape; margin: 0.5in; }
 @media print {
-  .no-print { display: none !important; }
+  html, body { width: 100% !important; margin: 0 !important; padding: 0 !important;
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+    color-adjust: exact !important; font-size: 11px; }
+  /* Hide everything except the PDF overlay */
+  #app { display: none !important; }
   #auth-screen { display: none !important; }
-  .app-header { display: none !important; }
-  .app-footer { display: none !important; }
-  .output-section { padding: 0; }
-  .gantt-container { overflow: visible !important; border: 1px solid #ccc; break-inside: avoid; }
+  .no-print { display: none !important; }
+  /* Show the overlay as normal flow (not fixed) */
+  #pdf-overlay { display: block !important; position: static !important;
+    overflow: visible !important; background: #fff !important; }
+  .pdf-content { max-width: 100% !important; padding: 0 !important; }
+  .pdf-header { margin-bottom: 1rem; padding-bottom: 0.75rem; }
+  .pdf-brand { font-size: 0.9rem; }
+  .pdf-title { font-size: 1.3rem; }
+  .pdf-subtitle { font-size: 0.75rem; }
+  /* Gantt chart: fit to page width with horizontal scaling */
+  .pdf-gantt-container { overflow: visible !important; margin: 1rem 0;
+    break-inside: avoid; page-break-inside: avoid; }
+  .gantt-container { overflow: visible !important; border: 1px solid #ccc;
+    break-inside: avoid; page-break-inside: avoid;
+    max-width: 100% !important; transform-origin: top left; }
   .gantt-chart-area { overflow: visible !important; }
-  .schedule-table { font-size: 0.65rem; }
-  .schedule-table tbody td { padding: 0.25rem 0.5rem; }
-  body { font-size: 12px; }
-  .section-heading { font-size: 1.1rem; }
-  .summary-card { break-inside: avoid; }
-  .table-section { break-before: page; }
+  .gantt-scroll { overflow: visible !important; }
+  /* Summary */
+  .summary-card { break-inside: avoid; page-break-inside: avoid; }
+  .summary-item { font-size: 0.7rem; }
+  /* Info cards */
+  .info-card { break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.75rem; }
+  /* Table */
+  .schedule-table { font-size: 0.6rem; break-before: page; page-break-before: always; }
+  .schedule-table thead th { padding: 0.2rem 0.35rem; font-size: 0.55rem; }
+  .schedule-table tbody td { padding: 0.2rem 0.35rem; }
+  /* Proforma tables */
+  .proforma-fund-summary { break-inside: avoid; page-break-inside: avoid; }
+  .proforma-fund-cell { font-size: 0.5rem !important; padding: 0.2rem 0.15rem !important; }
+  .proforma-fund-label { font-size: 0.55rem !important; }
 }
 
 /* ---- Compact mode ---- */

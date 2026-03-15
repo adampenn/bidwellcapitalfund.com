@@ -186,6 +186,7 @@
     var tr = document.createElement('tr');
     tr.className = 'well-main-row';
     tr.innerHTML =
+      '<td><input type="checkbox" class="well-select-cb" /></td>' +
       '<td>' + idx + '</td>' +
       '<td><input type="text" class="well-name-input" value="' + escapeAttr(name) + '" placeholder="Well ' + idx + '" /></td>' +
       '<td><select class="well-rig-select">' +
@@ -213,7 +214,7 @@
     var waterCut = opts.waterCut !== undefined ? opts.waterCut : 96;
     var tplKey = opts.templateKey || '';
 
-    detailTr.innerHTML = '<td colspan="8"><div class="well-detail-inner">' +
+    detailTr.innerHTML = '<td colspan="9"><div class="well-detail-inner">' +
       '<div class="well-detail-template"><label>Template</label><select class="wd-template">' +
         '<option value="">— Custom —</option>' +
         '<option value="gas-standard"' + (tplKey === 'gas-standard' ? ' selected' : '') + '>Gas — Standard (30 BPD)</option>' +
@@ -335,6 +336,84 @@
     addWellRow({ name: 'Well 1', rig: 1 });
   });
   btnLoadFund6.addEventListener('click', loadFund6Wells);
+
+  /* ==========================================================
+     BULK EDIT MODULE
+     ========================================================== */
+  var bulkBar = document.getElementById('bulk-edit-bar');
+  var bulkCount = document.getElementById('bulk-sel-count');
+  var selectAllCb = document.getElementById('well-select-all');
+  var bulkRig = document.getElementById('bulk-rig');
+  var bulkType = document.getElementById('bulk-type');
+  var bulkCost = document.getElementById('bulk-cost');
+  var bulkWi = document.getElementById('bulk-wi');
+  var bulkApply = document.getElementById('bulk-apply');
+  var bulkDelete = document.getElementById('bulk-delete');
+
+  function getSelectedRows() {
+    var cbs = wellListBody.querySelectorAll('.well-select-cb:checked');
+    var rows = [];
+    for (var i = 0; i < cbs.length; i++) rows.push(cbs[i].closest('tr.well-main-row'));
+    return rows;
+  }
+
+  function updateBulkBar() {
+    var sel = getSelectedRows();
+    var count = sel.length;
+    bulkBar.style.display = count > 0 ? 'flex' : 'none';
+    bulkCount.textContent = count + ' selected';
+    // sync select-all checkbox
+    var allCbs = wellListBody.querySelectorAll('.well-select-cb');
+    selectAllCb.checked = allCbs.length > 0 && count === allCbs.length;
+    selectAllCb.indeterminate = count > 0 && count < allCbs.length;
+    // highlight selected rows
+    var mainRows = wellListBody.querySelectorAll('tr.well-main-row');
+    for (var i = 0; i < mainRows.length; i++) {
+      mainRows[i].classList.toggle('bulk-selected', mainRows[i].querySelector('.well-select-cb:checked') !== null);
+    }
+  }
+
+  wellListBody.addEventListener('change', function(e) {
+    if (e.target.classList.contains('well-select-cb')) updateBulkBar();
+  });
+
+  selectAllCb.addEventListener('change', function() {
+    var cbs = wellListBody.querySelectorAll('.well-select-cb');
+    for (var i = 0; i < cbs.length; i++) cbs[i].checked = selectAllCb.checked;
+    updateBulkBar();
+  });
+
+  bulkApply.addEventListener('click', function() {
+    var rows = getSelectedRows();
+    if (rows.length === 0) return;
+    for (var i = 0; i < rows.length; i++) {
+      var tr = rows[i];
+      var detailTr = tr.nextElementSibling;
+      if (bulkRig.value) tr.querySelector('.well-rig-select').value = bulkRig.value;
+      if (bulkType.value) {
+        var typeSelect = tr.querySelector('.well-type-select');
+        typeSelect.value = bulkType.value;
+        typeSelect.dispatchEvent(new Event('change'));
+      }
+      if (bulkCost.value !== '') tr.querySelector('.well-cost-input').value = bulkCost.value;
+      if (bulkWi.value !== '') tr.querySelector('.well-wi-input').value = bulkWi.value;
+    }
+    // Reset bulk fields
+    bulkRig.value = ''; bulkType.value = ''; bulkCost.value = ''; bulkWi.value = '';
+  });
+
+  bulkDelete.addEventListener('click', function() {
+    var rows = getSelectedRows();
+    if (rows.length === 0) return;
+    for (var i = 0; i < rows.length; i++) {
+      var detailTr = rows[i].nextElementSibling;
+      if (detailTr && detailTr.classList.contains('well-detail-row')) detailTr.remove();
+      rows[i].remove();
+    }
+    renumberWells();
+    updateWellCountBadge();
+    updateBulkBar();
+  });
 
   /* ==========================================================
      AUTH MODULE
@@ -574,11 +653,36 @@
 
     overlay.style.display = 'block';
     appEl.style.display = 'none';
+
+    // Scale the Gantt chart to fit printable width
     setTimeout(function() {
-      window.print();
-      overlay.style.display = 'none';
-      appEl.style.display = 'block';
-    }, 300);
+      var ganttInner = pdfGantt.querySelector('.gantt-container');
+      if (ganttInner) {
+        var ganttWidth = ganttInner.scrollWidth || ganttInner.offsetWidth;
+        // Landscape A4/Letter printable area ~9.5in = ~912px at 96dpi
+        var pageWidth = 912;
+        if (ganttWidth > pageWidth) {
+          var scale = pageWidth / ganttWidth;
+          ganttInner.style.transform = 'scale(' + scale + ')';
+          ganttInner.style.transformOrigin = 'top left';
+          ganttInner.style.width = ganttWidth + 'px';
+          pdfGantt.style.height = (ganttInner.offsetHeight * scale) + 'px';
+          pdfGantt.style.overflow = 'visible';
+        }
+      }
+      setTimeout(function() {
+        window.print();
+        // Reset scaling
+        var ganttInner2 = pdfGantt.querySelector('.gantt-container');
+        if (ganttInner2) {
+          ganttInner2.style.transform = '';
+          ganttInner2.style.width = '';
+          pdfGantt.style.height = '';
+        }
+        overlay.style.display = 'none';
+        appEl.style.display = 'block';
+      }, 200);
+    }, 100);
   }
 
   function exportCSV() {
