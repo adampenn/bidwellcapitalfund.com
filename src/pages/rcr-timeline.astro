@@ -1,10 +1,10 @@
 ---
 /**
- * Oil Well Development Timeline Modeling Tool
+ * Oklahoma Oil Well Development Timeline — Rush Creek Resources
  *
  * Private, password-protected internal tool for modeling oil well development timelines.
  * Standalone page — does not use the site Layout component.
- * Not linked in site navigation.
+ * Not linked in site navigation. URL: /rcr-timeline
  *
  * To split this file later:
  *   - auth logic → timeline/auth.js
@@ -20,7 +20,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Development Timeline — Bidwell Capital</title>
+  <title>Oklahoma Oil Timeline — Bidwell Capital</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,7 +35,7 @@
   <div class="auth-container">
     <div class="auth-brand">Bidwell Capital</div>
     <div class="auth-card">
-      <h2 class="auth-title">Development Timeline Tool</h2>
+      <h2 class="auth-title">Oklahoma Oil Timeline</h2>
       <p class="auth-subtitle">Enter the access code to continue.</p>
       <div class="auth-field">
         <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
@@ -56,12 +56,12 @@
   <header class="app-header">
     <div class="app-header-inner container-wide">
       <div class="app-brand">Bidwell Capital</div>
-      <h1 class="app-title">Oil Well Development Timeline</h1>
+      <h1 class="app-title">Oklahoma Oil Timeline — Rush Creek Resources</h1>
     </div>
   </header>
 
   <!-- Controls Panel -->
-  <section class="controls-section">
+  <section class="controls-section no-print">
     <div class="container-wide">
       <div class="controls-grid">
 
@@ -74,7 +74,7 @@
           </div>
           <div class="field">
             <label for="inp-wells">Number of Wells</label>
-            <input type="number" id="inp-wells" min="1" max="50" value="3" />
+            <input type="number" id="inp-wells" min="1" max="50" value="10" />
           </div>
           <div class="field">
             <label for="inp-mode">Drilling Mode</label>
@@ -102,7 +102,7 @@
             <div class="field-sm"><label>Site Prep / Rig Up</label><input type="number" class="assumption" data-key="sitePrep" min="0" /></div>
             <div class="field-sm"><label>Drill Surface + Casing</label><input type="number" class="assumption" data-key="drillSurface" min="0" /></div>
             <div class="field-sm"><label>Drill to TD</label><input type="number" class="assumption" data-key="drillTD" min="0" /></div>
-            <div class="field-sm"><label>Log & Evaluate</label><input type="number" class="assumption" data-key="logEval" min="0" /></div>
+            <div class="field-sm"><label>Log &amp; Evaluate</label><input type="number" class="assumption" data-key="logEval" min="0" /></div>
             <div class="field-sm"><label>Run Production Casing</label><input type="number" class="assumption" data-key="runCasing" min="0" /></div>
             <div class="field-sm"><label>Perforate</label><input type="number" class="assumption" data-key="perforate" min="0" /></div>
             <div class="field-sm"><label>Acidize / Stimulate</label><input type="number" class="assumption" data-key="acidize" min="0" /></div>
@@ -125,6 +125,7 @@
             <label class="toggle-label"><input type="checkbox" id="opt-compact" /> Compact mode</label>
             <label class="toggle-label"><input type="checkbox" id="opt-weekends" /> Weekend shading</label>
             <label class="toggle-label"><input type="checkbox" id="opt-today" checked /> Today line</label>
+            <label class="toggle-label"><input type="checkbox" id="opt-summary-view" /> Summary view (1 row per well)</label>
           </div>
 
           <h3 class="control-group-title" style="margin-top:1.25rem;">Scenario Presets</h3>
@@ -152,7 +153,8 @@
       <div id="summary-card" class="summary-card"></div>
 
       <!-- Export Actions -->
-      <div class="export-bar">
+      <div class="export-bar no-print">
+        <button id="btn-pdf" class="btn-export">Export PDF</button>
         <button id="btn-csv" class="btn-export">Export CSV</button>
         <button id="btn-copy" class="btn-export">Copy Summary</button>
       </div>
@@ -160,6 +162,7 @@
       <!-- Gantt Chart -->
       <div class="gantt-section">
         <h2 class="section-heading">Project Timeline</h2>
+        <div class="gantt-legend" id="gantt-legend"></div>
         <div id="gantt-container" class="gantt-container"></div>
       </div>
 
@@ -179,6 +182,25 @@
     </div>
   </footer>
 
+</div>
+
+<!-- ============================================================
+     PDF PRINT OVERLAY (hidden, used for PDF generation)
+     ============================================================ -->
+<div id="pdf-overlay" style="display:none;">
+  <div id="pdf-content" class="pdf-content">
+    <div class="pdf-header">
+      <div class="pdf-brand">Bidwell Capital</div>
+      <div class="pdf-title">Oklahoma Oil Development Timeline</div>
+      <div class="pdf-subtitle">Rush Creek Resources — Confidential</div>
+    </div>
+    <div id="pdf-summary"></div>
+    <div id="pdf-gantt" class="pdf-gantt-container"></div>
+    <div id="pdf-table"></div>
+    <div class="pdf-footer">
+      <p>Generated <span id="pdf-date"></span> — For internal use only. This timeline is based on estimated assumptions and does not constitute a guarantee of project delivery.</p>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -244,9 +266,7 @@ body {
 .btn-secondary-action:hover { border-color: #1a1a2e; }
 
 /* ---- App Header ---- */
-.app-header {
-  border-bottom: 1px solid #e5e5ea; padding: 1rem 0;
-}
+.app-header { border-bottom: 1px solid #e5e5ea; padding: 1rem 0; }
 .app-header-inner { display: flex; align-items: center; gap: 1.5rem; }
 .app-brand {
   font-family: 'DM Serif Display', Georgia, serif;
@@ -316,7 +336,7 @@ body {
 
 .section-heading {
   font-family: 'DM Serif Display', Georgia, serif; font-size: 1.35rem;
-  font-weight: 400; margin-bottom: 1rem; color: #1a1a2e;
+  font-weight: 400; margin-bottom: 0.5rem; color: #1a1a2e;
 }
 
 /* Summary Card */
@@ -343,6 +363,16 @@ body {
 }
 .btn-export:hover { border-color: #1a1a2e; color: #1a1a2e; }
 
+/* ---- Gantt Legend ---- */
+.gantt-legend {
+  display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;
+  font-size: 0.6875rem; color: #6b6b80;
+}
+.gantt-legend-item { display: flex; align-items: center; gap: 0.35rem; }
+.gantt-legend-swatch {
+  width: 12px; height: 8px; border-radius: 2px; flex-shrink: 0;
+}
+
 /* ---- Gantt Chart ---- */
 .gantt-section { margin-bottom: 2.5rem; }
 .gantt-container {
@@ -355,12 +385,12 @@ body {
   position: sticky; left: 0; z-index: 5;
 }
 .gantt-label-row {
-  display: flex; align-items: center; padding: 0 1rem;
-  border-bottom: 1px solid #f0f0f4; font-size: 0.75rem; color: #3a3a4a;
+  display: flex; align-items: center; padding: 0 0.75rem;
+  border-bottom: 1px solid #f0f0f4; font-size: 0.6875rem; color: #3a3a4a;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .gantt-label-row.well-header {
-  font-weight: 600; font-size: 0.6875rem; text-transform: uppercase;
+  font-weight: 600; font-size: 0.625rem; text-transform: uppercase;
   letter-spacing: 0.06em; color: #1a1a2e; background: #f0f0f4;
 }
 .gantt-label-row.project-phase { font-style: italic; color: #6b6b80; }
@@ -370,7 +400,7 @@ body {
   position: sticky; top: 0; z-index: 4;
 }
 .gantt-tick {
-  font-size: 0.625rem; color: #9b9ba8; text-align: left; padding: 0.45rem 0.35rem;
+  font-size: 0.5625rem; color: #9b9ba8; text-align: left; padding: 0.35rem 0.25rem;
   border-right: 1px solid #f0f0f4; white-space: nowrap;
 }
 .gantt-rows { position: relative; }
@@ -381,6 +411,9 @@ body {
   transition: filter 0.15s; min-width: 2px;
 }
 .gantt-bar:hover { filter: brightness(1.12); box-shadow: 0 1px 6px rgba(0,0,0,0.15); z-index: 3; }
+
+/* Summary view: stacked bars on single row */
+.gantt-bar.summary-bar { opacity: 0.85; }
 
 /* Gantt milestone marker */
 .gantt-milestone {
@@ -439,26 +472,48 @@ body {
 }
 
 /* ---- App Footer ---- */
-.app-footer {
-  border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem;
-}
+.app-footer { border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem; }
 .app-footer p { font-size: 0.6875rem; color: #9b9ba8; max-width: 80ch; }
 
-/* ---- Print ---- */
+/* ---- PDF Overlay Styles ---- */
+#pdf-overlay {
+  position: fixed; inset: 0; z-index: 2000; background: #fff;
+  overflow: auto;
+}
+.pdf-content {
+  max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem;
+  font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a2e;
+}
+.pdf-header { margin-bottom: 2rem; border-bottom: 2px solid #1a1a2e; padding-bottom: 1.25rem; }
+.pdf-brand { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.1rem; color: #1a1a2e; margin-bottom: 0.25rem; }
+.pdf-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.75rem; margin-bottom: 0.25rem; }
+.pdf-subtitle { font-size: 0.875rem; color: #6b6b80; }
+.pdf-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e5ea; }
+.pdf-footer p { font-size: 0.6875rem; color: #9b9ba8; }
+.pdf-gantt-container { overflow: visible; margin: 1.5rem 0; }
+
+/* ---- Print Styles ---- */
 @media print {
+  .no-print { display: none !important; }
   #auth-screen { display: none !important; }
-  .controls-section, .export-bar, .app-header, .app-footer { display: none !important; }
+  .app-header { display: none !important; }
+  .app-footer { display: none !important; }
   .output-section { padding: 0; }
-  .gantt-container { border: 1px solid #ccc; break-inside: avoid; }
-  .schedule-table { font-size: 0.7rem; }
+  .gantt-container { overflow: visible !important; border: 1px solid #ccc; break-inside: avoid; }
+  .gantt-chart-area { overflow: visible !important; }
+  .schedule-table { font-size: 0.65rem; }
+  .schedule-table tbody td { padding: 0.25rem 0.5rem; }
   body { font-size: 12px; }
+  .section-heading { font-size: 1.1rem; }
+  .summary-card { break-inside: avoid; }
+  .table-section { break-before: page; }
 }
 
 /* ---- Compact mode ---- */
-body.compact .gantt-label-row { height: 22px !important; font-size: 0.625rem; }
-body.compact .gantt-row { height: 22px !important; }
-body.compact .gantt-bar { top: 3px !important; height: 16px !important; }
-body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
+body.compact .gantt-label-row { height: 20px !important; font-size: 0.5625rem; }
+body.compact .gantt-row { height: 20px !important; }
+body.compact .gantt-bar { top: 2px !important; height: 16px !important; }
+body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 </style>
 
 <!-- ============================================================
@@ -537,22 +592,22 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
    * Edit these to change the Gantt bar colors.
    */
   var PHASE_COLORS = {
-    preDrill:     '#94a3b8',  // slate gray
-    rigMob:       '#60a5fa',  // light blue
+    preDrill:     '#94a3b8',
+    rigMob:       '#60a5fa',
     sitePrep:     '#60a5fa',
-    drillSurface: '#3b82f6',  // blue
-    drillTD:      '#2563eb',  // deeper blue
+    drillSurface: '#3b82f6',
+    drillTD:      '#2563eb',
     logEval:      '#3b82f6',
     runCasing:    '#3b82f6',
-    perforate:    '#f59e0b',  // amber
+    perforate:    '#f59e0b',
     acidize:      '#f59e0b',
-    swabTest:     '#d97706',  // darker amber
-    facilities:   '#8b5cf6',  // purple
-    fracBuffer:   '#a3a3a3',  // gray
-    fracExec:     '#10b981',  // green
+    swabTest:     '#d97706',
+    facilities:   '#8b5cf6',
+    fracBuffer:   '#a3a3a3',
+    fracExec:     '#10b981',
     drillOut:     '#10b981',
-    flowback:     '#059669',  // teal green
-    stabilized:   '#065f46'   // dark green
+    flowback:     '#059669',
+    stabilized:   '#065f46'
   };
 
   /**
@@ -577,9 +632,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     stabilized:   'Stabilized Production'
   };
 
-  /**
-   * PHASE CATEGORIES (for grouping)
-   */
   var PHASE_CATEGORY = {
     preDrill: 'Project-Wide',
     rigMob: 'Drilling', sitePrep: 'Drilling', drillSurface: 'Drilling',
@@ -589,6 +641,18 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     fracBuffer: 'Frac & Completion', fracExec: 'Frac & Completion', drillOut: 'Frac & Completion',
     flowback: 'Production', stabilized: 'Production'
   };
+
+  /**
+   * LEGEND CATEGORIES — for the color legend above the Gantt
+   */
+  var LEGEND_ITEMS = [
+    { label: 'Pre-drill', color: '#94a3b8' },
+    { label: 'Drilling', color: '#3b82f6' },
+    { label: 'Completion Prep', color: '#f59e0b' },
+    { label: 'Facilities', color: '#8b5cf6' },
+    { label: 'Frac & Completion', color: '#10b981' },
+    { label: 'Flowback / Production', color: '#065f46' }
+  ];
 
   /* ==========================================================
      DATE UTILITIES
@@ -650,20 +714,22 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
 
   var btnGenerate = document.getElementById('btn-generate');
   var btnReset = document.getElementById('btn-reset');
+  var btnPDF = document.getElementById('btn-pdf');
   var btnCSV = document.getElementById('btn-csv');
   var btnCopy = document.getElementById('btn-copy');
 
   var summaryCard = document.getElementById('summary-card');
   var ganttContainer = document.getElementById('gantt-container');
+  var ganttLegend = document.getElementById('gantt-legend');
   var tableContainer = document.getElementById('table-container');
 
-  var tooltip = null; // created on demand
+  var tooltip = null;
 
   /* ==========================================================
      STATE
      ========================================================== */
 
-  var generatedData = null; // holds last generated schedule
+  var generatedData = null;
 
   /* ==========================================================
      AUTH MODULE
@@ -674,7 +740,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     if (pwd === ACCESS_PASSWORD) {
       authScreen.style.display = 'none';
       appEl.style.display = 'block';
-      // Auto-generate on first unlock
       generateAndRender();
     } else {
       authError.textContent = 'Incorrect access code. Please try again.';
@@ -693,9 +758,8 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
      ========================================================== */
 
   function populateDefaults() {
-    // Set start date to today
     inpStart.value = toDateInputValue(new Date());
-    inpWells.value = 3;
+    inpWells.value = 10;
     inpMode.value = 'sequential';
     inpOverlap.value = 4;
     inpBuffer.value = 0;
@@ -734,22 +798,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
      SCHEDULE CALCULATION ENGINE
      ========================================================== */
 
-  /**
-   * Generates the full project schedule.
-   *
-   * Schedule logic:
-   * 1. Pre-drill runs first (project-wide)
-   * 2. Drilling program starts after pre-drill
-   *    - Sequential: well N starts after well N-1 drilling ends
-   *    - Overlap: well N starts overlapOffset days after well N-1 starts
-   * 3. Per-well: drilling phases → completion prep phases
-   * 4. Facilities (project-wide): starts when first well begins completion prep
-   * 5. Frac: starts after MAX(well completion prep end, facilities end) + frac buffer
-   * 6. Post-frac: frac exec → drill out → flowback → stabilized production
-   *
-   * To modify the schedule logic, edit this function.
-   * To add new phases, add them to DEFAULT_ASSUMPTIONS, PHASE_NAMES, PHASE_COLORS, and here.
-   */
   function generateSchedule() {
     var startDate = parseDateInput(inpStart.value);
     var numWells = Math.max(1, parseInt(inpWells.value) || 1);
@@ -758,7 +806,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     var globalBuffer = Math.max(0, parseInt(inpBuffer.value) || 0);
     var a = getAssumptionsFromUI();
 
-    // Validate
     if (numWells < 1) {
       alert('Please enter at least 1 well.');
       return null;
@@ -769,9 +816,8 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     var allBars = [];
     var cursor = new Date(startDate);
 
-    // --- Phase helper: creates a phase entry ---
     function makePhase(key, start, duration, wellName) {
-      var end = addDays(start, duration - 1); // inclusive end
+      var end = addDays(start, duration - 1);
       return {
         key: key,
         name: PHASE_NAMES[key] || key,
@@ -794,7 +840,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
 
     var drillingStartBase = new Date(cursor);
 
-    // 2. Drilling phases per well
     var drillingPhaseKeys = ['rigMob', 'sitePrep', 'drillSurface', 'drillTD', 'logEval', 'runCasing'];
     var completionPrepKeys = ['perforate', 'acidize', 'swabTest'];
     var postFracKeys = ['fracExec', 'drillOut', 'flowback', 'stabilized'];
@@ -802,17 +847,15 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     var facilitiesStart = null;
     var facilitiesEnd = null;
 
-    // First pass: calculate drilling and completion prep for all wells
+    // First pass: drilling and completion prep for all wells
     for (var w = 0; w < numWells; w++) {
       var wellName = 'Well ' + (w + 1);
       var wellPhases = [];
       var wellCursor;
 
-      // Determine drilling start for this well
       if (w === 0) {
         wellCursor = new Date(drillingStartBase);
       } else if (mode === 'sequential') {
-        // Start after previous well's drilling ends
         var prevWell = wells[w - 1];
         var prevLastDrilling = null;
         for (var p = 0; p < prevWell.length; p++) {
@@ -822,12 +865,10 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         }
         wellCursor = addDays(prevLastDrilling.end, 1);
       } else {
-        // Overlap mode: start overlapOffset days after previous well's drilling start
         var prevWellStart = wells[w - 1][0].start;
         wellCursor = addDays(prevWellStart, overlapOffset);
       }
 
-      // Drilling phases
       for (var d = 0; d < drillingPhaseKeys.length; d++) {
         var key = drillingPhaseKeys[d];
         if (a[key] > 0) {
@@ -838,7 +879,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         }
       }
 
-      // Completion prep phases (after drilling)
       for (var c = 0; c < completionPrepKeys.length; c++) {
         var ck = completionPrepKeys[c];
         if (a[ck] > 0) {
@@ -849,7 +889,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         }
       }
 
-      // Track when first well starts completion prep (for facilities start)
       if (w === 0 && completionPrepKeys.length > 0) {
         for (var fc = 0; fc < wellPhases.length; fc++) {
           if (completionPrepKeys.indexOf(wellPhases[fc].key) !== -1) {
@@ -862,7 +901,7 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
       wells.push(wellPhases);
     }
 
-    // 3. Facilities (project-wide, shared)
+    // Facilities (project-wide, shared)
     if (a.facilities > 0) {
       if (!facilitiesStart) facilitiesStart = new Date(drillingStartBase);
       var facPhase = makePhase('facilities', facilitiesStart, a.facilities, 'Project');
@@ -871,7 +910,7 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
       facilitiesEnd = facPhase.end;
     }
 
-    // 4. Frac and post-frac phases per well
+    // Frac and post-frac phases per well
     for (var w2 = 0; w2 < numWells; w2++) {
       var wellName2 = 'Well ' + (w2 + 1);
       var wellPhases2 = wells[w2];
@@ -883,15 +922,11 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         }
       }
 
-      // Frac can't start until both completion prep and facilities are done
       var fracReadyDate;
       var completionEnd = lastCompletionPrep ? addDays(lastCompletionPrep.end, 1) : new Date(drillingStartBase);
       var facEnd = facilitiesEnd ? addDays(facilitiesEnd, 1) : completionEnd;
-
-      // Take the later of the two
       fracReadyDate = completionEnd > facEnd ? completionEnd : facEnd;
 
-      // Frac scheduling buffer
       if (a.fracBuffer > 0) {
         var bufferPhase = makePhase('fracBuffer', fracReadyDate, a.fracBuffer, wellName2);
         wellPhases2.push(bufferPhase);
@@ -899,7 +934,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         fracReadyDate = addDays(bufferPhase.end, 1);
       }
 
-      // Post-frac phases
       var postCursor = fracReadyDate;
       for (var pf = 0; pf < postFracKeys.length; pf++) {
         var pfKey = postFracKeys[pf];
@@ -911,14 +945,10 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         }
       }
 
-      // Global buffer
       if (globalBuffer > 0) {
         var bufPhase = {
-          key: 'globalBuffer',
-          name: 'Buffer',
-          color: '#d4d4d8',
-          category: 'Buffer',
-          well: wellName2,
+          key: 'globalBuffer', name: 'Buffer', color: '#d4d4d8',
+          category: 'Buffer', well: wellName2,
           start: new Date(postCursor),
           end: addDays(postCursor, globalBuffer - 1),
           duration: globalBuffer
@@ -928,19 +958,11 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
       }
     }
 
-    // Calculate project dates
     var projectEnd = startDate;
-    var firstProdDate = null;
     for (var b = 0; b < allBars.length; b++) {
       if (allBars[b].end > projectEnd) projectEnd = allBars[b].end;
-      if (allBars[b].key === 'stabilized' || allBars[b].key === 'flowback') {
-        if (!firstProdDate || allBars[b].start < firstProdDate) {
-          firstProdDate = allBars[b].start;
-        }
-      }
     }
 
-    // Find first flowback or stabilized start as "first production"
     var firstFlowback = null;
     for (var fb = 0; fb < allBars.length; fb++) {
       if (allBars[fb].key === 'flowback') {
@@ -985,60 +1007,97 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
   }
 
   /* ==========================================================
+     RENDER: GANTT LEGEND
+     ========================================================== */
+
+  function renderLegend() {
+    var html = '';
+    for (var i = 0; i < LEGEND_ITEMS.length; i++) {
+      html += '<div class="gantt-legend-item"><span class="gantt-legend-swatch" style="background:' + LEGEND_ITEMS[i].color + ';"></span>' + LEGEND_ITEMS[i].label + '</div>';
+    }
+    ganttLegend.innerHTML = html;
+  }
+
+  /* ==========================================================
      RENDER: GANTT CHART
      ========================================================== */
 
-  function renderGantt(data) {
+  function renderGantt(data, targetEl, forPdf) {
+    var container = targetEl || ganttContainer;
     var showMilestones = document.getElementById('opt-milestones').checked;
     var showLabels = document.getElementById('opt-labels').checked;
     var showWeekends = document.getElementById('opt-weekends').checked;
     var showToday = document.getElementById('opt-today').checked;
     var compact = document.getElementById('opt-compact').checked;
+    var summaryView = document.getElementById('opt-summary-view').checked;
 
-    document.body.classList.toggle('compact', compact);
+    if (!forPdf) {
+      document.body.classList.toggle('compact', compact);
+    }
 
-    var rowHeight = compact ? 22 : 32;
-    var labelWidth = showLabels ? 200 : 0;
-    var headerHeight = 28;
+    // In summary view or when many wells, use tighter rows
+    var autoCompact = data.numWells >= 8 && !summaryView;
+    var effectiveCompact = compact || autoCompact;
 
-    // Build row data: project phases, then per-well grouped
+    var rowHeight = summaryView ? 28 : (effectiveCompact ? 20 : 30);
+    var labelWidth = showLabels ? (summaryView ? 100 : 180) : 0;
+    var headerHeight = 24;
+
+    // For PDF, force certain settings
+    if (forPdf) {
+      showLabels = true;
+      showToday = false;
+      showWeekends = false;
+      summaryView = data.numWells > 6;
+      rowHeight = summaryView ? 24 : 20;
+      labelWidth = summaryView ? 90 : 160;
+      effectiveCompact = true;
+    }
+
+    // Build row data
     var rows = [];
 
-    // Project-wide phases
-    if (data.projectPhases.length > 0) {
-      rows.push({ type: 'header', label: 'Project-Wide', bars: [] });
-      for (var pp = 0; pp < data.projectPhases.length; pp++) {
-        rows.push({ type: 'phase', label: data.projectPhases[pp].name, bars: [data.projectPhases[pp]], isProject: true });
+    if (summaryView) {
+      // Summary view: one row per well with all bars stacked
+      // Plus one row for project-wide
+      if (data.projectPhases.length > 0) {
+        rows.push({ type: 'phase', label: 'Project', bars: data.projectPhases, isProject: true });
+      }
+      for (var sw = 0; sw < data.wells.length; sw++) {
+        rows.push({ type: 'phase', label: 'Well ' + (sw + 1), bars: data.wells[sw], isSummary: true });
+      }
+    } else {
+      // Detailed view
+      if (data.projectPhases.length > 0) {
+        rows.push({ type: 'header', label: 'Project-Wide', bars: [] });
+        for (var pp = 0; pp < data.projectPhases.length; pp++) {
+          rows.push({ type: 'phase', label: data.projectPhases[pp].name, bars: [data.projectPhases[pp]], isProject: true });
+        }
+      }
+      for (var w = 0; w < data.wells.length; w++) {
+        var wellName = 'Well ' + (w + 1);
+        rows.push({ type: 'header', label: wellName, bars: [] });
+        var phases = data.wells[w];
+        for (var p = 0; p < phases.length; p++) {
+          rows.push({ type: 'phase', label: phases[p].name, bars: [phases[p]] });
+        }
       }
     }
 
-    // Per-well phases
-    for (var w = 0; w < data.wells.length; w++) {
-      var wellName = 'Well ' + (w + 1);
-      rows.push({ type: 'header', label: wellName, bars: [] });
-
-      var phases = data.wells[w];
-      for (var p = 0; p < phases.length; p++) {
-        rows.push({ type: 'phase', label: phases[p].name, bars: [phases[p]] });
-      }
-    }
-
-    // Calculate date range
     var minDate = data.startDate;
     var maxDate = data.endDate;
     var totalDays = daysBetween(minDate, maxDate) + 1;
 
-    // Pixels per day — responsive
-    var availWidth = ganttContainer.clientWidth - labelWidth - 40;
-    var pxPerDay = Math.max(availWidth / totalDays, 8);
-    if (totalDays > 200) pxPerDay = Math.max(pxPerDay, 4);
-    if (totalDays < 60) pxPerDay = Math.min(Math.max(pxPerDay, 14), 22);
+    // Pixels per day
+    var availWidth = (forPdf ? 900 : container.clientWidth) - labelWidth - 20;
+    var pxPerDay = Math.max(availWidth / totalDays, forPdf ? 2 : 4);
+    if (!forPdf && totalDays < 60) pxPerDay = Math.min(Math.max(pxPerDay, 12), 20);
     var chartWidth = totalDays * pxPerDay;
 
-    // Determine tick interval
+    // Tick interval
     var tickIntervalDays;
     if (totalDays <= 60) tickIntervalDays = 7;
-    else if (totalDays <= 180) tickIntervalDays = 14;
+    else if (totalDays <= 120) tickIntervalDays = 14;
     else tickIntervalDays = 30;
 
     // Build HTML
@@ -1059,7 +1118,7 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     // Chart area
     html += '<div class="gantt-chart-area" style="width:' + chartWidth + 'px;">';
 
-    // Header with date ticks
+    // Header ticks
     html += '<div class="gantt-header" style="height:' + headerHeight + 'px;">';
     for (var t = 0; t < totalDays; t += tickIntervalDays) {
       var tickDate = addDays(minDate, t);
@@ -1083,6 +1142,8 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     }
 
     // Rows and bars
+    var barHeight = summaryView ? 18 : (effectiveCompact ? 14 : 20);
+
     for (var r2 = 0; r2 < rows.length; r2++) {
       var row = rows[r2];
       var rowCls = 'gantt-row' + (row.type === 'header' ? ' well-header-row' : '');
@@ -1092,10 +1153,10 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
         var bar = row.bars[b];
         var barLeft = daysBetween(minDate, bar.start) * pxPerDay;
         var barWidth = Math.max(bar.duration * pxPerDay, 2);
-        var barTop = Math.round((rowHeight - (compact ? 16 : 20)) / 2);
-        var barHeight = compact ? 16 : 20;
+        var barTop = Math.round((rowHeight - barHeight) / 2);
+        var extraClass = row.isSummary ? ' summary-bar' : '';
 
-        html += '<div class="gantt-bar" style="left:' + barLeft + 'px;width:' + barWidth + 'px;top:' + barTop + 'px;height:' + barHeight + 'px;background:' + bar.color + ';"' +
+        html += '<div class="gantt-bar' + extraClass + '" style="left:' + barLeft + 'px;width:' + barWidth + 'px;top:' + barTop + 'px;height:' + barHeight + 'px;background:' + bar.color + ';"' +
           ' data-tt-name="' + escapeAttr(bar.name) + '"' +
           ' data-tt-well="' + escapeAttr(bar.well) + '"' +
           ' data-tt-start="' + formatDate(bar.start) + '"' +
@@ -1103,7 +1164,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
           ' data-tt-dur="' + bar.duration + ' days"' +
           '></div>';
 
-        // Milestone markers at start and end of stabilized production
         if (showMilestones && bar.key === 'stabilized') {
           var msLeft = barLeft + barWidth;
           html += '<div class="gantt-milestone" style="left:' + msLeft + 'px;"></div>';
@@ -1128,10 +1188,11 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     html += '</div>'; // gantt-chart-area
     html += '</div>'; // gantt-wrapper
 
-    ganttContainer.innerHTML = html;
+    container.innerHTML = html;
 
-    // Attach tooltip listeners
-    initTooltips();
+    if (!forPdf) {
+      initTooltips();
+    }
   }
 
   function escapeAttr(str) {
@@ -1148,7 +1209,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
       tooltip.className = 'gantt-tooltip';
       document.body.appendChild(tooltip);
     }
-
     var bars = ganttContainer.querySelectorAll('.gantt-bar');
     for (var i = 0; i < bars.length; i++) {
       bars[i].addEventListener('mouseenter', showTooltip);
@@ -1171,8 +1231,6 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
   function moveTooltip(e) {
     var x = e.clientX + 14;
     var y = e.clientY + 14;
-    // Keep tooltip within viewport
-    var rect = tooltip.getBoundingClientRect();
     if (x + 260 > window.innerWidth) x = e.clientX - 270;
     if (y + 100 > window.innerHeight) y = e.clientY - 100;
     tooltip.style.left = x + 'px';
@@ -1187,46 +1245,82 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
      RENDER: SCHEDULE TABLE
      ========================================================== */
 
-  function renderTable(data) {
+  function renderTable(data, targetEl) {
+    var container = targetEl || tableContainer;
     var html = '<table class="schedule-table"><thead><tr>' +
       '<th>Well</th><th>Phase</th><th>Start Date</th><th>End Date</th><th>Duration</th>' +
       '</tr></thead><tbody>';
 
-    // Project phases
     if (data.projectPhases.length > 0) {
       html += '<tr class="well-divider"><td colspan="5">Project-Wide</td></tr>';
       for (var pp = 0; pp < data.projectPhases.length; pp++) {
         var p = data.projectPhases[pp];
-        html += '<tr>' +
-          '<td>Project</td>' +
-          '<td><span class="phase-color" style="background:' + p.color + ';"></span>' + p.name + '</td>' +
-          '<td>' + formatDate(p.start) + '</td>' +
-          '<td>' + formatDate(p.end) + '</td>' +
-          '<td>' + p.duration + 'd</td>' +
-          '</tr>';
+        html += '<tr><td>Project</td><td><span class="phase-color" style="background:' + p.color + ';"></span>' + p.name + '</td><td>' + formatDate(p.start) + '</td><td>' + formatDate(p.end) + '</td><td>' + p.duration + 'd</td></tr>';
       }
     }
 
-    // Per-well phases
     for (var w = 0; w < data.wells.length; w++) {
       var wellName = 'Well ' + (w + 1);
       html += '<tr class="well-divider"><td colspan="5">' + wellName + '</td></tr>';
-
       var phases = data.wells[w];
       for (var ph = 0; ph < phases.length; ph++) {
         var phase = phases[ph];
-        html += '<tr>' +
-          '<td>' + wellName + '</td>' +
-          '<td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td>' +
-          '<td>' + formatDate(phase.start) + '</td>' +
-          '<td>' + formatDate(phase.end) + '</td>' +
-          '<td>' + phase.duration + 'd</td>' +
-          '</tr>';
+        html += '<tr><td>' + wellName + '</td><td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td><td>' + formatDate(phase.start) + '</td><td>' + formatDate(phase.end) + '</td><td>' + phase.duration + 'd</td></tr>';
       }
     }
 
     html += '</tbody></table>';
-    tableContainer.innerHTML = html;
+    container.innerHTML = html;
+  }
+
+  /* ==========================================================
+     EXPORT: PDF
+     ========================================================== */
+
+  function exportPDF() {
+    if (!generatedData) return;
+    var d = generatedData;
+
+    var overlay = document.getElementById('pdf-overlay');
+    var pdfSummary = document.getElementById('pdf-summary');
+    var pdfGantt = document.getElementById('pdf-gantt');
+    var pdfTable = document.getElementById('pdf-table');
+    var pdfDate = document.getElementById('pdf-date');
+
+    pdfDate.textContent = formatDate(new Date());
+
+    // Build summary for PDF
+    var modeLabel = d.mode === 'overlap'
+      ? 'Overlapped (' + d.overlapOffset + 'd offset)'
+      : 'Sequential';
+
+    pdfSummary.innerHTML =
+      '<div class="summary-card" style="margin-bottom:1.5rem;">' +
+      '<div class="summary-item"><div class="summary-item-label">Project Start</div><div class="summary-item-value">' + formatDate(d.startDate) + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Wells</div><div class="summary-item-value">' + d.numWells + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Drilling Mode</div><div class="summary-item-value">' + modeLabel + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Est. First Production</div><div class="summary-item-value">' + formatDate(d.firstProductionDate) + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(d.finalStabilizedDate) + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + d.totalDays + ' days</div></div>' +
+      '</div>';
+
+    // Render Gantt for PDF (auto-summary for 6+ wells)
+    renderGantt(d, pdfGantt, true);
+
+    // Render table for PDF
+    renderTable(d, pdfTable);
+
+    // Show overlay and trigger print
+    overlay.style.display = 'block';
+    appEl.style.display = 'none';
+
+    // Small delay to let the layout render before printing
+    setTimeout(function() {
+      window.print();
+      // Restore after print dialog closes
+      overlay.style.display = 'none';
+      appEl.style.display = 'block';
+    }, 300);
   }
 
   /* ==========================================================
@@ -1238,13 +1332,11 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     var d = generatedData;
     var lines = ['Well,Phase,Start Date,End Date,Duration (days)'];
 
-    // Project phases
     for (var pp = 0; pp < d.projectPhases.length; pp++) {
       var p = d.projectPhases[pp];
       lines.push('Project,"' + p.name + '",' + formatDate(p.start) + ',' + formatDate(p.end) + ',' + p.duration);
     }
 
-    // Per-well
     for (var w = 0; w < d.wells.length; w++) {
       var wellName = 'Well ' + (w + 1);
       for (var ph = 0; ph < d.wells[w].length; ph++) {
@@ -1258,7 +1350,7 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'well-timeline-' + toDateInputValue(new Date()) + '.csv';
+    a.download = 'rcr-timeline-' + toDateInputValue(new Date()) + '.csv';
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -1275,7 +1367,8 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
       : 'Sequential';
 
     var text =
-      'OIL WELL DEVELOPMENT TIMELINE SUMMARY\n' +
+      'OKLAHOMA OIL DEVELOPMENT TIMELINE\n' +
+      'Rush Creek Resources\n' +
       '========================================\n\n' +
       'Project Start Date: ' + formatDate(d.startDate) + '\n' +
       'Number of Wells: ' + d.numWells + '\n' +
@@ -1296,7 +1389,7 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
       }
     }
 
-    text += '\n--- Generated by Bidwell Capital Timeline Tool ---';
+    text += '\n--- Bidwell Capital — Confidential ---';
 
     navigator.clipboard.writeText(text).then(function() {
       btnCopy.textContent = 'Copied!';
@@ -1314,10 +1407,10 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
 
     outputEl.style.display = 'block';
     renderSummary(generatedData);
+    renderLegend();
     renderGantt(generatedData);
     renderTable(generatedData);
 
-    // Smooth scroll to output
     outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -1325,25 +1418,21 @@ body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
      EVENT LISTENERS
      ========================================================== */
 
-  // Generate timeline
   btnGenerate.addEventListener('click', generateAndRender);
 
-  // Reset to defaults
   btnReset.addEventListener('click', function() {
     populateDefaults();
     outputEl.style.display = 'none';
   });
 
-  // Export buttons
+  btnPDF.addEventListener('click', exportPDF);
   btnCSV.addEventListener('click', exportCSV);
   btnCopy.addEventListener('click', copySummary);
 
-  // Drilling mode toggle
   inpMode.addEventListener('change', function() {
     overlapField.style.display = inpMode.value === 'overlap' ? 'block' : 'none';
   });
 
-  // Scenario presets
   var presetBtns = document.querySelectorAll('.btn-preset');
   for (var i = 0; i < presetBtns.length; i++) {
     presetBtns[i].addEventListener('click', function() {
