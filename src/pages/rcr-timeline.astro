@@ -310,10 +310,15 @@
         <div id="gantt-container" class="gantt-container"></div>
       </div>
 
-      <!-- Per-Well Table -->
-      <div class="table-section">
-        <h2 class="section-heading">Detailed Schedule</h2>
-        <div id="table-container" class="table-container"></div>
+      <!-- Per-Well Table (collapsible) -->
+      <div class="accordion output-accordion" data-accordion="schedule">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title section-heading" style="margin-bottom:0;">Detailed Schedule</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div id="table-container" class="table-container"></div>
+        </div>
       </div>
 
       <!-- Proforma Output -->
@@ -885,6 +890,11 @@ body {
 .proforma-table tbody td:first-child { text-align: left; color: #6b6b80; font-weight: 500; }
 .proforma-table tbody tr:hover { background: #fafafc; }
 .proforma-table .proforma-bold td { font-weight: 600; color: #1a1a2e; }
+
+/* ---- Output Accordions ---- */
+.output-accordion { margin-bottom: 1.5rem; }
+.output-accordion .accordion-header { padding: 0.75rem 1rem; }
+.output-accordion .section-heading { font-size: 1.2rem; }
 
 /* ---- App Footer ---- */
 .app-footer { border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem; }

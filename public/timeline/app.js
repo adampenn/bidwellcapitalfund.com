@@ -57,6 +57,15 @@
         var header = acc.querySelector('.accordion-header');
         if (acc.getAttribute('data-open') === 'true') acc.classList.add('open');
         header.addEventListener('click', function() {
+          var willOpen = !acc.classList.contains('open');
+          // Auto-close sibling accordions in the same parent (controls section)
+          if (willOpen) {
+            var parent = acc.parentElement;
+            var siblings = parent.querySelectorAll(':scope > .accordion[data-accordion]');
+            for (var j = 0; j < siblings.length; j++) {
+              if (siblings[j] !== acc) siblings[j].classList.remove('open');
+            }
+          }
           acc.classList.toggle('open');
         });
       })(accordions[i]);
