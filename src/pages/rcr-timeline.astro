@@ -6,12 +6,13 @@
  * Standalone page — does not use the site Layout component.
  * Not linked in site navigation. URL: /rcr-timeline
  *
- * To split this file later:
- *   - auth logic → timeline/auth.js
- *   - calculation engine → timeline/engine.js
- *   - date utilities → timeline/dates.js
- *   - rendering → timeline/render.js
- *   - styles → timeline/styles.css
+ * Modular JS files loaded from /timeline/:
+ *   - config.js    — constants, presets, weather data, phase definitions
+ *   - dates.js     — date utility functions
+ *   - proforma.js  — proforma financial engine & well database
+ *   - engine.js    — schedule calculation engine
+ *   - render.js    — all rendering functions
+ *   - app.js       — main controller wiring everything together
  */
 ---
 
@@ -60,155 +61,223 @@
     </div>
   </header>
 
-  <!-- Controls Panel -->
+  <!-- ============================================================
+       PRIMARY CONTROLS BAR
+       ============================================================ -->
+  <section class="primary-controls no-print">
+    <div class="container-wide primary-controls-inner">
+      <div class="primary-field">
+        <label for="inp-start">Start Date</label>
+        <input type="date" id="inp-start" />
+      </div>
+      <div class="primary-field">
+        <label for="inp-mode">Drilling Mode</label>
+        <select id="inp-mode">
+          <option value="sequential">Sequential</option>
+          <option value="overlap">Overlapped</option>
+        </select>
+      </div>
+      <div class="primary-field" id="overlap-field" style="display:none;">
+        <label for="inp-overlap">Offset (days)</label>
+        <input type="number" id="inp-overlap" min="1" max="365" value="4" />
+      </div>
+      <div class="primary-field">
+        <label>Scenario</label>
+        <div class="preset-btns">
+          <button class="btn-preset" data-scenario="fast">Fast</button>
+          <button class="btn-preset active" data-scenario="base">Base</button>
+          <button class="btn-preset" data-scenario="conservative">Conservative</button>
+        </div>
+      </div>
+      <div class="primary-field primary-field-action">
+        <button id="btn-generate" class="btn-generate">Generate Timeline</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ACCORDION PANELS
+       ============================================================ -->
   <section class="controls-section no-print">
     <div class="container-wide">
-      <div class="controls-grid">
 
-        <!-- Column 1: Project Inputs -->
-        <div class="control-group">
-          <h3 class="control-group-title">Project Inputs</h3>
-          <div class="field">
-            <label for="inp-start">Project Start Date</label>
-            <input type="date" id="inp-start" />
+      <!-- WELLS ACCORDION -->
+      <div class="accordion" data-accordion="wells" data-open="true">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Wells</span>
+          <span id="well-count-badge" class="accordion-badge">10 wells</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="well-list-header">
+            <div class="well-list-actions">
+              <input type="number" id="inp-quick-wells" min="1" max="50" value="10" class="inp-quick-wells" />
+              <button id="btn-set-wells" class="btn-sm">Set Wells</button>
+              <button id="btn-add-well" class="btn-sm">+ 1</button>
+              <button id="btn-clear-wells" class="btn-sm btn-sm-muted">Clear</button>
+            </div>
           </div>
-          <div class="field">
-            <label for="inp-mode">Drilling Mode</label>
-            <select id="inp-mode">
-              <option value="sequential">Sequential</option>
-              <option value="overlap">Overlapped</option>
-            </select>
-          </div>
-          <div class="field" id="overlap-field" style="display:none;">
-            <label for="inp-overlap">Overlap Offset (days)</label>
-            <input type="number" id="inp-overlap" min="1" max="365" value="4" />
-          </div>
-          <div class="field">
-            <label for="inp-buffer">Global Buffer (days)</label>
-            <input type="number" id="inp-buffer" min="0" max="90" value="0" />
-          </div>
-
-          <h3 class="control-group-title" style="margin-top:1.25rem;">Investment &amp; Tax Inputs</h3>
-          <div class="field">
-            <label for="inp-investment">Total Investment ($)</label>
-            <input type="number" id="inp-investment" min="0" step="1000" value="5000000" />
-          </div>
-          <div class="field">
-            <label for="inp-idc-pct">IDC % of Investment</label>
-            <input type="number" id="inp-idc-pct" min="0" max="100" value="80" />
-          </div>
-          <div class="field">
-            <label for="inp-overhead-pct">Overhead %</label>
-            <input type="number" id="inp-overhead-pct" min="0" max="100" value="5" />
-          </div>
-          <div class="field">
-            <label for="inp-bonus-depr">Bonus Depreciation %</label>
-            <input type="number" id="inp-bonus-depr" min="0" max="100" value="100" />
-          </div>
-          <div class="field">
-            <label for="inp-dist-lag">Distribution Lag (months)</label>
-            <input type="number" id="inp-dist-lag" min="0" max="12" value="2" />
+          <div class="well-list-table-wrap">
+            <table class="well-list-table">
+              <thead>
+                <tr>
+                  <th style="width:30px;">#</th>
+                  <th>Well Name</th>
+                  <th style="width:100px;">Rig</th>
+                  <th style="width:30px;"></th>
+                </tr>
+              </thead>
+              <tbody id="well-list-body"></tbody>
+            </table>
           </div>
         </div>
-
-        <!-- Column 2: Timeline Assumptions -->
-        <div class="control-group">
-          <h3 class="control-group-title">Scenario Presets</h3>
-          <div class="preset-btns" style="margin-bottom:1rem;">
-            <button class="btn-preset" data-scenario="fast">Fast</button>
-            <button class="btn-preset active" data-scenario="base">Base</button>
-            <button class="btn-preset" data-scenario="conservative">Conservative</button>
-          </div>
-
-          <h3 class="control-group-title">Timeline Assumptions (days)</h3>
-          <div class="assumptions-grid">
-            <div class="field-sm"><label>Pre-drill / Permitting</label><input type="number" class="assumption" data-key="preDrill" min="0" /></div>
-            <div class="field-sm"><label>Rig Mobilization</label><input type="number" class="assumption" data-key="rigMob" min="0" /></div>
-            <div class="field-sm"><label>Site Prep / Rig Up</label><input type="number" class="assumption" data-key="sitePrep" min="0" /></div>
-            <div class="field-sm"><label>Drill Surface + Casing</label><input type="number" class="assumption" data-key="drillSurface" min="0" /></div>
-            <div class="field-sm"><label>Drill to TD</label><input type="number" class="assumption" data-key="drillTD" min="0" /></div>
-            <div class="field-sm"><label>Log &amp; Evaluate</label><input type="number" class="assumption" data-key="logEval" min="0" /></div>
-            <div class="field-sm"><label>Run Production Casing</label><input type="number" class="assumption" data-key="runCasing" min="0" /></div>
-            <div class="field-sm"><label>Perforate</label><input type="number" class="assumption" data-key="perforate" min="0" /></div>
-            <div class="field-sm"><label>Acidize / Stimulate</label><input type="number" class="assumption" data-key="acidize" min="0" /></div>
-            <div class="field-sm"><label>Swab / Flow Test</label><input type="number" class="assumption" data-key="swabTest" min="0" /></div>
-            <div class="field-sm"><label>Facilities / Infrastructure</label><input type="number" class="assumption" data-key="facilities" min="0" /></div>
-            <div class="field-sm"><label>Frac Scheduling Buffer</label><input type="number" class="assumption" data-key="fracBuffer" min="0" /></div>
-            <div class="field-sm"><label>Frac Execution</label><input type="number" class="assumption" data-key="fracExec" min="0" /></div>
-            <div class="field-sm"><label>Drill Out / Cleanup</label><input type="number" class="assumption" data-key="drillOut" min="0" /></div>
-            <div class="field-sm"><label>Flowback</label><input type="number" class="assumption" data-key="flowback" min="0" /></div>
-            <div class="field-sm"><label>Stabilized Production</label><input type="number" class="assumption" data-key="stabilized" min="0" /></div>
-          </div>
-        </div>
-
-        <!-- Column 3: Display & Actions -->
-        <div class="control-group">
-          <h3 class="control-group-title">Display Settings</h3>
-          <div class="toggle-group">
-            <label class="toggle-label"><input type="checkbox" id="opt-milestones" checked /> Show milestone markers</label>
-            <label class="toggle-label"><input type="checkbox" id="opt-labels" checked /> Show per-well labels</label>
-            <label class="toggle-label"><input type="checkbox" id="opt-compact" /> Compact mode</label>
-            <label class="toggle-label"><input type="checkbox" id="opt-weekends" /> Weekend shading</label>
-            <label class="toggle-label"><input type="checkbox" id="opt-today" checked /> Today line</label>
-            <label class="toggle-label"><input type="checkbox" id="opt-summary-view" /> Summary view (1 row per well)</label>
-            <label class="toggle-label"><input type="checkbox" id="opt-consolidated" /> Consolidated view (phases as rows)</label>
-          </div>
-
-          <h3 class="control-group-title" style="margin-top:1.25rem;">Weather Delays</h3>
-          <label class="toggle-label" style="margin-bottom:0.5rem;"><input type="checkbox" id="opt-weather" checked /> Model weather delays (Tulsa, OK)</label>
-          <div class="field" style="margin-bottom:0.5rem;">
-            <label for="inp-weather-risk" style="font-size:0.75rem;">Risk Profile</label>
-            <select id="inp-weather-risk" style="padding:0.35rem 0.5rem;font-size:0.8125rem;">
-              <option value="optimistic">Optimistic (mild year)</option>
-              <option value="average" selected>Average (typical year)</option>
-              <option value="conservative">Conservative (harsh year)</option>
-            </select>
-          </div>
-          <div id="weather-info" class="weather-info-text">Est. delays shown per phase after generating.</div>
-
-          <div class="action-btns" style="margin-top:1.25rem;">
-            <button id="btn-generate" class="btn-primary-action">Generate Timeline</button>
-            <button id="btn-reset" class="btn-secondary-action">Reset to Defaults</button>
-          </div>
-          <div class="action-btns" style="margin-top:0.5rem;">
-            <button id="btn-save-config" class="btn-secondary-action">Save Config</button>
-            <button id="btn-load-config" class="btn-secondary-action">Load Config</button>
-            <input type="file" id="config-file-input" accept=".json" style="display:none;" />
-          </div>
-        </div>
-
       </div>
 
-      <!-- Well List -->
-      <div class="well-list-section">
-        <div class="well-list-header">
-          <h3 class="control-group-title" style="margin-bottom:0;">Wells</h3>
-          <div class="well-list-actions">
-            <input type="number" id="inp-quick-wells" min="1" max="50" value="10" style="width:50px;padding:0.2rem 0.35rem;border:1px solid #d5d5dc;border-radius:5px;font-size:0.75rem;text-align:center;" />
-            <button id="btn-set-wells" class="btn-sm">Set Wells</button>
-            <button id="btn-add-well" class="btn-sm">+ 1</button>
-            <button id="btn-clear-wells" class="btn-sm btn-sm-muted">Clear</button>
+      <!-- INVESTMENT & TAX ACCORDION -->
+      <div class="accordion" data-accordion="investment">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Investment &amp; Tax Inputs</span>
+          <span id="investment-badge" class="accordion-badge">$5,000,000</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-fields-grid">
+            <div class="field">
+              <label for="inp-investment">Total Investment ($)</label>
+              <input type="number" id="inp-investment" min="0" step="1000" value="5000000" />
+            </div>
+            <div class="field">
+              <label for="inp-idc-pct">IDC % of Investment</label>
+              <input type="number" id="inp-idc-pct" min="0" max="100" value="80" />
+            </div>
+            <div class="field">
+              <label for="inp-overhead-pct">Overhead %</label>
+              <input type="number" id="inp-overhead-pct" min="0" max="100" value="5" />
+            </div>
+            <div class="field">
+              <label for="inp-bonus-depr">Bonus Depreciation %</label>
+              <input type="number" id="inp-bonus-depr" min="0" max="100" value="100" />
+            </div>
+            <div class="field">
+              <label for="inp-dist-lag">Distribution Lag (months)</label>
+              <input type="number" id="inp-dist-lag" min="0" max="12" value="2" />
+            </div>
+            <div class="field">
+              <label for="inp-buffer">Global Buffer (days)</label>
+              <input type="number" id="inp-buffer" min="0" max="90" value="0" />
+            </div>
           </div>
         </div>
-        <div class="well-list-table-wrap">
-          <table class="well-list-table">
-            <thead>
-              <tr>
-                <th style="width:30px;">#</th>
-                <th>Well Name</th>
-                <th style="width:100px;">Rig</th>
-                <th style="width:30px;"></th>
-              </tr>
-            </thead>
-            <tbody id="well-list-body"></tbody>
-          </table>
+      </div>
+
+      <!-- TIMELINE ASSUMPTIONS ACCORDION -->
+      <div class="accordion" data-accordion="assumptions">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Timeline Assumptions</span>
+          <span class="accordion-badge-muted">days per phase</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Pre-drill</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Pre-drill / Permitting</label><input type="number" class="assumption" data-key="preDrill" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Drilling</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Rig Mobilization</label><input type="number" class="assumption" data-key="rigMob" min="0" /></div>
+              <div class="field-sm"><label>Site Prep / Rig Up</label><input type="number" class="assumption" data-key="sitePrep" min="0" /></div>
+              <div class="field-sm"><label>Drill Surface + Casing</label><input type="number" class="assumption" data-key="drillSurface" min="0" /></div>
+              <div class="field-sm"><label>Drill to TD</label><input type="number" class="assumption" data-key="drillTD" min="0" /></div>
+              <div class="field-sm"><label>Log &amp; Evaluate</label><input type="number" class="assumption" data-key="logEval" min="0" /></div>
+              <div class="field-sm"><label>Run Production Casing</label><input type="number" class="assumption" data-key="runCasing" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Completion Prep</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Perforate</label><input type="number" class="assumption" data-key="perforate" min="0" /></div>
+              <div class="field-sm"><label>Acidize / Stimulate</label><input type="number" class="assumption" data-key="acidize" min="0" /></div>
+              <div class="field-sm"><label>Swab / Flow Test</label><input type="number" class="assumption" data-key="swabTest" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Facilities</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Facilities / Infrastructure</label><input type="number" class="assumption" data-key="facilities" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Frac &amp; Completion</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Frac Scheduling Buffer</label><input type="number" class="assumption" data-key="fracBuffer" min="0" /></div>
+              <div class="field-sm"><label>Frac Execution</label><input type="number" class="assumption" data-key="fracExec" min="0" /></div>
+              <div class="field-sm"><label>Drill Out / Cleanup</label><input type="number" class="assumption" data-key="drillOut" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Production</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Flowback</label><input type="number" class="assumption" data-key="flowback" min="0" /></div>
+              <div class="field-sm"><label>Stabilized Production</label><input type="number" class="assumption" data-key="stabilized" min="0" /></div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- DISPLAY & WEATHER ACCORDION -->
+      <div class="accordion" data-accordion="display">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Display &amp; Weather</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="display-weather-grid">
+            <div>
+              <div class="control-group-title">Display Settings</div>
+              <div class="toggle-group">
+                <label class="toggle-label"><input type="checkbox" id="opt-milestones" checked /> Show milestone markers</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-labels" checked /> Show per-well labels</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-compact" /> Compact mode</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-weekends" /> Weekend shading</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-today" checked /> Today line</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-summary-view" /> Summary view (1 row per well)</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-consolidated" /> Consolidated view (phases as rows)</label>
+              </div>
+            </div>
+            <div>
+              <div class="control-group-title">Weather Delays</div>
+              <label class="toggle-label" style="margin-bottom:0.5rem;"><input type="checkbox" id="opt-weather" checked /> Model weather delays (Tulsa, OK)</label>
+              <div class="field" style="margin-bottom:0.5rem;">
+                <label for="inp-weather-risk" style="font-size:0.75rem;">Risk Profile</label>
+                <select id="inp-weather-risk" style="padding:0.35rem 0.5rem;font-size:0.8125rem;">
+                  <option value="optimistic">Optimistic (mild year)</option>
+                  <option value="average" selected>Average (typical year)</option>
+                  <option value="conservative">Conservative (harsh year)</option>
+                </select>
+              </div>
+              <div id="weather-info" class="weather-info-text">Est. delays shown per phase after generating.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECONDARY ACTIONS -->
+      <div class="secondary-actions">
+        <button id="btn-reset" class="btn-secondary-action">Reset to Defaults</button>
+        <button id="btn-save-config" class="btn-secondary-action">Save Config</button>
+        <button id="btn-load-config" class="btn-secondary-action">Load Config</button>
+        <input type="file" id="config-file-input" accept=".json" style="display:none;" />
       </div>
 
     </div>
   </section>
 
-  <!-- Output Section -->
+  <!-- ============================================================
+       OUTPUT SECTION
+       ============================================================ -->
   <section id="output" class="output-section" style="display:none;">
     <div class="container-wide">
 
@@ -246,6 +315,9 @@
         <h2 class="section-heading">Detailed Schedule</h2>
         <div id="table-container" class="table-container"></div>
       </div>
+
+      <!-- Proforma Output -->
+      <div id="proforma-output" class="proforma-section" style="display:none;"></div>
 
     </div>
   </section>
@@ -336,11 +408,11 @@ body {
 .btn-primary-action:hover { background: #2d2d48; }
 .btn-secondary-action {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 100%; padding: 0.65rem 1.5rem; border: 1px solid #d5d5dc; border-radius: 8px;
-  background: #fff; color: #1a1a2e; font-family: inherit; font-size: 0.875rem;
+  padding: 0.5rem 1rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  background: #fff; color: #6b6b80; font-family: inherit; font-size: 0.75rem;
   font-weight: 500; cursor: pointer; transition: all 0.2s;
 }
-.btn-secondary-action:hover { border-color: #1a1a2e; }
+.btn-secondary-action:hover { border-color: #1a1a2e; color: #1a1a2e; }
 
 /* ---- App Header ---- */
 .app-header { border-bottom: 1px solid #e5e5ea; padding: 1rem 0; }
@@ -354,15 +426,88 @@ body {
   color: #6b6b80; letter-spacing: 0.02em;
 }
 
-/* ---- Controls ---- */
-.controls-section { padding: 1.75rem 0; border-bottom: 1px solid #e5e5ea; background: #fafafc; }
-.controls-grid { display: grid; grid-template-columns: 240px 1fr 260px; gap: 2rem; }
-@media (max-width: 1024px) { .controls-grid { grid-template-columns: 1fr; } }
+/* ---- Primary Controls Bar ---- */
+.primary-controls {
+  background: #fafafc; border-bottom: 1px solid #e5e5ea;
+  padding: 0.75rem 0;
+}
+.primary-controls-inner {
+  display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap;
+}
+.primary-field label {
+  display: block; font-size: 0.625rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; color: #9b9ba8;
+  margin-bottom: 0.2rem;
+}
+.primary-field input, .primary-field select {
+  padding: 0.4rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  font-size: 0.8125rem; font-family: inherit; outline: none; background: #fff;
+}
+.primary-field input:focus, .primary-field select:focus {
+  border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.08);
+}
+.primary-field-action { margin-left: auto; }
+.btn-generate {
+  padding: 0.55rem 1.5rem; border: none; border-radius: 8px;
+  background: #1a1a2e; color: #fff; font-family: inherit; font-size: 0.8125rem;
+  font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap;
+}
+.btn-generate:hover { background: #2d2d48; }
 
+/* Presets in primary bar */
+.primary-field .preset-btns { display: flex; gap: 0.35rem; }
+.btn-preset {
+  padding: 0.35rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  background: #fff; font-size: 0.6875rem; font-family: inherit; font-weight: 500;
+  color: #6b6b80; cursor: pointer; transition: all 0.2s;
+}
+.btn-preset:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.btn-preset.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
+/* ---- Accordion System ---- */
+.controls-section { padding: 0.75rem 0; border-bottom: 1px solid #e5e5ea; }
+
+.accordion { border: 1px solid #e5e5ea; border-radius: 8px; margin-bottom: 0.5rem; background: #fff; }
+.accordion-header {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%;
+  padding: 0.65rem 1rem; border: none; background: none; cursor: pointer;
+  font-family: inherit; text-align: left; transition: background 0.15s;
+}
+.accordion-header:hover { background: #fafafc; border-radius: 8px; }
+.accordion-title {
+  font-size: 0.8125rem; font-weight: 600; color: #1a1a2e;
+}
+.accordion-badge {
+  font-size: 0.6875rem; font-weight: 500; color: #fff; background: #1a1a2e;
+  padding: 0.1rem 0.5rem; border-radius: 10px; margin-left: auto;
+}
+.accordion-badge-muted {
+  font-size: 0.625rem; font-weight: 400; color: #9b9ba8;
+  margin-left: auto;
+}
+.accordion-chevron {
+  font-size: 0.75rem; color: #9b9ba8; transition: transform 0.2s;
+}
+.accordion.open .accordion-chevron { transform: rotate(180deg); }
+.accordion-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+  padding: 0 1rem;
+}
+.accordion.open .accordion-body {
+  max-height: 2000px; padding: 0 1rem 1rem;
+}
+
+/* ---- Accordion Fields Grid ---- */
+.accordion-fields-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+/* ---- Controls shared ---- */
 .control-group-title {
   font-family: 'DM Sans', sans-serif; font-size: 0.6875rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.1em; color: #9b9ba8;
-  margin-bottom: 0.875rem; padding-bottom: 0.5rem; border-bottom: 1px solid #ececf0;
+  margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid #ececf0;
 }
 
 .field { margin-bottom: 0.75rem; }
@@ -377,36 +522,104 @@ body {
 }
 .field input:focus, .field select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.08); }
 
-/* Assumptions grid */
-.assumptions-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem 1rem; }
-@media (max-width: 1024px) { .assumptions-grid { grid-template-columns: 1fr 1fr 1fr; } }
-@media (max-width: 640px) { .assumptions-grid { grid-template-columns: 1fr 1fr; } }
-.field-sm label { display: block; font-size: 0.6875rem; color: #6b6b80; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ---- Assumptions Phase Groups ---- */
+.assumptions-phase-group {
+  margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f4;
+}
+.assumptions-phase-group:last-child { border-bottom: none; margin-bottom: 0; }
+.assumptions-phase-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #9b9ba8; margin-bottom: 0.4rem;
+}
+.assumptions-phase-fields {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.4rem 0.75rem;
+}
+.field-sm label {
+  display: block; font-size: 0.6875rem; color: #6b6b80; margin-bottom: 0.15rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .field-sm input {
-  width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d5d5dc;
+  width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d5d5dc;
   border-radius: 5px; font-size: 0.8125rem; font-family: inherit;
   outline: none; text-align: center; background: #fff;
 }
 .field-sm input:focus { border-color: #3b82f6; }
 
+/* ---- Display & Weather Grid ---- */
+.display-weather-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+}
+@media (max-width: 640px) { .display-weather-grid { grid-template-columns: 1fr; } }
+
 /* Toggles */
-.toggle-group { display: flex; flex-direction: column; gap: 0.45rem; }
+.toggle-group { display: flex; flex-direction: column; gap: 0.4rem; }
 .toggle-label {
   font-size: 0.8125rem; color: #3a3a4a; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
 }
 .toggle-label input { accent-color: #3b82f6; }
 
-/* Presets */
-.preset-btns { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
-.btn-preset {
-  flex: 1; padding: 0.4rem 0.5rem; border: 1px solid #d5d5dc; border-radius: 6px;
-  background: #fff; font-size: 0.75rem; font-family: inherit; font-weight: 500;
-  color: #6b6b80; cursor: pointer; transition: all 0.2s;
+/* ---- Secondary Actions ---- */
+.secondary-actions {
+  display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;
 }
-.btn-preset:hover { border-color: #1a1a2e; color: #1a1a2e; }
-.btn-preset.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
 
-.action-btns { display: flex; flex-direction: column; gap: 0.5rem; }
+/* ---- Well List ---- */
+.well-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.well-list-actions { display: flex; gap: 0.35rem; align-items: center; }
+.inp-quick-wells {
+  width: 50px; padding: 0.2rem 0.35rem; border: 1px solid #d5d5dc;
+  border-radius: 5px; font-size: 0.75rem; text-align: center; font-family: inherit;
+  outline: none;
+}
+.btn-sm {
+  padding: 0.25rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  background: #fff; font-size: 0.6875rem; font-family: inherit; font-weight: 500;
+  color: #3a3a4a; cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.btn-sm-muted { color: #9b9ba8; }
+.btn-sm-muted:hover { color: #dc2626; border-color: #dc2626; }
+.well-list-table-wrap {
+  max-height: 320px; overflow-y: auto; border: 1px solid #e5e5ea;
+  border-radius: 8px; background: #fff;
+}
+.well-list-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.well-list-table thead th {
+  position: sticky; top: 0; background: #fafafc; text-align: left;
+  padding: 0.4rem 0.5rem; font-size: 0.625rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em; color: #9b9ba8;
+  border-bottom: 1px solid #e5e5ea;
+}
+.well-list-table tbody td {
+  padding: 0.25rem 0.5rem; border-bottom: 1px solid #f0f0f4;
+}
+.well-list-table tbody td:first-child {
+  font-size: 0.6875rem; color: #9b9ba8; text-align: center;
+}
+.well-list-table .well-name-input {
+  width: 100%; border: 1px solid transparent; border-radius: 4px;
+  padding: 0.25rem 0.4rem; font-size: 0.8125rem; font-family: inherit;
+  background: transparent; outline: none; transition: border-color 0.15s;
+}
+.well-list-table .well-name-input:focus {
+  border-color: #3b82f6; background: #fff;
+}
+.well-list-table .well-rig-select {
+  width: 100%; border: 1px solid #e5e5ea; border-radius: 4px;
+  padding: 0.2rem 0.3rem; font-size: 0.75rem; font-family: inherit;
+  background: #fff; outline: none; cursor: pointer;
+}
+.well-list-table .well-rig-select:focus { border-color: #3b82f6; }
+.btn-remove-well {
+  border: none; background: none; color: #d5d5dc; font-size: 1rem;
+  cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; transition: color 0.15s;
+}
+.btn-remove-well:hover { color: #dc2626; }
 
 /* ---- Output Section ---- */
 .output-section { padding: 2rem 0 3rem; }
@@ -439,6 +652,30 @@ body {
   color: #6b6b80; cursor: pointer; transition: all 0.2s;
 }
 .btn-export:hover { border-color: #1a1a2e; color: #1a1a2e; }
+
+/* ---- Info Cards (Cashflow & Tax) ---- */
+.info-card {
+  background: #fff; border: 1px solid #e5e5ea; border-radius: 10px;
+  padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+}
+.info-card-title {
+  font-family: 'DM Serif Display', Georgia, serif; font-size: 1.1rem;
+  font-weight: 400; margin-bottom: 0.75rem; color: #1a1a2e;
+}
+.info-card-body {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.info-metric { }
+.info-metric-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #9b9ba8; margin-bottom: 0.2rem;
+}
+.info-metric-value { font-size: 0.9375rem; font-weight: 500; color: #1a1a2e; }
+.info-metric-note { font-size: 0.6875rem; color: #6b6b80; margin-top: 0.1rem; }
+.info-metric-value.highlight-green { color: #059669; }
+.info-metric-value.highlight-amber { color: #d97706; }
+.info-metric-value.highlight-red { color: #dc2626; }
 
 /* ---- Gantt Legend ---- */
 .gantt-legend {
@@ -525,6 +762,13 @@ body {
 .gantt-tooltip .tt-well { color: #94a3b8; font-size: 0.6875rem; }
 .gantt-tooltip .tt-dates { margin-top: 0.25rem; color: #c4c4d4; }
 
+/* Consolidated Gantt rows */
+.gantt-label-row.consolidated-category {
+  font-weight: 600; font-size: 0.6875rem; color: #1a1a2e; background: #f9f9fb;
+}
+.gantt-bar.consolidated-bar { opacity: 0.7; border: 1px solid rgba(255,255,255,0.4); }
+.gantt-bar.consolidated-bar:hover { opacity: 1; }
+
 /* ---- Table ---- */
 .table-container { overflow-x: auto; }
 .schedule-table {
@@ -558,90 +802,89 @@ body {
   border-radius: 3px; margin-left: 0.35rem; vertical-align: middle;
 }
 
-/* ---- Well List ---- */
-.well-list-section {
-  margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #ececf0;
+/* ---- Proforma Output ---- */
+.proforma-section {
+  margin-top: 2rem;
 }
-.well-list-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 0.5rem;
+.proforma-section .section-heading {
+  margin-bottom: 1rem;
 }
-.well-list-actions { display: flex; gap: 0.35rem; }
-.btn-sm {
-  padding: 0.25rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 5px;
-  background: #fff; font-size: 0.6875rem; font-family: inherit; font-weight: 500;
-  color: #3a3a4a; cursor: pointer; transition: all 0.15s;
-}
-.btn-sm:hover { border-color: #1a1a2e; color: #1a1a2e; }
-.btn-sm-muted { color: #9b9ba8; }
-.btn-sm-muted:hover { color: #dc2626; border-color: #dc2626; }
-.well-list-table-wrap {
-  max-height: 320px; overflow-y: auto; border: 1px solid #e5e5ea;
-  border-radius: 8px; background: #fff;
-}
-.well-list-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
-.well-list-table thead th {
-  position: sticky; top: 0; background: #fafafc; text-align: left;
-  padding: 0.4rem 0.5rem; font-size: 0.625rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.06em; color: #9b9ba8;
-  border-bottom: 1px solid #e5e5ea;
-}
-.well-list-table tbody td {
-  padding: 0.25rem 0.5rem; border-bottom: 1px solid #f0f0f4;
-}
-.well-list-table tbody td:first-child {
-  font-size: 0.6875rem; color: #9b9ba8; text-align: center;
-}
-.well-list-table .well-name-input {
-  width: 100%; border: 1px solid transparent; border-radius: 4px;
-  padding: 0.25rem 0.4rem; font-size: 0.8125rem; font-family: inherit;
-  background: transparent; outline: none; transition: border-color 0.15s;
-}
-.well-list-table .well-name-input:focus {
-  border-color: #3b82f6; background: #fff;
-}
-.well-list-table .well-rig-select {
-  width: 100%; border: 1px solid #e5e5ea; border-radius: 4px;
-  padding: 0.2rem 0.3rem; font-size: 0.75rem; font-family: inherit;
-  background: #fff; outline: none; cursor: pointer;
-}
-.well-list-table .well-rig-select:focus { border-color: #3b82f6; }
-.btn-remove-well {
-  border: none; background: none; color: #d5d5dc; font-size: 1rem;
-  cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; transition: color 0.15s;
-}
-.btn-remove-well:hover { color: #dc2626; }
 
-/* ---- Info Cards (Cashflow & Tax) ---- */
-.info-card {
-  background: #fff; border: 1px solid #e5e5ea; border-radius: 10px;
-  padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+/* Fund Summary Table */
+.proforma-fund-summary {
+  border: 1px solid #e5e5ea; border-radius: 10px; overflow: hidden;
+  margin-bottom: 1.5rem; background: #fff;
 }
-.info-card-title {
-  font-family: 'DM Serif Display', Georgia, serif; font-size: 1.1rem;
-  font-weight: 400; margin-bottom: 0.75rem; color: #1a1a2e;
+.proforma-fund-row {
+  display: grid;
+  grid-template-columns: 180px repeat(10, 1fr);
+  border-bottom: 1px solid #f0f0f4;
 }
-.info-card-body {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+.proforma-fund-row:last-child { border-bottom: none; }
+.proforma-fund-header {
+  background: #fafafc; font-weight: 600;
 }
-.info-metric { }
-.info-metric-label {
-  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.1em; color: #9b9ba8; margin-bottom: 0.2rem;
+.proforma-fund-header .proforma-fund-label {
+  font-size: 0.8125rem; color: #1a1a2e;
 }
-.info-metric-value { font-size: 0.9375rem; font-weight: 500; color: #1a1a2e; }
-.info-metric-note { font-size: 0.6875rem; color: #6b6b80; margin-top: 0.1rem; }
-.info-metric-value.highlight-green { color: #059669; }
-.info-metric-value.highlight-amber { color: #d97706; }
-.info-metric-value.highlight-red { color: #dc2626; }
+.proforma-fund-header .proforma-fund-cell {
+  font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; color: #9b9ba8;
+}
+.proforma-fund-label {
+  padding: 0.5rem 0.75rem; font-size: 0.75rem; font-weight: 500; color: #3a3a4a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.proforma-fund-cell {
+  padding: 0.5rem 0.4rem; font-size: 0.6875rem; color: #3a3a4a;
+  text-align: right; white-space: nowrap;
+}
+.proforma-bold { font-weight: 600; }
+.proforma-bold .proforma-fund-label,
+.proforma-bold .proforma-fund-cell,
+.proforma-bold td { font-weight: 600; color: #1a1a2e; }
+.proforma-highlight { background: #f0fdf4; }
+.proforma-highlight .proforma-fund-cell { color: #059669; font-weight: 600; }
 
-/* Consolidated Gantt rows */
-.gantt-label-row.consolidated-category {
-  font-weight: 600; font-size: 0.6875rem; color: #1a1a2e; background: #f9f9fb;
+/* Per-well accordions */
+.proforma-wells-detail { margin-top: 1rem; }
+.proforma-well-accordion {
+  border: 1px solid #e5e5ea; border-radius: 8px; margin-bottom: 0.4rem; background: #fff;
 }
-.gantt-bar.consolidated-bar { opacity: 0.7; border: 1px solid rgba(255,255,255,0.4); }
-.gantt-bar.consolidated-bar:hover { opacity: 1; }
+.proforma-well-accordion .accordion-header {
+  padding: 0.5rem 0.75rem; font-size: 0.8125rem;
+}
+.proforma-badge-gas {
+  font-size: 0.5625rem; font-weight: 600; padding: 0.1rem 0.4rem;
+  border-radius: 3px; background: #dbeafe; color: #1e40af;
+}
+.proforma-badge-water {
+  font-size: 0.5625rem; font-weight: 600; padding: 0.1rem 0.4rem;
+  border-radius: 3px; background: #e0e7ff; color: #3730a3;
+}
+
+.proforma-well-info {
+  display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem;
+  font-size: 0.75rem; color: #6b6b80;
+}
+
+.proforma-table-wrap { overflow-x: auto; }
+.proforma-table {
+  width: 100%; border-collapse: collapse; font-size: 0.6875rem;
+}
+.proforma-table thead th {
+  background: #fafafc; text-align: right; padding: 0.35rem 0.5rem;
+  font-weight: 600; font-size: 0.5625rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; border-bottom: 1px solid #e5e5ea;
+  white-space: nowrap;
+}
+.proforma-table thead th:first-child { text-align: left; }
+.proforma-table tbody td {
+  padding: 0.3rem 0.5rem; border-bottom: 1px solid #f0f0f4;
+  text-align: right; white-space: nowrap; color: #3a3a4a;
+}
+.proforma-table tbody td:first-child { text-align: left; color: #6b6b80; font-weight: 500; }
+.proforma-table tbody tr:hover { background: #fafafc; }
+.proforma-table .proforma-bold td { font-weight: 600; color: #1a1a2e; }
 
 /* ---- App Footer ---- */
 .app-footer { border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem; }
@@ -686,1737 +929,24 @@ body.compact .gantt-label-row { height: 20px !important; font-size: 0.5625rem; }
 body.compact .gantt-row { height: 20px !important; }
 body.compact .gantt-bar { top: 2px !important; height: 16px !important; }
 body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .proforma-fund-row { grid-template-columns: 140px repeat(10, 1fr); }
+  .proforma-fund-label { font-size: 0.625rem; }
+  .proforma-fund-cell { font-size: 0.5625rem; padding: 0.4rem 0.25rem; }
+}
 </style>
 
 <!-- ============================================================
-     JAVASCRIPT
+     JAVASCRIPT — Modular files
      ============================================================ -->
-<script is:inline>
-(function() {
-  'use strict';
-
-  /* ==========================================================
-     CONFIGURATION
-     ========================================================== */
-
-  /**
-   * ACCESS PASSWORD
-   * Change this value to update the password for the tool.
-   *
-   * WARNING: This is a frontend-only password check. It is NOT secure
-   * for protecting sensitive data. The password is visible in the page
-   * source code. If this tool handles confidential information, replace
-   * this with server-side authentication:
-   *   - Server-side session/cookie check
-   *   - CMS private page protection
-   *   - Cloudflare Access / Vercel Password Protection
-   *   - HTTP Basic Auth at the web server level
-   *
-   * To swap out this auth layer later, replace the handleUnlock()
-   * function and the #auth-screen HTML with your server-side solution.
-   * The rest of the app is independent of the auth mechanism.
-   */
-  var ACCESS_PASSWORD = 'bidwell2025';
-
-  /**
-   * DEFAULT TIMELINE ASSUMPTIONS (in days)
-   * Edit these to change the base scenario defaults.
-   */
-  var DEFAULT_ASSUMPTIONS = {
-    preDrill: 21,
-    rigMob: 2,
-    sitePrep: 1,
-    drillSurface: 2,
-    drillTD: 5,
-    logEval: 1,
-    runCasing: 1,
-    perforate: 2,
-    acidize: 2,
-    swabTest: 3,
-    facilities: 60,
-    fracBuffer: 7,
-    fracExec: 3,
-    drillOut: 3,
-    flowback: 10,
-    stabilized: 15
-  };
-
-  /**
-   * SCENARIO PRESETS
-   * Fast = aggressive schedule, Conservative = padded schedule.
-   */
-  var SCENARIO_PRESETS = {
-    fast: {
-      preDrill: 14, rigMob: 1, sitePrep: 1, drillSurface: 1, drillTD: 3,
-      logEval: 1, runCasing: 1, perforate: 1, acidize: 1, swabTest: 2,
-      facilities: 45, fracBuffer: 3, fracExec: 2, drillOut: 2, flowback: 7, stabilized: 10
-    },
-    base: Object.assign({}, DEFAULT_ASSUMPTIONS),
-    conservative: {
-      preDrill: 30, rigMob: 3, sitePrep: 2, drillSurface: 3, drillTD: 8,
-      logEval: 2, runCasing: 2, perforate: 3, acidize: 3, swabTest: 5,
-      facilities: 90, fracBuffer: 14, fracExec: 5, drillOut: 5, flowback: 14, stabilized: 21
-    }
-  };
-
-  /**
-   * PHASE COLOR PALETTE
-   * Edit these to change the Gantt bar colors.
-   */
-  var PHASE_COLORS = {
-    preDrill:     '#94a3b8',
-    rigMob:       '#60a5fa',
-    sitePrep:     '#60a5fa',
-    drillSurface: '#3b82f6',
-    drillTD:      '#2563eb',
-    logEval:      '#3b82f6',
-    runCasing:    '#3b82f6',
-    perforate:    '#f59e0b',
-    acidize:      '#f59e0b',
-    swabTest:     '#d97706',
-    facilities:   '#8b5cf6',
-    fracBuffer:   '#a3a3a3',
-    fracExec:     '#10b981',
-    drillOut:     '#10b981',
-    flowback:     '#059669',
-    stabilized:   '#065f46'
-  };
-
-  /**
-   * PHASE DISPLAY NAMES
-   */
-  var PHASE_NAMES = {
-    preDrill:     'Pre-drill / Permitting',
-    rigMob:       'Rig Mobilization',
-    sitePrep:     'Site Prep / Rig Up',
-    drillSurface: 'Drill Surface + Casing',
-    drillTD:      'Drill to TD',
-    logEval:      'Log & Evaluate',
-    runCasing:    'Run Production Casing',
-    perforate:    'Perforate',
-    acidize:      'Acidize / Stimulate',
-    swabTest:     'Swab / Flow Test',
-    facilities:   'Facilities / Infrastructure',
-    fracBuffer:   'Frac Scheduling Buffer',
-    fracExec:     'Frac Execution',
-    drillOut:     'Drill Out / Cleanup',
-    flowback:     'Flowback',
-    stabilized:   'Stabilized Production'
-  };
-
-  var PHASE_CATEGORY = {
-    preDrill: 'Permitting',
-    rigMob: 'Drilling', sitePrep: 'Drilling', drillSurface: 'Drilling',
-    drillTD: 'Drilling', logEval: 'Drilling', runCasing: 'Drilling',
-    perforate: 'Completion Prep', acidize: 'Completion Prep', swabTest: 'Completion Prep',
-    facilities: 'Facilities',
-    fracBuffer: 'Frac & Completion', fracExec: 'Frac & Completion', drillOut: 'Frac & Completion',
-    flowback: 'Production', stabilized: 'Production'
-  };
-
-  /**
-   * LEGEND CATEGORIES — for the color legend above the Gantt
-   */
-  var LEGEND_ITEMS = [
-    { label: 'Pre-drill', color: '#94a3b8' },
-    { label: 'Drilling', color: '#3b82f6' },
-    { label: 'Completion Prep', color: '#f59e0b' },
-    { label: 'Facilities', color: '#8b5cf6' },
-    { label: 'Frac & Completion', color: '#10b981' },
-    { label: 'Flowback / Production', color: '#065f46' }
-  ];
-
-  /**
-   * WEATHER DELAY MODEL — Tulsa, Oklahoma
-   *
-   * Based on NOAA/NWS Tulsa normals (1991–2020), SPC tornado archives,
-   * Oklahoma Climatological Survey, and industry delay benchmarks:
-   * - Ice storms: Dec–Feb, worst in Jan (~0.8 events/month). 3–5 events/yr.
-   *   Typical rig shutdown: 2–5 days per event. (e.g., Jan 2025 ice storm)
-   * - Severe thunderstorms/tornadoes: Apr–Jun peak. May is worst (~4.5
-   *   severe days/mo). Tulsa County avg 0.9 tornadoes/yr. Shutdown: 2–6 hrs.
-   * - Extreme cold (<20°F): Dec–Feb, ~15–20 days/winter below 20°F.
-   *   Slowed ops, 0.5–2 day delays when combined with ice/wind.
-   * - Flooding/heavy rain (>=1"): May peak (1.8 days/mo), Apr–Jun, Sep–Oct.
-   *   Site access blocked 1–3 days per event.
-   * - Extreme heat (>105°F): Jul–Aug, ~1–2 days/year avg.
-   *   Reduced crew shifts, rarely full shutdown (~0.25 day impact).
-   * - Snow: Dec–Feb, avg ~8–9" total/winter over 5–8 snow days.
-   *   Usually melts in 1–2 days.
-   * Industry benchmark: 10–15 operational delay days/year for OK onshore.
-   *
-   * Expected delay days per month for OUTDOOR rig operations.
-   * "average" = typical year. "optimistic" = mild. "conservative" = bad year.
-   * Pre-drill/permitting and facilities (indoor/office work) use reduced rates.
-   */
-  var WEATHER_DELAY_DAYS = {
-    // Expected delay days per month for field operations (drilling, frac, flowback)
-    // Composite: ice_days*3.5 + severe_storm_days*0.2 + cold_days*0.3 + heat_days*0.15 + flood_days*2.0 + snow_days*1.5
-    // Source: NOAA/NWS Tulsa normals (1991–2020), SPC archives, OK Climatological Survey
-    // [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
-    average: {
-      field:  [3.5, 2.5, 1.5, 1.5, 2.5, 1.8, 1.2, 1.2, 1.0, 0.7, 0.8, 2.8],
-      indoor: [1.5, 1.0, 0.5, 0.3, 0.5, 0.3, 0.0, 0.0, 0.0, 0.2, 0.3, 1.2]
-    },
-    optimistic: {
-      field:  [2.0, 1.5, 1.0, 0.8, 1.5, 1.0, 0.5, 0.5, 0.5, 0.3, 0.5, 1.5],
-      indoor: [0.8, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]
-    },
-    conservative: {
-      field:  [6.0, 4.5, 2.5, 2.5, 4.0, 3.0, 1.5, 1.5, 1.5, 1.5, 2.0, 5.0],
-      indoor: [3.0, 2.0, 1.0, 0.8, 1.0, 0.5, 0.0, 0.0, 0.5, 0.5, 0.8, 2.5]
-    }
-  };
-
-  // Month names for weather delay tooltips
-  var WEATHER_RISK_LABELS = [
-    'Jan: ice storms, extreme cold',
-    'Feb: ice, cold snaps',
-    'Mar: late winter storms, early severe',
-    'Apr: severe storms, tornadoes, flooding',
-    'May: peak severe weather, heavy rain',
-    'Jun: storms, heat building',
-    'Jul: extreme heat, isolated storms',
-    'Aug: extreme heat, isolated storms',
-    'Sep: mild, occasional storms',
-    'Oct: early cold fronts, rain',
-    'Nov: first freeze events',
-    'Dec: ice storms, cold, snow'
-  ];
-
-  /**
-   * Which phase keys are "field" (outdoor rig operations) vs "indoor" (office/permitting).
-   * Field operations get the full weather delay; indoor gets reduced.
-   */
-  var INDOOR_PHASES = ['preDrill', 'facilities', 'fracBuffer'];
-
-  /**
-   * Calculate weather delay days for a phase spanning startDate to endDate.
-   * Prorates partial months.
-   */
-  function calcWeatherDelay(startDate, endDate, phaseKey, riskProfile) {
-    if (!riskProfile || riskProfile === 'none') return 0;
-    var profile = WEATHER_DELAY_DAYS[riskProfile] || WEATHER_DELAY_DAYS.average;
-    var isIndoor = INDOOR_PHASES.indexOf(phaseKey) !== -1;
-    var rates = isIndoor ? profile.indoor : profile.field;
-
-    var totalDelay = 0;
-    var cursor = new Date(startDate);
-    var end = new Date(endDate);
-
-    while (cursor <= end) {
-      var month = cursor.getMonth(); // 0–11
-      var daysInMonth = new Date(cursor.getFullYear(), month + 1, 0).getDate();
-      // How many days of this month does the phase span?
-      var monthEnd = new Date(cursor.getFullYear(), month + 1, 0);
-      var spanEnd = end < monthEnd ? end : monthEnd;
-      var daysInSpan = daysBetween(cursor, spanEnd) + 1;
-      var fraction = daysInSpan / daysInMonth;
-      totalDelay += rates[month] * fraction;
-      cursor = addDays(spanEnd, 1);
-    }
-
-    return Math.round(totalDelay);
-  }
-
-  /* ==========================================================
-     DATE UTILITIES
-     ========================================================== */
-
-  function addDays(date, days) {
-    var d = new Date(date);
-    d.setDate(d.getDate() + days);
-    return d;
-  }
-
-  function formatDate(date) {
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
-  }
-
-  function formatShortDate(date) {
-    return (date.getMonth() + 1) + '/' + date.getDate();
-  }
-
-  function daysBetween(a, b) {
-    var msPerDay = 86400000;
-    return Math.round((b.getTime() - a.getTime()) / msPerDay);
-  }
-
-  function addMonths(date, months) {
-    var d = new Date(date);
-    d.setMonth(d.getMonth() + months);
-    return d;
-  }
-
-  function formatCurrency(n) {
-    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  }
-
-  function isWeekend(date) {
-    var day = date.getDay();
-    return day === 0 || day === 6;
-  }
-
-  function toDateInputValue(date) {
-    return date.getFullYear() + '-' +
-      String(date.getMonth() + 1).padStart(2, '0') + '-' +
-      String(date.getDate()).padStart(2, '0');
-  }
-
-  function parseDateInput(str) {
-    var parts = str.split('-');
-    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-  }
-
-  /* ==========================================================
-     DOM REFERENCES
-     ========================================================== */
-
-  var authScreen = document.getElementById('auth-screen');
-  var authInput = document.getElementById('auth-input');
-  var authBtn = document.getElementById('auth-btn');
-  var authError = document.getElementById('auth-error');
-  var appEl = document.getElementById('app');
-  var outputEl = document.getElementById('output');
-
-  var inpStart = document.getElementById('inp-start');
-  var inpMode = document.getElementById('inp-mode');
-  var inpOverlap = document.getElementById('inp-overlap');
-  var overlapField = document.getElementById('overlap-field');
-  var inpBuffer = document.getElementById('inp-buffer');
-
-  var inpInvestment = document.getElementById('inp-investment');
-  var inpIdcPct = document.getElementById('inp-idc-pct');
-  var inpOverheadPct = document.getElementById('inp-overhead-pct');
-  var inpBonusDepr = document.getElementById('inp-bonus-depr');
-  var inpDistLag = document.getElementById('inp-dist-lag');
-
-  var btnGenerate = document.getElementById('btn-generate');
-  var btnReset = document.getElementById('btn-reset');
-  var btnPDF = document.getElementById('btn-pdf');
-  var btnCSV = document.getElementById('btn-csv');
-  var btnCopy = document.getElementById('btn-copy');
-
-  var summaryCard = document.getElementById('summary-card');
-  var ganttContainer = document.getElementById('gantt-container');
-  var ganttLegend = document.getElementById('gantt-legend');
-  var tableContainer = document.getElementById('table-container');
-  var cashflowCard = document.getElementById('cashflow-card');
-  var cashflowContent = document.getElementById('cashflow-content');
-  var taxCard = document.getElementById('tax-card');
-  var taxContent = document.getElementById('tax-content');
-
-  var tooltip = null;
-
-  /* ==========================================================
-     STATE
-     ========================================================== */
-
-  var generatedData = null;
-
-  /* ==========================================================
-     WELL LIST MANAGEMENT
-     ========================================================== */
-
-  var wellListBody = document.getElementById('well-list-body');
-  var btnAddWell = document.getElementById('btn-add-well');
-  var btnSetWells = document.getElementById('btn-set-wells');
-  var inpQuickWells = document.getElementById('inp-quick-wells');
-  var btnClearWells = document.getElementById('btn-clear-wells');
-
-  function getWellList() {
-    var rows = wellListBody.querySelectorAll('tr');
-    var list = [];
-    for (var i = 0; i < rows.length; i++) {
-      var nameInput = rows[i].querySelector('.well-name-input');
-      var rigSelect = rows[i].querySelector('.well-rig-select');
-      list.push({
-        name: nameInput.value.trim() || ('Well ' + (i + 1)),
-        rig: parseInt(rigSelect.value) || 1
-      });
-    }
-    return list;
-  }
-
-  function addWellRow(name, rig) {
-    var idx = wellListBody.querySelectorAll('tr').length + 1;
-    var tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td>' + idx + '</td>' +
-      '<td><input type="text" class="well-name-input" value="' + escapeAttr(name || ('Well ' + idx)) + '" placeholder="Well ' + idx + '" /></td>' +
-      '<td><select class="well-rig-select">' +
-        '<option value="1"' + (rig === 1 || !rig ? ' selected' : '') + '>Rig 1</option>' +
-        '<option value="2"' + (rig === 2 ? ' selected' : '') + '>Rig 2</option>' +
-        '<option value="3"' + (rig === 3 ? ' selected' : '') + '>Rig 3</option>' +
-      '</select></td>' +
-      '<td><button class="btn-remove-well" title="Remove">&times;</button></td>';
-    tr.querySelector('.btn-remove-well').addEventListener('click', function() {
-      tr.remove();
-      renumberWells();
-    });
-    wellListBody.appendChild(tr);
-  }
-
-  function renumberWells() {
-    var rows = wellListBody.querySelectorAll('tr');
-    for (var i = 0; i < rows.length; i++) {
-      rows[i].querySelector('td:first-child').textContent = i + 1;
-    }
-  }
-
-  function populateDefaultWells(count) {
-    wellListBody.innerHTML = '';
-    for (var i = 0; i < count; i++) {
-      addWellRow('Well ' + (i + 1), 1);
-    }
-  }
-
-  btnAddWell.addEventListener('click', function() { addWellRow(); });
-  btnSetWells.addEventListener('click', function() {
-    var count = Math.max(1, Math.min(50, parseInt(inpQuickWells.value) || 10));
-    populateDefaultWells(count);
-  });
-  btnClearWells.addEventListener('click', function() {
-    wellListBody.innerHTML = '';
-    addWellRow('Well 1', 1);
-  });
-
-  /* ==========================================================
-     AUTH MODULE
-     ========================================================== */
-
-  function handleUnlock() {
-    var pwd = authInput.value.trim();
-    if (pwd === ACCESS_PASSWORD) {
-      try { sessionStorage.setItem('rcr_auth', '1'); } catch(e) {}
-      authScreen.style.display = 'none';
-      appEl.style.display = 'block';
-      generateAndRender();
-    } else {
-      authError.textContent = 'Incorrect access code. Please try again.';
-      authInput.value = '';
-      authInput.focus();
-    }
-  }
-
-  // Check if already authenticated this session
-  function checkSessionAuth() {
-    try {
-      if (sessionStorage.getItem('rcr_auth') === '1') {
-        authScreen.style.display = 'none';
-        appEl.style.display = 'block';
-        populateDefaults();
-        generateAndRender();
-        return true;
-      }
-    } catch(e) {}
-    return false;
-  }
-
-  authBtn.addEventListener('click', handleUnlock);
-  authInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleUnlock();
-  });
-
-  /* ==========================================================
-     POPULATE UI WITH DEFAULTS
-     ========================================================== */
-
-  function populateDefaults() {
-    inpStart.value = toDateInputValue(new Date());
-    populateDefaultWells(10);
-    inpMode.value = 'sequential';
-    inpOverlap.value = 4;
-    inpBuffer.value = 0;
-    inpInvestment.value = 5000000;
-    inpIdcPct.value = 80;
-    inpOverheadPct.value = 5;
-    inpBonusDepr.value = 100;
-    inpDistLag.value = 2;
-    overlapField.style.display = 'none';
-    setAssumptionsUI(DEFAULT_ASSUMPTIONS);
-    updatePresetButtons('base');
-  }
-
-  function setAssumptionsUI(a) {
-    var inputs = document.querySelectorAll('.assumption');
-    for (var i = 0; i < inputs.length; i++) {
-      var key = inputs[i].getAttribute('data-key');
-      if (a[key] !== undefined) inputs[i].value = a[key];
-    }
-  }
-
-  function getAssumptionsFromUI() {
-    var a = {};
-    var inputs = document.querySelectorAll('.assumption');
-    for (var i = 0; i < inputs.length; i++) {
-      var key = inputs[i].getAttribute('data-key');
-      var val = parseInt(inputs[i].value) || 0;
-      a[key] = Math.max(0, val);
-    }
-    return a;
-  }
-
-  function updatePresetButtons(activeScenario) {
-    var btns = document.querySelectorAll('.btn-preset');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.toggle('active', btns[i].getAttribute('data-scenario') === activeScenario);
-    }
-  }
-
-  /* ==========================================================
-     SCHEDULE CALCULATION ENGINE
-     ========================================================== */
-
-  function generateSchedule() {
-    var startDate = parseDateInput(inpStart.value);
-    var wellDefs = getWellList();
-    var numWells = wellDefs.length;
-    var mode = inpMode.value;
-    var overlapOffset = Math.max(1, parseInt(inpOverlap.value) || 4);
-    var globalBuffer = Math.max(0, parseInt(inpBuffer.value) || 0);
-    var a = getAssumptionsFromUI();
-
-    var weatherEnabled = document.getElementById('opt-weather').checked;
-    var weatherRisk = document.getElementById('inp-weather-risk').value;
-    var totalWeatherDays = 0;
-
-    if (numWells < 1) {
-      alert('Please add at least 1 well.');
-      return null;
-    }
-
-    var projectPhases = [];
-    var wells = [];
-    var wellNames = [];
-    var allBars = [];
-    var cursor = new Date(startDate);
-
-    function makePhase(key, start, duration, wellName) {
-      var baseDuration = duration;
-      var weatherDays = 0;
-      if (weatherEnabled && duration > 0) {
-        var baseEnd = addDays(start, duration - 1);
-        weatherDays = calcWeatherDelay(start, baseEnd, key, weatherRisk);
-      }
-      var totalDuration = duration + weatherDays;
-      var end = addDays(start, totalDuration - 1);
-      totalWeatherDays += weatherDays;
-      return {
-        key: key,
-        name: PHASE_NAMES[key] || key,
-        color: PHASE_COLORS[key] || '#888',
-        category: PHASE_CATEGORY[key] || '',
-        well: wellName || 'Project',
-        start: new Date(start),
-        end: end,
-        duration: totalDuration,
-        baseDuration: baseDuration,
-        weatherDays: weatherDays
-      };
-    }
-
-    // Pre-drill is per-well (runs in parallel for all wells before their drilling starts)
-    var drillingStartBase = new Date(cursor);
-
-    var drillingPhaseKeys = ['rigMob', 'sitePrep', 'drillSurface', 'drillTD', 'logEval', 'runCasing'];
-    var completionPrepKeys = ['perforate', 'acidize', 'swabTest'];
-    var postFracKeys = ['fracExec', 'drillOut', 'flowback', 'stabilized'];
-
-    // Per-well facilities tracking
-    var wellFacilitiesEnd = []; // end date of facilities for each well
-
-    // Group wells by rig for scheduling
-    var rigWells = {}; // { rigNum: [wellIndex, ...] }
-    for (var rw = 0; rw < wellDefs.length; rw++) {
-      var rigNum = wellDefs[rw].rig;
-      if (!rigWells[rigNum]) rigWells[rigNum] = [];
-      rigWells[rigNum].push(rw);
-    }
-
-    // Track the previous well on each rig for sequencing
-    var rigPrevWell = {}; // { rigNum: wellIndex of last scheduled well }
-
-    // First pass: drilling and completion prep for all wells
-    // Process in well order, but sequence within each rig
-    for (var w = 0; w < numWells; w++) {
-      var wellName = wellDefs[w].name;
-      var wellRig = wellDefs[w].rig;
-      wellNames.push(wellName);
-      var wellPhases = [];
-      var wellCursor;
-
-      var prevOnRig = rigPrevWell[wellRig];
-
-      // Per-well pre-drill/permitting (runs from project start, in parallel)
-      wellCursor = new Date(drillingStartBase);
-      if (a.preDrill > 0) {
-        var preDrill = makePhase('preDrill', drillingStartBase, a.preDrill, wellName);
-        wellPhases.push(preDrill);
-        allBars.push(preDrill);
-        wellCursor = addDays(preDrill.end, 1);
-      }
-
-      // Rig-based sequencing for drilling (must wait for previous well on same rig)
-      if (prevOnRig !== undefined) {
-        var rigReady;
-        if (mode === 'sequential') {
-          var prevWell = wells[prevOnRig];
-          var prevLastDrilling = null;
-          for (var p = 0; p < prevWell.length; p++) {
-            if (drillingPhaseKeys.indexOf(prevWell[p].key) !== -1) {
-              prevLastDrilling = prevWell[p];
-            }
-          }
-          rigReady = addDays(prevLastDrilling.end, 1);
-        } else {
-          // Find the drilling start of the previous well on this rig
-          var prevDrillStart = null;
-          for (var pd = 0; pd < wells[prevOnRig].length; pd++) {
-            if (drillingPhaseKeys.indexOf(wells[prevOnRig][pd].key) !== -1) {
-              prevDrillStart = wells[prevOnRig][pd].start;
-              break;
-            }
-          }
-          rigReady = addDays(prevDrillStart, overlapOffset);
-        }
-        // Drilling can't start until both permitting is done AND rig is available
-        if (rigReady > wellCursor) wellCursor = rigReady;
-      }
-
-      rigPrevWell[wellRig] = w;
-
-      for (var d = 0; d < drillingPhaseKeys.length; d++) {
-        var key = drillingPhaseKeys[d];
-        if (a[key] > 0) {
-          var phase = makePhase(key, wellCursor, a[key], wellName);
-          wellPhases.push(phase);
-          allBars.push(phase);
-          wellCursor = addDays(phase.end, 1);
-        }
-      }
-
-      for (var c = 0; c < completionPrepKeys.length; c++) {
-        var ck = completionPrepKeys[c];
-        if (a[ck] > 0) {
-          var cp = makePhase(ck, wellCursor, a[ck], wellName);
-          wellPhases.push(cp);
-          allBars.push(cp);
-          wellCursor = addDays(cp.end, 1);
-        }
-      }
-
-      // Per-well facilities: starts when this well's completion prep starts
-      if (a.facilities > 0) {
-        var facStart = wellCursor; // defaults to after drilling if no completion prep
-        for (var fc = 0; fc < wellPhases.length; fc++) {
-          if (completionPrepKeys.indexOf(wellPhases[fc].key) !== -1) {
-            facStart = new Date(wellPhases[fc].start);
-            break;
-          }
-        }
-        var facPhase = makePhase('facilities', facStart, a.facilities, wellName);
-        wellPhases.push(facPhase);
-        allBars.push(facPhase);
-        wellFacilitiesEnd.push(facPhase.end);
-      } else {
-        wellFacilitiesEnd.push(null);
-      }
-
-      wells.push(wellPhases);
-    }
-
-    // Frac and post-frac phases per well
-    for (var w2 = 0; w2 < numWells; w2++) {
-      var wellName2 = wellNames[w2];
-      var wellPhases2 = wells[w2];
-      var lastCompletionPrep = null;
-
-      for (var lc = 0; lc < wellPhases2.length; lc++) {
-        if (completionPrepKeys.indexOf(wellPhases2[lc].key) !== -1) {
-          lastCompletionPrep = wellPhases2[lc];
-        }
-      }
-
-      var fracReadyDate;
-      var completionEnd = lastCompletionPrep ? addDays(lastCompletionPrep.end, 1) : new Date(drillingStartBase);
-      var thisFacEnd = wellFacilitiesEnd[w2] ? addDays(wellFacilitiesEnd[w2], 1) : completionEnd;
-      fracReadyDate = completionEnd > thisFacEnd ? completionEnd : thisFacEnd;
-
-      if (a.fracBuffer > 0) {
-        var bufferPhase = makePhase('fracBuffer', fracReadyDate, a.fracBuffer, wellName2);
-        wellPhases2.push(bufferPhase);
-        allBars.push(bufferPhase);
-        fracReadyDate = addDays(bufferPhase.end, 1);
-      }
-
-      var postCursor = fracReadyDate;
-      for (var pf = 0; pf < postFracKeys.length; pf++) {
-        var pfKey = postFracKeys[pf];
-        if (a[pfKey] > 0) {
-          var pfPhase = makePhase(pfKey, postCursor, a[pfKey], wellName2);
-          wellPhases2.push(pfPhase);
-          allBars.push(pfPhase);
-          postCursor = addDays(pfPhase.end, 1);
-        }
-      }
-
-      if (globalBuffer > 0) {
-        var bufPhase = {
-          key: 'globalBuffer', name: 'Buffer', color: '#d4d4d8',
-          category: 'Buffer', well: wellName2,
-          start: new Date(postCursor),
-          end: addDays(postCursor, globalBuffer - 1),
-          duration: globalBuffer
-        };
-        wellPhases2.push(bufPhase);
-        allBars.push(bufPhase);
-      }
-    }
-
-    var projectEnd = startDate;
-    for (var b = 0; b < allBars.length; b++) {
-      if (allBars[b].end > projectEnd) projectEnd = allBars[b].end;
-    }
-
-    var firstFlowback = null;
-    for (var fb = 0; fb < allBars.length; fb++) {
-      if (allBars[fb].key === 'flowback') {
-        if (!firstFlowback || allBars[fb].start < firstFlowback) {
-          firstFlowback = allBars[fb].start;
-        }
-      }
-    }
-
-    // ---- Cashflow & Distribution calculations ----
-    var distLag = Math.max(0, parseInt(inpDistLag.value) || 2);
-    var lastFlowback = null;
-    var firstStabilized = null;
-    var lastStabilized = null;
-    var firstSpudDate = null;
-
-    for (var cf = 0; cf < allBars.length; cf++) {
-      if (allBars[cf].key === 'flowback') {
-        if (!lastFlowback || allBars[cf].end > lastFlowback) lastFlowback = allBars[cf].end;
-      }
-      if (allBars[cf].key === 'stabilized') {
-        if (!firstStabilized || allBars[cf].start < firstStabilized) firstStabilized = allBars[cf].start;
-        if (!lastStabilized || allBars[cf].end > lastStabilized) lastStabilized = allBars[cf].end;
-      }
-    }
-
-    var firstProductionMonth = firstFlowback ? new Date(firstFlowback.getFullYear(), firstFlowback.getMonth(), 1) : null;
-    var lastProductionMonth = lastStabilized ? new Date(lastStabilized.getFullYear(), lastStabilized.getMonth(), 1) : null;
-    var firstDistDate = firstProductionMonth ? addMonths(firstProductionMonth, distLag) : null;
-    var lastProductionCheck = lastProductionMonth ? addMonths(lastProductionMonth, distLag) : null;
-
-    // Per-well flowback dates for TDC timing
-    var wellFlowbackDates = [];
-    for (var wf = 0; wf < wells.length; wf++) {
-      for (var wfp = 0; wfp < wells[wf].length; wfp++) {
-        if (wells[wf][wfp].key === 'flowback') {
-          wellFlowbackDates.push({ well: wellNames[wf], date: wells[wf][wfp].start });
-          break;
-        }
-      }
-    }
-
-    // ---- Per-well spud dates (first drilling activity per well) ----
-    var wellSpudDates = [];
-    for (var ws = 0; ws < wells.length; ws++) {
-      var spud = null;
-      for (var wsp = 0; wsp < wells[ws].length; wsp++) {
-        var sk = wells[ws][wsp].key;
-        if (sk === 'rigMob' || sk === 'sitePrep' || sk === 'drillSurface') {
-          if (!spud || wells[ws][wsp].start < spud) spud = wells[ws][wsp].start;
-        }
-      }
-      wellSpudDates.push({ well: wellNames[ws], date: spud });
-    }
-
-    var firstSpudDate = null;
-    for (var fsd = 0; fsd < wellSpudDates.length; fsd++) {
-      if (wellSpudDates[fsd].date && (!firstSpudDate || wellSpudDates[fsd].date < firstSpudDate)) {
-        firstSpudDate = wellSpudDates[fsd].date;
-      }
-    }
-
-    // ---- Tax Deduction calculations ----
-    var totalInvestment = Math.max(0, parseFloat(inpInvestment.value) || 0);
-    var idcPct = Math.max(0, Math.min(100, parseFloat(inpIdcPct.value) || 80));
-    var overheadPct = Math.max(0, Math.min(100, parseFloat(inpOverheadPct.value) || 5));
-    var tdcPct = Math.max(0, 100 - idcPct - overheadPct);
-    var bonusDeprPct = Math.max(0, Math.min(100, parseFloat(inpBonusDepr.value) || 100));
-
-    var idcAmount = totalInvestment * (idcPct / 100);
-    var tdcAmount = totalInvestment * (tdcPct / 100);
-    var overheadAmount = totalInvestment * (overheadPct / 100);
-    var bonusDeprAmount = tdcAmount * (bonusDeprPct / 100);
-    var remainingTdc = tdcAmount - bonusDeprAmount;
-
-    // IDC deductible per well: each well qualifies if spudded by March 31 of year after investment
-    var investmentYear = startDate.getFullYear();
-    var march31NextYear = new Date(investmentYear + 1, 2, 31); // March 31 of next year
-    var idcPerWell = numWells > 0 ? idcAmount / numWells : 0;
-    var wellIdcStatus = [];
-    var idcQualifyingAmount = 0;
-    var idcNonQualifyingAmount = 0;
-    var wellsQualifying = 0;
-    var wellsNotQualifying = 0;
-
-    for (var wi = 0; wi < wellSpudDates.length; wi++) {
-      var wSpud = wellSpudDates[wi].date;
-      var qualifies = wSpud && wSpud <= march31NextYear;
-      wellIdcStatus.push({
-        well: wellSpudDates[wi].well,
-        spudDate: wSpud,
-        qualifies: qualifies,
-        idcShare: idcPerWell
-      });
-      if (qualifies) {
-        idcQualifyingAmount += idcPerWell;
-        wellsQualifying++;
-      } else {
-        idcNonQualifyingAmount += idcPerWell;
-        wellsNotQualifying++;
-      }
-    }
-
-    var allQualify = wellsNotQualifying === 0;
-    var noneQualify = wellsQualifying === 0;
-
-    // TDC deductible when equipment goes into service (per-well, year of first production)
-    var tdcPerWell = numWells > 0 ? tdcAmount / numWells : 0;
-    var bonusDeprPerWell = numWells > 0 ? bonusDeprAmount / numWells : 0;
-    var remainingTdcPerWell = numWells > 0 ? remainingTdc / numWells : 0;
-    var tdcByYear = {}; // { year: { amount, bonusDepr, remaining, wells: [] } }
-    for (var ti = 0; ti < wellFlowbackDates.length; ti++) {
-      var serviceYear = wellFlowbackDates[ti].date ? wellFlowbackDates[ti].date.getFullYear() : investmentYear;
-      if (!tdcByYear[serviceYear]) {
-        tdcByYear[serviceYear] = { amount: 0, bonusDepr: 0, remaining: 0, wells: [] };
-      }
-      tdcByYear[serviceYear].amount += tdcPerWell;
-      tdcByYear[serviceYear].bonusDepr += bonusDeprPerWell;
-      tdcByYear[serviceYear].remaining += remainingTdcPerWell;
-      tdcByYear[serviceYear].wells.push(wellFlowbackDates[ti].well);
-    }
-    // If no flowback dates found, put all TDC in investment year
-    if (Object.keys(tdcByYear).length === 0) {
-      tdcByYear[investmentYear] = { amount: tdcAmount, bonusDepr: bonusDeprAmount, remaining: remainingTdc, wells: [] };
-    }
-    var tdcYears = Object.keys(tdcByYear).sort();
-
-    return {
-      startDate: startDate,
-      endDate: projectEnd,
-      numWells: numWells,
-      mode: mode,
-      overlapOffset: overlapOffset,
-      totalDays: daysBetween(startDate, projectEnd) + 1,
-      firstProductionDate: firstFlowback || projectEnd,
-      finalStabilizedDate: projectEnd,
-      projectPhases: projectPhases,
-      wells: wells,
-      wellNames: wellNames,
-      allBars: allBars,
-      assumptions: a,
-      // Cashflow
-      distLag: distLag,
-      firstDistDate: firstDistDate,
-      lastProductionCheck: lastProductionCheck,
-      firstProductionMonth: firstProductionMonth,
-      lastProductionMonth: lastProductionMonth,
-      wellFlowbackDates: wellFlowbackDates,
-      // Tax
-      totalInvestment: totalInvestment,
-      idcPct: idcPct,
-      tdcPct: tdcPct,
-      overheadPct: overheadPct,
-      idcAmount: idcAmount,
-      tdcAmount: tdcAmount,
-      overheadAmount: overheadAmount,
-      bonusDeprPct: bonusDeprPct,
-      bonusDeprAmount: bonusDeprAmount,
-      remainingTdc: remainingTdc,
-      investmentYear: investmentYear,
-      idcPerWell: idcPerWell,
-      wellIdcStatus: wellIdcStatus,
-      idcQualifyingAmount: idcQualifyingAmount,
-      idcNonQualifyingAmount: idcNonQualifyingAmount,
-      wellsQualifying: wellsQualifying,
-      wellsNotQualifying: wellsNotQualifying,
-      allQualify: allQualify,
-      noneQualify: noneQualify,
-      firstSpudDate: firstSpudDate,
-      wellSpudDates: wellSpudDates,
-      march31Deadline: march31NextYear,
-      tdcPerWell: tdcPerWell,
-      tdcByYear: tdcByYear,
-      tdcYears: tdcYears,
-      // Weather
-      weatherEnabled: weatherEnabled,
-      weatherRisk: weatherRisk,
-      totalWeatherDays: totalWeatherDays
-    };
-  }
-
-  /* ==========================================================
-     RENDER: EXECUTIVE SUMMARY
-     ========================================================== */
-
-  function renderSummary(data) {
-    var modeLabel = data.mode === 'overlap'
-      ? 'Overlapped (' + data.overlapOffset + 'd offset)'
-      : 'Sequential';
-
-    var weatherNote = data.weatherEnabled
-      ? '<span class="weather-delay-badge">+' + data.totalWeatherDays + 'd weather</span>'
-      : '';
-
-    summaryCard.innerHTML =
-      '<div class="summary-item"><div class="summary-item-label">Project Start</div><div class="summary-item-value">' + formatDate(data.startDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Wells</div><div class="summary-item-value">' + data.numWells + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Drilling Mode</div><div class="summary-item-value">' + modeLabel + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Est. First Production</div><div class="summary-item-value">' + formatDate(data.firstProductionDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(data.finalStabilizedDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + data.totalDays + ' days' + weatherNote + '</div></div>';
-  }
-
-  /* ==========================================================
-     RENDER: CASHFLOW & DISTRIBUTION TIMELINE
-     ========================================================== */
-
-  function renderCashflow(data, targetEl) {
-    var container = targetEl || cashflowContent;
-    if (!data.firstProductionMonth) {
-      if (!targetEl) cashflowCard.style.display = 'none';
-      return;
-    }
-    if (!targetEl) cashflowCard.style.display = 'block';
-
-    var html =
-      '<div class="info-metric"><div class="info-metric-label">First Production</div><div class="info-metric-value">' + formatDate(data.firstProductionDate) + '</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">First Distribution Check</div><div class="info-metric-value highlight-green">' + formatDate(data.firstDistDate) + '</div>' +
-      '<div class="info-metric-note">' + data.distLag + '-month lag from production</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">All Wells Stabilized</div><div class="info-metric-value">' + formatDate(data.finalStabilizedDate) + '</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">Last Production Period Check</div><div class="info-metric-value">' + formatDate(data.lastProductionCheck) + '</div>' +
-      '<div class="info-metric-note">Check for final stabilization month</div></div>';
-
-    // Per-well flowback summary
-    if (data.wellFlowbackDates.length > 0) {
-      html += '<div class="info-metric" style="grid-column:1/-1;"><div class="info-metric-label">Per-Well Production &amp; First Distribution</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.35rem;margin-top:0.35rem;">';
-      for (var i = 0; i < data.wellFlowbackDates.length; i++) {
-        var wf = data.wellFlowbackDates[i];
-        var distDate = addMonths(new Date(wf.date.getFullYear(), wf.date.getMonth(), 1), data.distLag);
-        html += '<div style="font-size:0.75rem;color:#3a3a4a;"><strong>' + wf.well + '</strong>: flows ' + formatShortDate(wf.date) + ' → check ' + formatShortDate(distDate) + '</div>';
-      }
-      html += '</div></div>';
-    }
-
-    container.innerHTML = html;
-  }
-
-  /* ==========================================================
-     RENDER: TAX DEDUCTION SUMMARY
-     ========================================================== */
-
-  function renderTax(data, targetEl) {
-    var container = targetEl || taxContent;
-    if (data.totalInvestment <= 0) {
-      if (!targetEl) taxCard.style.display = 'none';
-      return;
-    }
-    if (!targetEl) taxCard.style.display = 'block';
-
-    // TDC in investment year (wells that go into service same year as investment)
-    var invYearStr = String(data.investmentYear);
-    var tdcInvestmentYear = data.tdcByYear[invYearStr] ? data.tdcByYear[invYearStr].bonusDepr : 0;
-
-    // Investment year deduction = qualifying IDC + TDC bonus depreciation for wells in service that year
-    var investmentYearDeduction = data.idcQualifyingAmount + tdcInvestmentYear;
-    var investmentYearPct = data.totalInvestment > 0 ? Math.round((investmentYearDeduction / data.totalInvestment) * 100) : 0;
-
-    var html =
-      '<div class="info-metric"><div class="info-metric-label">Total Investment</div><div class="info-metric-value">' + formatCurrency(data.totalInvestment) + '</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">IDC (' + data.idcPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.idcAmount) + '</div>' +
-      '<div class="info-metric-note">' + formatCurrency(data.idcPerWell) + ' per well — deductible in year invested</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">TDC (' + data.tdcPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.tdcAmount) + '</div>' +
-      '<div class="info-metric-note">' + formatCurrency(data.tdcPerWell) + ' per well — deductible year well goes into service</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">Overhead (' + data.overheadPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.overheadAmount) + '</div></div>' +
-      '<div class="info-metric"><div class="info-metric-label">Bonus Depreciation (' + data.bonusDeprPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.bonusDeprAmount) + '</div>' +
-      '<div class="info-metric-note">Applied to TDC in the year each well flows</div></div>';
-
-    if (data.remainingTdc > 0) {
-      html += '<div class="info-metric"><div class="info-metric-label">Remaining TDC (MACRS)</div><div class="info-metric-value">' + formatCurrency(data.remainingTdc) + '</div>' +
-        '<div class="info-metric-note">Depreciated over 7-year schedule per well</div></div>';
-    }
-
-    // TDC by year breakdown
-    html += '<div class="info-metric" style="grid-column:1/-1;"><div class="info-metric-label">TDC Deduction by Year (in service)</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;margin-top:0.35rem;">';
-    for (var yi = 0; yi < data.tdcYears.length; yi++) {
-      var yr = data.tdcYears[yi];
-      var yd = data.tdcByYear[yr];
-      var wellList = yd.wells.length > 0 ? yd.wells.join(', ') : 'All';
-      html += '<div style="background:#f9f9fb;border:1px solid #e5e5ea;border-radius:6px;padding:0.6rem 0.75rem;">' +
-        '<div style="font-size:0.6875rem;font-weight:600;color:#1a1a2e;">' + yr + '</div>' +
-        '<div style="font-size:0.875rem;font-weight:500;color:#1a1a2e;">' + formatCurrency(yd.bonusDepr) + ' bonus depr</div>';
-      if (yd.remaining > 0) {
-        html += '<div style="font-size:0.75rem;color:#6b6b80;">' + formatCurrency(yd.remaining) + ' MACRS</div>';
-      }
-      html += '<div style="font-size:0.6875rem;color:#9b9ba8;">' + wellList + '</div></div>';
-    }
-    html += '</div></div>';
-
-    // Investment year total deduction
-    html += '<div class="info-metric"><div class="info-metric-label">' + data.investmentYear + ' Total Deduction</div><div class="info-metric-value highlight-green">' + formatCurrency(investmentYearDeduction) + ' (' + investmentYearPct + '%)</div>' +
-      '<div class="info-metric-note">Qualifying IDC + bonus depreciation on TDC in service ' + data.investmentYear + '</div></div>';
-
-    // Per-well IDC qualification status
-    var idcSummaryClass, idcSummaryText;
-    if (data.allQualify) {
-      idcSummaryClass = 'highlight-green';
-      idcSummaryText = 'All ' + data.numWells + ' wells qualify — spud by ' + formatDate(data.march31Deadline);
-    } else if (data.noneQualify) {
-      idcSummaryClass = 'highlight-red';
-      idcSummaryText = 'No wells qualify — none spudded by ' + formatDate(data.march31Deadline);
-    } else {
-      idcSummaryClass = 'highlight-amber';
-      idcSummaryText = data.wellsQualifying + ' of ' + data.numWells + ' wells qualify (' + formatCurrency(data.idcQualifyingAmount) + ' deductible in ' + data.investmentYear + ')';
-    }
-
-    html += '<div class="info-metric" style="grid-column:1/-1;"><div class="info-metric-label">IDC Deduction Status — Must spud by ' + formatDate(data.march31Deadline) + '</div>' +
-      '<div class="info-metric-value ' + idcSummaryClass + '" style="font-size:0.8125rem;">' + idcSummaryText + '</div></div>';
-
-    // Per-well spud detail table
-    if (!data.allQualify && data.wellIdcStatus.length > 0) {
-      html += '<div style="grid-column:1/-1;margin-top:0.25rem;"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.35rem;">';
-      for (var i = 0; i < data.wellIdcStatus.length; i++) {
-        var ws = data.wellIdcStatus[i];
-        var statusIcon = ws.qualifies ? '&#10003;' : '&#10007;';
-        var statusColor = ws.qualifies ? '#059669' : '#dc2626';
-        var spudStr = ws.spudDate ? formatShortDate(ws.spudDate) : 'N/A';
-        html += '<div style="font-size:0.75rem;color:' + statusColor + ';"><strong>' + ws.well + '</strong>: spud ' + spudStr + ' ' + statusIcon + ' (' + formatCurrency(ws.idcShare) + ')</div>';
-      }
-      html += '</div></div>';
-    }
-
-    // Non-qualifying IDC note
-    if (data.idcNonQualifyingAmount > 0) {
-      html += '<div class="info-metric" style="grid-column:1/-1;"><div class="info-metric-label">Non-Qualifying IDC</div>' +
-        '<div class="info-metric-value highlight-red">' + formatCurrency(data.idcNonQualifyingAmount) + '</div>' +
-        '<div class="info-metric-note">' + data.wellsNotQualifying + ' well' + (data.wellsNotQualifying > 1 ? 's' : '') + ' spudded after deadline — IDC deferred to spud year</div></div>';
-    }
-
-    container.innerHTML = html;
-  }
-
-  /* ==========================================================
-     RENDER: GANTT LEGEND
-     ========================================================== */
-
-  function renderLegend() {
-    var html = '';
-    for (var i = 0; i < LEGEND_ITEMS.length; i++) {
-      html += '<div class="gantt-legend-item"><span class="gantt-legend-swatch" style="background:' + LEGEND_ITEMS[i].color + ';"></span>' + LEGEND_ITEMS[i].label + '</div>';
-    }
-    ganttLegend.innerHTML = html;
-  }
-
-  /* ==========================================================
-     RENDER: GANTT CHART
-     ========================================================== */
-
-  function renderGantt(data, targetEl, forPdf) {
-    var container = targetEl || ganttContainer;
-    var showMilestones = document.getElementById('opt-milestones').checked;
-    var showLabels = document.getElementById('opt-labels').checked;
-    var showWeekends = document.getElementById('opt-weekends').checked;
-    var showToday = document.getElementById('opt-today').checked;
-    var compact = document.getElementById('opt-compact').checked;
-    var summaryView = document.getElementById('opt-summary-view').checked;
-    var consolidatedView = document.getElementById('opt-consolidated').checked;
-
-    if (!forPdf) {
-      document.body.classList.toggle('compact', compact);
-    }
-
-    // In summary view or when many wells, use tighter rows
-    var autoCompact = data.numWells >= 8 && !summaryView;
-    var effectiveCompact = compact || autoCompact;
-
-    var rowHeight = consolidatedView ? 36 : (summaryView ? 28 : (effectiveCompact ? 20 : 30));
-    var labelWidth = showLabels ? (summaryView ? 100 : 180) : 0;
-    var headerHeight = 24;
-
-    // For PDF, force certain settings
-    if (forPdf) {
-      showLabels = true;
-      showToday = false;
-      showWeekends = false;
-      summaryView = data.numWells > 6;
-      rowHeight = summaryView ? 24 : 20;
-      labelWidth = summaryView ? 90 : 160;
-      effectiveCompact = true;
-    }
-
-    // Build row data
-    var rows = [];
-
-    if (consolidatedView) {
-      // Consolidated view: phase categories as rows, all wells' bars overlap
-      var categoryOrder = ['Pre-drill / Permitting', 'Drilling', 'Completion Prep', 'Facilities', 'Frac & Completion', 'Production'];
-      var categoryKeys = {
-        'Pre-drill / Permitting': ['preDrill'],
-        'Drilling': ['rigMob', 'sitePrep', 'drillSurface', 'drillTD', 'logEval', 'runCasing'],
-        'Completion Prep': ['perforate', 'acidize', 'swabTest'],
-        'Facilities': ['facilities'],
-        'Frac & Completion': ['fracBuffer', 'fracExec', 'drillOut'],
-        'Production': ['flowback', 'stabilized']
-      };
-      var categoryColors = {
-        'Pre-drill / Permitting': '#94a3b8',
-        'Drilling': '#3b82f6',
-        'Completion Prep': '#f59e0b',
-        'Facilities': '#8b5cf6',
-        'Frac & Completion': '#10b981',
-        'Production': '#065f46'
-      };
-
-      for (var ci = 0; ci < categoryOrder.length; ci++) {
-        var catName = categoryOrder[ci];
-        var catKeys = categoryKeys[catName];
-        var catBars = [];
-        // Collect all bars from all wells that match this category
-        for (var cb = 0; cb < data.allBars.length; cb++) {
-          if (catKeys.indexOf(data.allBars[cb].key) !== -1) {
-            // Create a consolidated bar spanning the full category range per well
-            catBars.push(data.allBars[cb]);
-          }
-        }
-        if (catBars.length > 0) {
-          // Group bars by well, create one merged bar per well
-          var wellBars = {};
-          for (var wb = 0; wb < catBars.length; wb++) {
-            var wn = catBars[wb].well;
-            if (!wellBars[wn]) wellBars[wn] = { start: catBars[wb].start, end: catBars[wb].end, well: wn };
-            else {
-              if (catBars[wb].start < wellBars[wn].start) wellBars[wn].start = catBars[wb].start;
-              if (catBars[wb].end > wellBars[wn].end) wellBars[wn].end = catBars[wb].end;
-            }
-          }
-          var mergedBars = [];
-          var wellKeys = Object.keys(wellBars);
-          for (var mk = 0; mk < wellKeys.length; mk++) {
-            var mb = wellBars[wellKeys[mk]];
-            mergedBars.push({
-              key: catKeys[0], name: catName, color: categoryColors[catName],
-              category: catName, well: mb.well,
-              start: mb.start, end: mb.end,
-              duration: daysBetween(mb.start, mb.end) + 1
-            });
-          }
-          rows.push({ type: 'phase', label: catName, bars: mergedBars, isConsolidated: true });
-        }
-      }
-    } else if (summaryView) {
-      // Summary view: one row per well with all bars stacked
-      // Plus one row for project-wide
-      if (data.projectPhases.length > 0) {
-        rows.push({ type: 'phase', label: 'Project', bars: data.projectPhases, isProject: true });
-      }
-      for (var sw = 0; sw < data.wells.length; sw++) {
-        rows.push({ type: 'phase', label: data.wellNames[sw], bars: data.wells[sw], isSummary: true });
-      }
-    } else {
-      // Detailed view
-      if (data.projectPhases.length > 0) {
-        rows.push({ type: 'header', label: 'Project-Wide', bars: [] });
-        for (var pp = 0; pp < data.projectPhases.length; pp++) {
-          rows.push({ type: 'phase', label: data.projectPhases[pp].name, bars: [data.projectPhases[pp]], isProject: true });
-        }
-      }
-      for (var w = 0; w < data.wells.length; w++) {
-        rows.push({ type: 'header', label: data.wellNames[w], bars: [] });
-        var phases = data.wells[w];
-        for (var p = 0; p < phases.length; p++) {
-          rows.push({ type: 'phase', label: phases[p].name, bars: [phases[p]] });
-        }
-      }
-    }
-
-    var minDate = data.startDate;
-    var maxDate = data.endDate;
-    var totalDays = daysBetween(minDate, maxDate) + 1;
-
-    // Pixels per day
-    var availWidth = (forPdf ? 900 : container.clientWidth) - labelWidth - 20;
-    var pxPerDay = Math.max(availWidth / totalDays, forPdf ? 2 : 4);
-    if (!forPdf && totalDays < 60) pxPerDay = Math.min(Math.max(pxPerDay, 12), 20);
-    var chartWidth = totalDays * pxPerDay;
-
-    // Tick interval
-    var tickIntervalDays;
-    if (totalDays <= 60) tickIntervalDays = 7;
-    else if (totalDays <= 120) tickIntervalDays = 14;
-    else tickIntervalDays = 30;
-
-    // Build HTML
-    var html = '<div class="gantt-wrapper">';
-
-    // Labels column
-    if (showLabels) {
-      html += '<div class="gantt-labels" style="width:' + labelWidth + 'px;">';
-      html += '<div style="height:' + headerHeight + 'px;border-bottom:1px solid #e5e5ea;"></div>';
-      for (var r = 0; r < rows.length; r++) {
-        var cls = rows[r].type === 'header' ? 'gantt-label-row well-header' : 'gantt-label-row';
-        if (rows[r].isProject) cls += ' project-phase';
-        if (rows[r].isConsolidated) cls += ' consolidated-category';
-        html += '<div class="' + cls + '" style="height:' + rowHeight + 'px;">' + rows[r].label + '</div>';
-      }
-      html += '</div>';
-    }
-
-    // Chart area
-    html += '<div class="gantt-chart-area" style="width:' + chartWidth + 'px;">';
-
-    // Header ticks
-    html += '<div class="gantt-header" style="height:' + headerHeight + 'px;">';
-    for (var t = 0; t < totalDays; t += tickIntervalDays) {
-      var tickDate = addDays(minDate, t);
-      var tickLeft = t * pxPerDay;
-      var tickWidth = Math.min(tickIntervalDays, totalDays - t) * pxPerDay;
-      html += '<div class="gantt-tick" style="position:absolute;left:' + tickLeft + 'px;width:' + tickWidth + 'px;height:' + headerHeight + 'px;line-height:' + headerHeight + 'px;">' + formatShortDate(tickDate) + '</div>';
-    }
-    html += '</div>';
-
-    // Rows area
-    html += '<div class="gantt-rows" style="position:relative;">';
-
-    // Weekend shading
-    if (showWeekends) {
-      for (var wd = 0; wd < totalDays; wd++) {
-        var checkDate = addDays(minDate, wd);
-        if (isWeekend(checkDate)) {
-          html += '<div class="gantt-weekend" style="left:' + (wd * pxPerDay) + 'px;width:' + pxPerDay + 'px;height:' + (rows.length * rowHeight) + 'px;"></div>';
-        }
-      }
-    }
-
-    // Rows and bars
-    var barHeight = summaryView ? 18 : (effectiveCompact ? 14 : 20);
-
-    for (var r2 = 0; r2 < rows.length; r2++) {
-      var row = rows[r2];
-      var rowCls = 'gantt-row' + (row.type === 'header' ? ' well-header-row' : '');
-      html += '<div class="' + rowCls + '" style="height:' + rowHeight + 'px;">';
-
-      for (var b = 0; b < row.bars.length; b++) {
-        var bar = row.bars[b];
-        var barLeft = daysBetween(minDate, bar.start) * pxPerDay;
-        var barWidth = Math.max(bar.duration * pxPerDay, 2);
-        var barTop = Math.round((rowHeight - barHeight) / 2);
-        var extraClass = row.isSummary ? ' summary-bar' : (row.isConsolidated ? ' consolidated-bar' : '');
-
-        html += '<div class="gantt-bar' + extraClass + '" style="left:' + barLeft + 'px;width:' + barWidth + 'px;top:' + barTop + 'px;height:' + barHeight + 'px;background:' + bar.color + ';"' +
-          ' data-tt-name="' + escapeAttr(bar.name) + '"' +
-          ' data-tt-well="' + escapeAttr(bar.well) + '"' +
-          ' data-tt-start="' + formatDate(bar.start) + '"' +
-          ' data-tt-end="' + formatDate(bar.end) + '"' +
-          ' data-tt-dur="' + bar.duration + ' days' + (bar.weatherDays > 0 ? ' (incl. ' + bar.weatherDays + 'd weather)' : '') + '"' +
-          '></div>';
-
-        if (showMilestones && bar.key === 'stabilized') {
-          var msLeft = barLeft + barWidth;
-          html += '<div class="gantt-milestone" style="left:' + msLeft + 'px;"></div>';
-        }
-      }
-
-      html += '</div>';
-    }
-
-    // Today line
-    if (showToday) {
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-      var todayOffset = daysBetween(minDate, today);
-      if (todayOffset >= 0 && todayOffset <= totalDays) {
-        var todayLeft = todayOffset * pxPerDay;
-        html += '<div class="gantt-today-line" style="left:' + todayLeft + 'px;height:' + (rows.length * rowHeight) + 'px;"><span class="gantt-today-label">Today</span></div>';
-      }
-    }
-
-    html += '</div>'; // gantt-rows
-    html += '</div>'; // gantt-chart-area
-    html += '</div>'; // gantt-wrapper
-
-    container.innerHTML = html;
-
-    if (!forPdf) {
-      initTooltips();
-    }
-  }
-
-  function escapeAttr(str) {
-    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-  }
-
-  /* ==========================================================
-     TOOLTIPS
-     ========================================================== */
-
-  function initTooltips() {
-    if (!tooltip) {
-      tooltip = document.createElement('div');
-      tooltip.className = 'gantt-tooltip';
-      document.body.appendChild(tooltip);
-    }
-    var bars = ganttContainer.querySelectorAll('.gantt-bar');
-    for (var i = 0; i < bars.length; i++) {
-      bars[i].addEventListener('mouseenter', showTooltip);
-      bars[i].addEventListener('mousemove', moveTooltip);
-      bars[i].addEventListener('mouseleave', hideTooltip);
-    }
-  }
-
-  function showTooltip(e) {
-    var el = e.currentTarget;
-    tooltip.innerHTML =
-      '<strong>' + el.getAttribute('data-tt-name') + '</strong>' +
-      '<div class="tt-well">' + el.getAttribute('data-tt-well') + '</div>' +
-      '<div class="tt-dates">' + el.getAttribute('data-tt-start') + ' — ' + el.getAttribute('data-tt-end') + '</div>' +
-      '<div>' + el.getAttribute('data-tt-dur') + '</div>';
-    tooltip.classList.add('visible');
-    moveTooltip(e);
-  }
-
-  function moveTooltip(e) {
-    var x = e.clientX + 14;
-    var y = e.clientY + 14;
-    if (x + 260 > window.innerWidth) x = e.clientX - 270;
-    if (y + 100 > window.innerHeight) y = e.clientY - 100;
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-  }
-
-  function hideTooltip() {
-    tooltip.classList.remove('visible');
-  }
-
-  /* ==========================================================
-     RENDER: SCHEDULE TABLE
-     ========================================================== */
-
-  function renderTable(data, targetEl) {
-    var container = targetEl || tableContainer;
-    var html = '<table class="schedule-table"><thead><tr>' +
-      '<th>Well</th><th>Phase</th><th>Start Date</th><th>End Date</th><th>Duration</th>' +
-      '</tr></thead><tbody>';
-
-    if (data.projectPhases.length > 0) {
-      html += '<tr class="well-divider"><td colspan="5">Project-Wide</td></tr>';
-      for (var pp = 0; pp < data.projectPhases.length; pp++) {
-        var p = data.projectPhases[pp];
-        var pDurStr = p.duration + 'd';
-        if (p.weatherDays > 0) pDurStr += ' <span class="weather-delay-badge">+' + p.weatherDays + 'd</span>';
-        html += '<tr><td>Project</td><td><span class="phase-color" style="background:' + p.color + ';"></span>' + p.name + '</td><td>' + formatDate(p.start) + '</td><td>' + formatDate(p.end) + '</td><td>' + pDurStr + '</td></tr>';
-      }
-    }
-
-    for (var w = 0; w < data.wells.length; w++) {
-      var wn = data.wellNames[w];
-      html += '<tr class="well-divider"><td colspan="5">' + wn + '</td></tr>';
-      var phases = data.wells[w];
-      for (var ph = 0; ph < phases.length; ph++) {
-        var phase = phases[ph];
-        var durStr = phase.duration + 'd';
-        if (phase.weatherDays > 0) durStr += ' <span class="weather-delay-badge">+' + phase.weatherDays + 'd</span>';
-        html += '<tr><td>' + wn + '</td><td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td><td>' + formatDate(phase.start) + '</td><td>' + formatDate(phase.end) + '</td><td>' + durStr + '</td></tr>';
-      }
-    }
-
-    html += '</tbody></table>';
-    container.innerHTML = html;
-  }
-
-  /* ==========================================================
-     EXPORT: PDF
-     ========================================================== */
-
-  function exportPDF() {
-    if (!generatedData) return;
-    var d = generatedData;
-
-    var overlay = document.getElementById('pdf-overlay');
-    var pdfSummary = document.getElementById('pdf-summary');
-    var pdfCashflow = document.getElementById('pdf-cashflow');
-    var pdfTax = document.getElementById('pdf-tax');
-    var pdfGantt = document.getElementById('pdf-gantt');
-    var pdfTable = document.getElementById('pdf-table');
-    var pdfDate = document.getElementById('pdf-date');
-
-    pdfDate.textContent = formatDate(new Date());
-
-    // Build summary for PDF
-    var modeLabel = d.mode === 'overlap'
-      ? 'Overlapped (' + d.overlapOffset + 'd offset)'
-      : 'Sequential';
-
-    pdfSummary.innerHTML =
-      '<div class="summary-card" style="margin-bottom:1.5rem;">' +
-      '<div class="summary-item"><div class="summary-item-label">Project Start</div><div class="summary-item-value">' + formatDate(d.startDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Wells</div><div class="summary-item-value">' + d.numWells + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Drilling Mode</div><div class="summary-item-value">' + modeLabel + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Est. First Production</div><div class="summary-item-value">' + formatDate(d.firstProductionDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(d.finalStabilizedDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + d.totalDays + ' days</div></div>' +
-      '</div>';
-
-    // Render cashflow and tax for PDF
-    if (d.firstProductionMonth) {
-      pdfCashflow.innerHTML = '<div class="info-card" style="margin-bottom:1rem;"><h3 class="info-card-title" style="font-size:0.95rem;">Cashflow &amp; Distribution Timeline</h3><div class="info-card-body" id="pdf-cashflow-inner"></div></div>';
-      renderCashflow(d, document.getElementById('pdf-cashflow-inner'));
-    } else {
-      pdfCashflow.innerHTML = '';
-    }
-    if (d.totalInvestment > 0) {
-      pdfTax.innerHTML = '<div class="info-card" style="margin-bottom:1rem;"><h3 class="info-card-title" style="font-size:0.95rem;">Tax Deduction Summary</h3><div class="info-card-body" id="pdf-tax-inner"></div></div>';
-      renderTax(d, document.getElementById('pdf-tax-inner'));
-    } else {
-      pdfTax.innerHTML = '';
-    }
-
-    // Render Gantt for PDF (auto-summary for 6+ wells)
-    renderGantt(d, pdfGantt, true);
-
-    // Render table for PDF
-    renderTable(d, pdfTable);
-
-    // Show overlay and trigger print
-    overlay.style.display = 'block';
-    appEl.style.display = 'none';
-
-    // Small delay to let the layout render before printing
-    setTimeout(function() {
-      window.print();
-      // Restore after print dialog closes
-      overlay.style.display = 'none';
-      appEl.style.display = 'block';
-    }, 300);
-  }
-
-  /* ==========================================================
-     EXPORT: CSV
-     ========================================================== */
-
-  function exportCSV() {
-    if (!generatedData) return;
-    var d = generatedData;
-    var lines = ['Well,Phase,Start Date,End Date,Duration (days)'];
-
-    for (var pp = 0; pp < d.projectPhases.length; pp++) {
-      var p = d.projectPhases[pp];
-      lines.push('Project,"' + p.name + '",' + formatDate(p.start) + ',' + formatDate(p.end) + ',' + p.duration);
-    }
-
-    for (var w = 0; w < d.wells.length; w++) {
-      for (var ph = 0; ph < d.wells[w].length; ph++) {
-        var phase = d.wells[w][ph];
-        lines.push('"' + d.wellNames[w] + '","' + phase.name + '",' + formatDate(phase.start) + ',' + formatDate(phase.end) + ',' + phase.duration);
-      }
-    }
-
-    var csv = lines.join('\n');
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'rcr-timeline-' + toDateInputValue(new Date()) + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  /* ==========================================================
-     EXPORT: COPY INVESTOR SUMMARY
-     ========================================================== */
-
-  function copySummary() {
-    if (!generatedData) return;
-    var d = generatedData;
-    var modeLabel = d.mode === 'overlap'
-      ? 'Overlapped (' + d.overlapOffset + '-day offset)'
-      : 'Sequential';
-
-    var text =
-      'OKLAHOMA OIL DEVELOPMENT TIMELINE\n' +
-      'Rush Creek Resources\n' +
-      '========================================\n\n' +
-      'Project Start Date: ' + formatDate(d.startDate) + '\n' +
-      'Number of Wells: ' + d.numWells + '\n' +
-      'Drilling Mode: ' + modeLabel + '\n\n' +
-      'Estimated First Production: ' + formatDate(d.firstProductionDate) + '\n' +
-      'Final Stabilized Production: ' + formatDate(d.finalStabilizedDate) + '\n' +
-      'Total Project Duration: ' + d.totalDays + ' days\n\n' +
-      'PER-WELL SUMMARY\n' +
-      '----------------------------------------\n';
-
-    for (var w = 0; w < d.wells.length; w++) {
-      var phases = d.wells[w];
-      if (phases.length > 0) {
-        var wellStart = phases[0].start;
-        var wellEnd = phases[phases.length - 1].end;
-        text += d.wellNames[w] + ': ' + formatDate(wellStart) + ' — ' + formatDate(wellEnd) + '\n';
-      }
-    }
-
-    if (d.firstDistDate) {
-      text += '\nCASHFLOW TIMELINE\n' +
-        '----------------------------------------\n' +
-        'First Distribution Check: ' + formatDate(d.firstDistDate) + ' (' + d.distLag + '-month lag)\n' +
-        'Last Stabilization Period Check: ' + formatDate(d.lastProductionCheck) + '\n';
-    }
-
-    if (d.totalInvestment > 0) {
-      var invYrTdc = d.tdcByYear[String(d.investmentYear)] ? d.tdcByYear[String(d.investmentYear)].bonusDepr : 0;
-      text += '\nTAX DEDUCTIONS\n' +
-        '----------------------------------------\n' +
-        'Total Investment: ' + formatCurrency(d.totalInvestment) + '\n' +
-        'IDC (' + d.idcPct + '%): ' + formatCurrency(d.idcAmount) + '\n' +
-        'IDC Qualifying (spud by ' + formatDate(d.march31Deadline) + '): ' + d.wellsQualifying + '/' + d.numWells + ' wells — ' + formatCurrency(d.idcQualifyingAmount) + '\n' +
-        'TDC (' + d.tdcPct + '%): ' + formatCurrency(d.tdcAmount) + ' (deductible year well goes into service)\n';
-      for (var yi = 0; yi < d.tdcYears.length; yi++) {
-        var yr = d.tdcYears[yi];
-        var yd = d.tdcByYear[yr];
-        text += '  ' + yr + ': ' + formatCurrency(yd.bonusDepr) + ' bonus depr (' + yd.wells.join(', ') + ')\n';
-      }
-      text += 'Bonus Depreciation (' + d.bonusDeprPct + '% of TDC): ' + formatCurrency(d.bonusDeprAmount) + '\n' +
-        d.investmentYear + ' Total Deduction: ' + formatCurrency(d.idcQualifyingAmount + invYrTdc) + '\n';
-    }
-
-    text += '\n--- Bidwell Capital — Confidential ---';
-
-    navigator.clipboard.writeText(text).then(function() {
-      btnCopy.textContent = 'Copied!';
-      setTimeout(function() { btnCopy.textContent = 'Copy Summary'; }, 2000);
-    });
-  }
-
-  /* ==========================================================
-     MAIN: GENERATE AND RENDER
-     ========================================================== */
-
-  function generateAndRender() {
-    generatedData = generateSchedule();
-    if (!generatedData) return;
-
-    outputEl.style.display = 'block';
-    renderSummary(generatedData);
-    renderCashflow(generatedData);
-    renderTax(generatedData);
-    renderLegend();
-    renderGantt(generatedData);
-    renderTable(generatedData);
-
-    // Update weather info
-    var weatherInfo = document.getElementById('weather-info');
-    if (generatedData.weatherEnabled) {
-      weatherInfo.innerHTML = 'Weather delays: <strong>' + generatedData.totalWeatherDays + ' days</strong> total (' + generatedData.weatherRisk + ' profile). Delays are heaviest Dec–Feb (ice) and Apr–Jun (storms).';
-    } else {
-      weatherInfo.textContent = 'Weather delays disabled.';
-    }
-
-    outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  /* ==========================================================
-     EVENT LISTENERS
-     ========================================================== */
-
-  btnGenerate.addEventListener('click', generateAndRender);
-
-  btnReset.addEventListener('click', function() {
-    populateDefaults();
-    outputEl.style.display = 'none';
-  });
-
-  btnPDF.addEventListener('click', exportPDF);
-  btnCSV.addEventListener('click', exportCSV);
-  btnCopy.addEventListener('click', copySummary);
-
-  inpMode.addEventListener('change', function() {
-    overlapField.style.display = inpMode.value === 'overlap' ? 'block' : 'none';
-  });
-
-  var presetBtns = document.querySelectorAll('.btn-preset');
-  for (var i = 0; i < presetBtns.length; i++) {
-    presetBtns[i].addEventListener('click', function() {
-      var scenario = this.getAttribute('data-scenario');
-      var preset = SCENARIO_PRESETS[scenario];
-      if (preset) {
-        setAssumptionsUI(preset);
-        updatePresetButtons(scenario);
-      }
-    });
-  }
-
-  /* ==========================================================
-     CONFIG SAVE / LOAD / SESSION CACHE
-     ========================================================== */
-
-  var btnSaveConfig = document.getElementById('btn-save-config');
-  var btnLoadConfig = document.getElementById('btn-load-config');
-  var configFileInput = document.getElementById('config-file-input');
-  var CONFIG_SESSION_KEY = 'rcr_timeline_config';
-
-  function gatherConfig() {
-    return {
-      version: 1,
-      projectStart: inpStart.value,
-      drillingMode: inpMode.value,
-      overlapOffset: inpOverlap.value,
-      globalBuffer: inpBuffer.value,
-      investment: inpInvestment.value,
-      idcPct: inpIdcPct.value,
-      overheadPct: inpOverheadPct.value,
-      bonusDepr: inpBonusDepr.value,
-      distLag: inpDistLag.value,
-      assumptions: getAssumptionsFromUI(),
-      wells: getWellList(),
-      display: {
-        milestones: document.getElementById('opt-milestones').checked,
-        labels: document.getElementById('opt-labels').checked,
-        compact: document.getElementById('opt-compact').checked,
-        weekends: document.getElementById('opt-weekends').checked,
-        today: document.getElementById('opt-today').checked,
-        summaryView: document.getElementById('opt-summary-view').checked,
-        consolidated: document.getElementById('opt-consolidated').checked,
-        weather: document.getElementById('opt-weather').checked,
-        weatherRisk: document.getElementById('inp-weather-risk').value
-      }
-    };
-  }
-
-  function applyConfig(cfg) {
-    if (!cfg || cfg.version === undefined) return false;
-    try {
-      if (cfg.projectStart) inpStart.value = cfg.projectStart;
-      if (cfg.drillingMode) {
-        inpMode.value = cfg.drillingMode;
-        overlapField.style.display = cfg.drillingMode === 'overlap' ? 'block' : 'none';
-      }
-      if (cfg.overlapOffset !== undefined) inpOverlap.value = cfg.overlapOffset;
-      if (cfg.globalBuffer !== undefined) inpBuffer.value = cfg.globalBuffer;
-      if (cfg.investment !== undefined) inpInvestment.value = cfg.investment;
-      if (cfg.idcPct !== undefined) inpIdcPct.value = cfg.idcPct;
-      if (cfg.overheadPct !== undefined) inpOverheadPct.value = cfg.overheadPct;
-      if (cfg.bonusDepr !== undefined) inpBonusDepr.value = cfg.bonusDepr;
-      if (cfg.distLag !== undefined) inpDistLag.value = cfg.distLag;
-      if (cfg.assumptions) setAssumptionsUI(cfg.assumptions);
-      if (cfg.wells && cfg.wells.length > 0) {
-        wellListBody.innerHTML = '';
-        for (var i = 0; i < cfg.wells.length; i++) {
-          addWellRow(cfg.wells[i].name, cfg.wells[i].rig);
-        }
-      }
-      if (cfg.display) {
-        var d = cfg.display;
-        if (d.milestones !== undefined) document.getElementById('opt-milestones').checked = d.milestones;
-        if (d.labels !== undefined) document.getElementById('opt-labels').checked = d.labels;
-        if (d.compact !== undefined) document.getElementById('opt-compact').checked = d.compact;
-        if (d.weekends !== undefined) document.getElementById('opt-weekends').checked = d.weekends;
-        if (d.today !== undefined) document.getElementById('opt-today').checked = d.today;
-        if (d.summaryView !== undefined) document.getElementById('opt-summary-view').checked = d.summaryView;
-        if (d.consolidated !== undefined) document.getElementById('opt-consolidated').checked = d.consolidated;
-        if (d.weather !== undefined) document.getElementById('opt-weather').checked = d.weather;
-        if (d.weatherRisk) document.getElementById('inp-weather-risk').value = d.weatherRisk;
-      }
-      return true;
-    } catch (e) {
-      console.warn('Failed to apply config:', e);
-      return false;
-    }
-  }
-
-  function saveConfigToFile() {
-    var cfg = gatherConfig();
-    var json = JSON.stringify(cfg, null, 2);
-    var blob = new Blob([json], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    var dateStr = toDateInputValue(new Date());
-    var wellCount = cfg.wells.length;
-    a.download = 'rcr-config-' + wellCount + 'wells-' + dateStr + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function loadConfigFromFile(file) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        var cfg = JSON.parse(e.target.result);
-        if (applyConfig(cfg)) {
-          saveConfigToSession();
-          generateAndRender();
-        } else {
-          alert('Invalid config file format.');
-        }
-      } catch (err) {
-        alert('Could not parse config file: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  function saveConfigToSession() {
-    try {
-      sessionStorage.setItem(CONFIG_SESSION_KEY, JSON.stringify(gatherConfig()));
-    } catch (e) {}
-  }
-
-  function loadConfigFromSession() {
-    try {
-      var stored = sessionStorage.getItem(CONFIG_SESSION_KEY);
-      if (stored) {
-        var cfg = JSON.parse(stored);
-        return applyConfig(cfg);
-      }
-    } catch (e) {}
-    return false;
-  }
-
-  btnSaveConfig.addEventListener('click', saveConfigToFile);
-  btnLoadConfig.addEventListener('click', function() { configFileInput.click(); });
-  configFileInput.addEventListener('change', function() {
-    if (configFileInput.files.length > 0) {
-      loadConfigFromFile(configFileInput.files[0]);
-      configFileInput.value = '';
-    }
-  });
-
-  // Auto-save config to session after each generation
-  var origGenerateAndRender = generateAndRender;
-  generateAndRender = function() {
-    origGenerateAndRender();
-    if (generatedData) saveConfigToSession();
-  };
-
-  /* ==========================================================
-     INITIALIZATION
-     ========================================================== */
-
-  // Try to restore from session first, then fall back to defaults
-  if (!loadConfigFromSession()) {
-    populateDefaults();
-  }
-  if (!checkSessionAuth()) {
-    authInput.focus();
-  }
-
-})();
-</script>
+<script is:inline src="/timeline/config.js"></script>
+<script is:inline src="/timeline/dates.js"></script>
+<script is:inline src="/timeline/proforma.js"></script>
+<script is:inline src="/timeline/engine.js"></script>
+<script is:inline src="/timeline/render.js"></script>
+<script is:inline src="/timeline/app.js"></script>
 
 </body>
 </html>
