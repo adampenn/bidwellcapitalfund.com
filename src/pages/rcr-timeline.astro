@@ -105,7 +105,7 @@
       <div class="accordion" data-accordion="wells" data-open="true">
         <button class="accordion-header" type="button">
           <span class="accordion-title">Wells</span>
-          <span id="well-count-badge" class="accordion-badge">10 wells</span>
+          <span id="well-count-badge" class="accordion-badge">0 wells</span>
           <span class="accordion-chevron">&#9662;</span>
         </button>
         <div class="accordion-body">
@@ -114,6 +114,7 @@
               <input type="number" id="inp-quick-wells" min="1" max="50" value="10" class="inp-quick-wells" />
               <button id="btn-set-wells" class="btn-sm">Set Wells</button>
               <button id="btn-add-well" class="btn-sm">+ 1</button>
+              <button id="btn-pf-load-fund6" class="btn-sm">Load Fund 6</button>
               <button id="btn-clear-wells" class="btn-sm btn-sm-muted">Clear</button>
             </div>
           </div>
@@ -121,10 +122,14 @@
             <table class="well-list-table">
               <thead>
                 <tr>
-                  <th style="width:30px;">#</th>
-                  <th>Well Name</th>
-                  <th style="width:100px;">Rig</th>
-                  <th style="width:30px;"></th>
+                  <th style="width:28px;">#</th>
+                  <th style="min-width:120px;">Well Name</th>
+                  <th style="width:70px;">Rig</th>
+                  <th style="width:85px;">Type</th>
+                  <th style="width:100px;">Cost ($)</th>
+                  <th style="width:70px;">WI (%)</th>
+                  <th style="width:28px;" title="Expand details"></th>
+                  <th style="width:28px;"></th>
                 </tr>
               </thead>
               <tbody id="well-list-body"></tbody>
@@ -264,16 +269,14 @@
         </div>
       </div>
 
-      <!-- PROFORMA WELL BUILDER ACCORDION -->
-      <div class="accordion" data-accordion="proforma-builder">
+      <!-- PROFORMA ASSUMPTIONS ACCORDION -->
+      <div class="accordion" data-accordion="proforma-assumptions">
         <button class="accordion-header" type="button">
-          <span class="accordion-title">Proforma Well Builder</span>
-          <span id="proforma-well-count-badge" class="accordion-badge">0 wells</span>
+          <span class="accordion-title">Proforma Assumptions</span>
+          <span class="accordion-badge-muted">oil price, uptime, LP/GP</span>
           <span class="accordion-chevron">&#9662;</span>
         </button>
         <div class="accordion-body">
-
-          <!-- Global proforma inputs -->
           <div class="pf-globals-bar">
             <div class="pf-global-field">
               <label for="pf-oil-price">Oil Price ($/bbl)</label>
@@ -296,78 +299,10 @@
               <input type="number" id="pf-rev-share" min="0" max="100" step="1" value="20" />
             </div>
           </div>
-
-          <!-- Add well form -->
-          <div class="pf-add-well-form">
-            <div class="pf-add-well-row">
-              <div class="pf-field">
-                <label for="pf-new-name">Well Name</label>
-                <input type="text" id="pf-new-name" placeholder="e.g. Smith 12-1" />
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-template">Template</label>
-                <select id="pf-new-template">
-                  <option value="">— Custom —</option>
-                  <option value="gas-standard">Gas Drive — Standard (30 BPD)</option>
-                  <option value="gas-high">Gas Drive — High IP (60 BPD)</option>
-                  <option value="water-amarada">Water Drive — High Volume</option>
-                  <option value="water-shallow">Water Drive — Shallow</option>
-                </select>
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-drive">Drive Type</label>
-                <select id="pf-new-drive">
-                  <option value="gas">Gas Drive</option>
-                  <option value="water">Water Drive</option>
-                </select>
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-cost">Amount Invested ($)</label>
-                <input type="number" id="pf-new-cost" min="0" step="1000" value="200000" />
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-wi">WI Purchased (%)</label>
-                <input type="number" id="pf-new-wi" min="0" max="100" step="0.001" value="21" />
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-nri">NRI (%)</label>
-                <input type="number" id="pf-new-nri" min="0" max="100" step="0.1" value="75" />
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-ip">Oil IP (BPD)</label>
-                <input type="number" id="pf-new-ip" min="0" step="1" value="30" />
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-loe">Monthly LOE ($)</label>
-                <input type="number" id="pf-new-loe" min="0" step="100" value="2000" />
-              </div>
-            </div>
-            <!-- Water-specific fields (shown/hidden by drive type) -->
-            <div id="pf-water-fields" class="pf-add-well-row pf-water-fields" style="display:none;">
-              <div class="pf-field">
-                <label for="pf-new-fluid">Fluid Rate (BPD)</label>
-                <input type="number" id="pf-new-fluid" min="0" step="10" value="2000" />
-              </div>
-              <div class="pf-field">
-                <label for="pf-new-watercut">Water Cut (%)</label>
-                <input type="number" id="pf-new-watercut" min="0" max="100" step="0.5" value="96" />
-              </div>
-            </div>
-            <div class="pf-add-well-actions">
-              <button id="btn-pf-add-well" class="btn-generate" style="padding:0.45rem 1.25rem;">Add Well</button>
-              <button id="btn-pf-load-fund6" class="btn-sm">Load Oil Fund 6 Wells</button>
-              <button id="btn-pf-clear-wells" class="btn-sm btn-sm-muted">Clear All</button>
-            </div>
-          </div>
-
-          <!-- Proforma well list -->
-          <div id="pf-well-list" class="pf-well-list"></div>
-
-          <!-- Run proforma button -->
-          <div class="pf-run-bar" id="pf-run-bar" style="display:none;">
+          <div class="pf-run-bar">
             <button id="btn-pf-run" class="btn-generate">Run Proforma</button>
+            <span class="pf-run-hint">Uses wells from the Wells list above</span>
           </div>
-
         </div>
       </div>
 
@@ -1015,51 +950,63 @@ body {
 }
 .pf-global-field input:focus { border-color: #3b82f6; }
 
-.pf-add-well-form {
-  background: #fafafc; border: 1px solid #e5e5ea; border-radius: 8px;
-  padding: 0.75rem; margin-bottom: 0.75rem;
+.pf-run-bar {
+  margin-top: 0.75rem; display: flex; gap: 0.75rem; align-items: center;
 }
-.pf-add-well-row {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.5rem; margin-bottom: 0.5rem;
+.pf-run-hint {
+  font-size: 0.6875rem; color: #9b9ba8;
 }
-.pf-field label {
-  display: block; font-size: 0.625rem; font-weight: 500; color: #6b6b80;
-  margin-bottom: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+
+/* Well detail expand row */
+.well-detail-row td {
+  padding: 0 !important; border-bottom: 1px solid #e5e5ea !important;
+  background: #fafafc;
 }
-.pf-field input, .pf-field select {
-  width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d5d5dc;
-  border-radius: 5px; font-size: 0.8125rem; font-family: inherit;
+.well-detail-inner {
+  padding: 0.5rem 0.75rem 0.75rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.4rem 0.6rem;
+}
+.well-detail-inner label {
+  display: block; font-size: 0.5625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; margin-bottom: 0.1rem;
+}
+.well-detail-inner input, .well-detail-inner select {
+  width: 100%; padding: 0.3rem 0.4rem; border: 1px solid #d5d5dc;
+  border-radius: 4px; font-size: 0.75rem; font-family: inherit;
   outline: none; background: #fff;
 }
-.pf-field input:focus, .pf-field select:focus { border-color: #3b82f6; }
-.pf-add-well-actions {
-  display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;
+.well-detail-inner input:focus { border-color: #3b82f6; }
+.well-detail-template {
+  grid-column: 1 / -1; margin-bottom: 0.25rem;
 }
+.well-detail-template select {
+  max-width: 280px;
+}
+.well-water-fields { display: none; }
+.well-water-fields.visible { display: contents; }
 
-.pf-well-list { display: flex; flex-direction: column; gap: 0.35rem; }
-.pf-well-chip {
-  display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.5rem 0.75rem; background: #fff; border: 1px solid #e5e5ea;
-  border-radius: 6px; font-size: 0.8125rem;
+/* Well type and cost inputs in main row */
+.well-type-select {
+  width: 100%; border: 1px solid #e5e5ea; border-radius: 4px;
+  padding: 0.2rem 0.25rem; font-size: 0.6875rem; font-family: inherit;
+  background: #fff; outline: none; cursor: pointer;
 }
-.pf-well-chip-name { font-weight: 600; color: #1a1a2e; min-width: 120px; }
-.pf-well-chip-detail { font-size: 0.6875rem; color: #6b6b80; }
-.pf-well-chip-badge {
-  font-size: 0.5625rem; font-weight: 600; padding: 0.1rem 0.4rem;
-  border-radius: 3px;
+.well-type-select:focus { border-color: #3b82f6; }
+.well-cost-input, .well-wi-input {
+  width: 100%; border: 1px solid transparent; border-radius: 4px;
+  padding: 0.25rem 0.35rem; font-size: 0.75rem; font-family: inherit;
+  background: transparent; outline: none; text-align: right;
 }
-.pf-well-chip-badge.gas { background: #dbeafe; color: #1e40af; }
-.pf-well-chip-badge.water { background: #e0e7ff; color: #3730a3; }
-.pf-well-chip-remove {
-  margin-left: auto; border: none; background: none; color: #d5d5dc;
-  font-size: 1.1rem; cursor: pointer; padding: 0 0.3rem; line-height: 1;
+.well-cost-input:focus, .well-wi-input:focus {
+  border-color: #3b82f6; background: #fff;
 }
-.pf-well-chip-remove:hover { color: #dc2626; }
-
-.pf-run-bar {
-  margin-top: 0.75rem; display: flex; gap: 0.5rem; align-items: center;
+.btn-expand-well {
+  border: none; background: none; color: #9b9ba8; font-size: 0.75rem;
+  cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; transition: all 0.15s;
 }
+.btn-expand-well:hover { color: #3b82f6; }
+.btn-expand-well.expanded { color: #3b82f6; transform: rotate(180deg); }
 
 /* ---- Output Accordions ---- */
 .output-accordion { margin-bottom: 1.5rem; }
