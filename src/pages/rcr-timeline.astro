@@ -805,7 +805,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
   };
 
   var PHASE_CATEGORY = {
-    preDrill: 'Project-Wide',
+    preDrill: 'Permitting',
     rigMob: 'Drilling', sitePrep: 'Drilling', drillSurface: 'Drilling',
     drillTD: 'Drilling', logEval: 'Drilling', runCasing: 'Drilling',
     perforate: 'Completion Prep', acidize: 'Completion Prep', swabTest: 'Completion Prep',
@@ -1217,22 +1217,15 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       };
     }
 
-    // 1. Pre-drill (project-wide)
-    if (a.preDrill > 0) {
-      var preDrill = makePhase('preDrill', cursor, a.preDrill, 'Project');
-      projectPhases.push(preDrill);
-      allBars.push(preDrill);
-      cursor = addDays(preDrill.end, 1);
-    }
-
+    // Pre-drill is per-well (runs in parallel for all wells before their drilling starts)
     var drillingStartBase = new Date(cursor);
 
     var drillingPhaseKeys = ['rigMob', 'sitePrep', 'drillSurface', 'drillTD', 'logEval', 'runCasing'];
     var completionPrepKeys = ['perforate', 'acidize', 'swabTest'];
     var postFracKeys = ['fracExec', 'drillOut', 'flowback', 'stabilized'];
 
-    var facilitiesStart = null;
-    var facilitiesEnd = null;
+    // Per-well facilities tracking
+    var wellFacilitiesEnd = []; // end date of facilities for each well
 
     // Group wells by rig for scheduling
     var rigWells = {}; // { rigNum: [wellIndex, ...] }
@@ -1256,21 +1249,40 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
       var prevOnRig = rigPrevWell[wellRig];
 
-      if (prevOnRig === undefined) {
-        // First well on this rig — starts at drillingStartBase
-        wellCursor = new Date(drillingStartBase);
-      } else if (mode === 'sequential') {
-        var prevWell = wells[prevOnRig];
-        var prevLastDrilling = null;
-        for (var p = 0; p < prevWell.length; p++) {
-          if (drillingPhaseKeys.indexOf(prevWell[p].key) !== -1) {
-            prevLastDrilling = prevWell[p];
+      // Per-well pre-drill/permitting (runs from project start, in parallel)
+      wellCursor = new Date(drillingStartBase);
+      if (a.preDrill > 0) {
+        var preDrill = makePhase('preDrill', drillingStartBase, a.preDrill, wellName);
+        wellPhases.push(preDrill);
+        allBars.push(preDrill);
+        wellCursor = addDays(preDrill.end, 1);
+      }
+
+      // Rig-based sequencing for drilling (must wait for previous well on same rig)
+      if (prevOnRig !== undefined) {
+        var rigReady;
+        if (mode === 'sequential') {
+          var prevWell = wells[prevOnRig];
+          var prevLastDrilling = null;
+          for (var p = 0; p < prevWell.length; p++) {
+            if (drillingPhaseKeys.indexOf(prevWell[p].key) !== -1) {
+              prevLastDrilling = prevWell[p];
+            }
           }
+          rigReady = addDays(prevLastDrilling.end, 1);
+        } else {
+          // Find the drilling start of the previous well on this rig
+          var prevDrillStart = null;
+          for (var pd = 0; pd < wells[prevOnRig].length; pd++) {
+            if (drillingPhaseKeys.indexOf(wells[prevOnRig][pd].key) !== -1) {
+              prevDrillStart = wells[prevOnRig][pd].start;
+              break;
+            }
+          }
+          rigReady = addDays(prevDrillStart, overlapOffset);
         }
-        wellCursor = addDays(prevLastDrilling.end, 1);
-      } else {
-        var prevWellStart = wells[prevOnRig][0].start;
-        wellCursor = addDays(prevWellStart, overlapOffset);
+        // Drilling can't start until both permitting is done AND rig is available
+        if (rigReady > wellCursor) wellCursor = rigReady;
       }
 
       rigPrevWell[wellRig] = w;
@@ -1295,25 +1307,24 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
         }
       }
 
-      if (w === 0 && completionPrepKeys.length > 0) {
+      // Per-well facilities: starts when this well's completion prep starts
+      if (a.facilities > 0) {
+        var facStart = wellCursor; // defaults to after drilling if no completion prep
         for (var fc = 0; fc < wellPhases.length; fc++) {
           if (completionPrepKeys.indexOf(wellPhases[fc].key) !== -1) {
-            facilitiesStart = new Date(wellPhases[fc].start);
+            facStart = new Date(wellPhases[fc].start);
             break;
           }
         }
+        var facPhase = makePhase('facilities', facStart, a.facilities, wellName);
+        wellPhases.push(facPhase);
+        allBars.push(facPhase);
+        wellFacilitiesEnd.push(facPhase.end);
+      } else {
+        wellFacilitiesEnd.push(null);
       }
 
       wells.push(wellPhases);
-    }
-
-    // Facilities (project-wide, shared)
-    if (a.facilities > 0) {
-      if (!facilitiesStart) facilitiesStart = new Date(drillingStartBase);
-      var facPhase = makePhase('facilities', facilitiesStart, a.facilities, 'Project');
-      projectPhases.push(facPhase);
-      allBars.push(facPhase);
-      facilitiesEnd = facPhase.end;
     }
 
     // Frac and post-frac phases per well
@@ -1330,8 +1341,8 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
       var fracReadyDate;
       var completionEnd = lastCompletionPrep ? addDays(lastCompletionPrep.end, 1) : new Date(drillingStartBase);
-      var facEnd = facilitiesEnd ? addDays(facilitiesEnd, 1) : completionEnd;
-      fracReadyDate = completionEnd > facEnd ? completionEnd : facEnd;
+      var thisFacEnd = wellFacilitiesEnd[w2] ? addDays(wellFacilitiesEnd[w2], 1) : completionEnd;
+      fracReadyDate = completionEnd > thisFacEnd ? completionEnd : thisFacEnd;
 
       if (a.fracBuffer > 0) {
         var bufferPhase = makePhase('fracBuffer', fracReadyDate, a.fracBuffer, wellName2);
