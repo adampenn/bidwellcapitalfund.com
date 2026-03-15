@@ -302,19 +302,8 @@
     renderTable(generatedData, tableContainer);
     initTooltips();
 
-    // Run proforma for all known wells
-    var proformaGlobals = {
-      oilPrice: 60,
-      wellUptime: 0.90,
-      priceGrowth: 0,
-      capitalRaise: 1450000
-    };
-    var wellProformas = [];
-    for (var i = 0; i < PROFORMA_WELLS.length; i++) {
-      wellProformas.push(calculateWellProforma(PROFORMA_WELLS[i], proformaGlobals));
-    }
-    var fundRollup = calculateFundProforma(wellProformas, proformaGlobals);
-    renderProformaOutput(wellProformas, fundRollup, proformaGlobals, proformaOutput);
+    // Run proforma if wells have been added
+    runProforma();
 
     // Update weather info
     var weatherInfo = document.getElementById('weather-info');
@@ -523,6 +512,197 @@
       configFileInput.value = '';
     }
   });
+
+  /* ==========================================================
+     PROFORMA WELL BUILDER
+     ========================================================== */
+
+  var pfWellList = [];  // array of well config objects
+  var pfWellListEl = document.getElementById('pf-well-list');
+  var pfRunBar = document.getElementById('pf-run-bar');
+  var pfCountBadge = document.getElementById('proforma-well-count-badge');
+
+  // Input refs
+  var pfNewName = document.getElementById('pf-new-name');
+  var pfNewTemplate = document.getElementById('pf-new-template');
+  var pfNewDrive = document.getElementById('pf-new-drive');
+  var pfNewCost = document.getElementById('pf-new-cost');
+  var pfNewWI = document.getElementById('pf-new-wi');
+  var pfNewNRI = document.getElementById('pf-new-nri');
+  var pfNewIP = document.getElementById('pf-new-ip');
+  var pfNewLOE = document.getElementById('pf-new-loe');
+  var pfWaterFields = document.getElementById('pf-water-fields');
+  var pfNewFluid = document.getElementById('pf-new-fluid');
+  var pfNewWatercut = document.getElementById('pf-new-watercut');
+
+  var pfOilPrice = document.getElementById('pf-oil-price');
+  var pfUptime = document.getElementById('pf-uptime');
+  var pfPriceGrowth = document.getElementById('pf-price-growth');
+  var pfCapitalRaise = document.getElementById('pf-capital-raise');
+  var pfRevShare = document.getElementById('pf-rev-share');
+
+  // Show/hide water fields based on drive type
+  pfNewDrive.addEventListener('change', function() {
+    pfWaterFields.style.display = pfNewDrive.value === 'water' ? 'grid' : 'none';
+  });
+
+  // Template selection auto-fills fields
+  pfNewTemplate.addEventListener('change', function() {
+    var key = pfNewTemplate.value;
+    if (!key) return;
+    var tpl = WELL_TYPE_TEMPLATES[key];
+    if (!tpl) return;
+    pfNewDrive.value = tpl.driveType;
+    pfNewIP.value = tpl.ipOilBPD;
+    pfNewNRI.value = (tpl.nri * 100);
+    pfNewLOE.value = tpl.loeMonthlyCost;
+    pfWaterFields.style.display = tpl.driveType === 'water' ? 'grid' : 'none';
+    if (tpl.driveType === 'water') {
+      pfNewFluid.value = tpl.fluidBPD || 2000;
+      pfNewWatercut.value = (tpl.waterCut || 0.96) * 100;
+    }
+  });
+
+  function buildWellFromInputs() {
+    var driveType = pfNewDrive.value;
+    var isWater = driveType === 'water';
+    var templateKey = pfNewTemplate.value;
+    var tpl = templateKey ? WELL_TYPE_TEMPLATES[templateKey] : null;
+
+    var well = {
+      name: pfNewName.value.trim() || ('Well ' + (pfWellList.length + 1)),
+      driveType: driveType,
+      year1Cost: Math.max(0, parseFloat(pfNewCost.value) || 0),
+      ownership: Math.max(0, Math.min(1, (parseFloat(pfNewWI.value) || 0) / 100)),
+      nri: Math.max(0, Math.min(1, (parseFloat(pfNewNRI.value) || 75) / 100)),
+      ipOilBPD: Math.max(0, parseFloat(pfNewIP.value) || 0),
+      loeMonthlyCost: Math.max(0, parseFloat(pfNewLOE.value) || 0),
+      depletionAllowance: isWater ? 0.15 : 0.30,
+      declineRates: tpl ? tpl.declineRates : (isWater
+        ? [null, 0.15, 0.10, 0.07, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+        : [null, 0.50, 0.05, 0.05, 0.04, 0.04, 0.03, 0.03, 0.03, 0.03])
+    };
+
+    if (isWater) {
+      well.fluidBPD = Math.max(0, parseFloat(pfNewFluid.value) || 2000);
+      well.waterCut = Math.max(0, Math.min(1, (parseFloat(pfNewWatercut.value) || 96) / 100));
+      well.waterDisposalPrices = tpl && tpl.waterDisposalPrices
+        ? tpl.waterDisposalPrices
+        : [0.50, 0.50, 0.50, 0.75, 0.75, 0.75, 1.00, 1.00, 1.00, 1.00];
+    }
+
+    return well;
+  }
+
+  function addProformaWell(well) {
+    pfWellList.push(well);
+    renderProformaWellList();
+  }
+
+  function removeProformaWell(idx) {
+    pfWellList.splice(idx, 1);
+    renderProformaWellList();
+  }
+
+  function renderProformaWellList() {
+    var count = pfWellList.length;
+    pfCountBadge.textContent = count + ' well' + (count !== 1 ? 's' : '');
+    pfRunBar.style.display = count > 0 ? 'flex' : 'none';
+
+    if (count === 0) {
+      pfWellListEl.innerHTML = '<div style="font-size:0.75rem;color:#9b9ba8;padding:0.5rem 0;">No wells added yet. Use the form above or load the Oil Fund 6 preset.</div>';
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < pfWellList.length; i++) {
+      var w = pfWellList[i];
+      var badgeClass = w.driveType === 'water' ? 'water' : 'gas';
+      var badgeLabel = w.driveType === 'water' ? 'Water' : 'Gas';
+      var details = 'IP: ' + w.ipOilBPD + ' BPD · WI: ' + (w.ownership * 100).toFixed(3) + '% · Cost: ' + formatCurrency(w.year1Cost);
+      if (w.driveType === 'water') {
+        details += ' · Fluid: ' + w.fluidBPD + ' BPD · WC: ' + (w.waterCut * 100).toFixed(0) + '%';
+      }
+      html += '<div class="pf-well-chip" data-pf-idx="' + i + '">' +
+        '<span class="pf-well-chip-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+        '<span class="pf-well-chip-name">' + escapeAttr(w.name) + '</span>' +
+        '<span class="pf-well-chip-detail">' + details + '</span>' +
+        '<button class="pf-well-chip-remove" data-pf-remove="' + i + '" title="Remove">&times;</button>' +
+        '</div>';
+    }
+    pfWellListEl.innerHTML = html;
+
+    // Attach remove listeners
+    var removeBtns = pfWellListEl.querySelectorAll('.pf-well-chip-remove');
+    for (var r = 0; r < removeBtns.length; r++) {
+      removeBtns[r].addEventListener('click', function() {
+        removeProformaWell(parseInt(this.getAttribute('data-pf-remove')));
+      });
+    }
+  }
+
+  function getProformaGlobals() {
+    return {
+      oilPrice: Math.max(0, parseFloat(pfOilPrice.value) || 60),
+      wellUptime: Math.max(0, Math.min(1, (parseFloat(pfUptime.value) || 90) / 100)),
+      priceGrowth: (parseFloat(pfPriceGrowth.value) || 0) / 100,
+      capitalRaise: Math.max(0, parseFloat(pfCapitalRaise.value) || 0),
+      revShare: Math.max(0, Math.min(1, (parseFloat(pfRevShare.value) || 20) / 100))
+    };
+  }
+
+  function runProforma() {
+    if (pfWellList.length === 0) {
+      proformaOutput.innerHTML = '';
+      proformaOutput.style.display = 'none';
+      return;
+    }
+    var globals = getProformaGlobals();
+    var wellProformas = [];
+    for (var i = 0; i < pfWellList.length; i++) {
+      wellProformas.push(calculateWellProforma(pfWellList[i], globals));
+    }
+    var fundRollup = calculateFundProforma(wellProformas, globals);
+    renderProformaOutput(wellProformas, fundRollup, globals, proformaOutput);
+  }
+
+  // Add well button
+  document.getElementById('btn-pf-add-well').addEventListener('click', function() {
+    var well = buildWellFromInputs();
+    addProformaWell(well);
+    // Clear name for next entry, keep other fields
+    pfNewName.value = '';
+    pfNewName.focus();
+  });
+
+  // Load Oil Fund 6 preset
+  document.getElementById('btn-pf-load-fund6').addEventListener('click', function() {
+    pfWellList = [];
+    for (var i = 0; i < PROFORMA_WELLS.length; i++) {
+      pfWellList.push(Object.assign({}, PROFORMA_WELLS[i]));
+    }
+    renderProformaWellList();
+  });
+
+  // Clear all proforma wells
+  document.getElementById('btn-pf-clear-wells').addEventListener('click', function() {
+    pfWellList = [];
+    renderProformaWellList();
+    proformaOutput.innerHTML = '';
+    proformaOutput.style.display = 'none';
+  });
+
+  // Run proforma button
+  document.getElementById('btn-pf-run').addEventListener('click', function() {
+    runProforma();
+    // Scroll to output
+    if (proformaOutput.offsetParent !== null) {
+      proformaOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // Initialize empty list display
+  renderProformaWellList();
 
   /* ==========================================================
      EVENT LISTENERS
