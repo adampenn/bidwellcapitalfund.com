@@ -93,6 +93,27 @@
         <button id="btn-generate" class="btn-generate">Generate Timeline</button>
       </div>
     </div>
+    <!-- Rig Start Dates -->
+    <div class="container-wide rig-start-bar">
+      <span class="rig-start-label">Rig Start Dates</span>
+      <div class="rig-start-fields">
+        <div class="rig-start-field">
+          <label for="inp-rig1-start">Rig 1</label>
+          <input type="date" id="inp-rig1-start" class="rig-start-input" />
+          <span class="rig-start-note">(defaults to project start)</span>
+        </div>
+        <div class="rig-start-field">
+          <label for="inp-rig2-start">Rig 2</label>
+          <input type="date" id="inp-rig2-start" class="rig-start-input" />
+          <span class="rig-start-note">(leave blank = project start)</span>
+        </div>
+        <div class="rig-start-field">
+          <label for="inp-rig3-start">Rig 3</label>
+          <input type="date" id="inp-rig3-start" class="rig-start-input" />
+          <span class="rig-start-note">(leave blank = project start)</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ============================================================
@@ -510,6 +531,33 @@ body {
 }
 .btn-preset:hover { border-color: #1a1a2e; color: #1a1a2e; }
 .btn-preset.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
+/* ---- Rig Start Dates ---- */
+.rig-start-bar {
+  display: flex; align-items: center; gap: 1rem;
+  padding-top: 0.5rem; flex-wrap: wrap;
+}
+.rig-start-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #9b9ba8; white-space: nowrap;
+}
+.rig-start-fields {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+}
+.rig-start-field {
+  display: flex; align-items: center; gap: 0.35rem;
+}
+.rig-start-field label {
+  font-size: 0.6875rem; font-weight: 600; color: #3a3a4a; white-space: nowrap;
+}
+.rig-start-input {
+  padding: 0.3rem 0.5rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  font-size: 0.75rem; font-family: inherit; outline: none; background: #fff;
+}
+.rig-start-input:focus { border-color: #3b82f6; }
+.rig-start-note {
+  font-size: 0.5625rem; color: #9b9ba8;
+}
 
 /* ---- Accordion System ---- */
 .controls-section { padding: 0.75rem 0; border-bottom: 1px solid #e5e5ea; }

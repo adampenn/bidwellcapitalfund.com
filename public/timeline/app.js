@@ -386,6 +386,9 @@
     inpBonusDepr.value = 100;
     inpDistLag.value = 2;
     overlapField.style.display = 'none';
+    inpRig1Start.value = '';
+    inpRig2Start.value = '';
+    inpRig3Start.value = '';
     setAssumptionsUI(DEFAULT_ASSUMPTIONS);
     updatePresetButtons('base');
   }
@@ -464,6 +467,21 @@
      MAIN: GENERATE AND RENDER
      ========================================================== */
 
+  var inpRig1Start = document.getElementById('inp-rig1-start');
+  var inpRig2Start = document.getElementById('inp-rig2-start');
+  var inpRig3Start = document.getElementById('inp-rig3-start');
+
+  function getRigStartDates(projectStart) {
+    var dates = {};
+    var r1 = inpRig1Start.value ? parseDateInput(inpRig1Start.value) : null;
+    var r2 = inpRig2Start.value ? parseDateInput(inpRig2Start.value) : null;
+    var r3 = inpRig3Start.value ? parseDateInput(inpRig3Start.value) : null;
+    if (r1) dates[1] = r1;
+    if (r2) dates[2] = r2;
+    if (r3) dates[3] = r3;
+    return dates;
+  }
+
   function doGenerateAndRender() {
     var startDate = parseDateInput(inpStart.value);
     var wellDefs = getWellList();
@@ -476,6 +494,7 @@
       overlapOffset: Math.max(1, parseInt(inpOverlap.value) || 4),
       globalBuffer: Math.max(0, parseInt(inpBuffer.value) || 0),
       assumptions: a,
+      rigStartDates: getRigStartDates(startDate),
       weatherEnabled: document.getElementById('opt-weather').checked,
       weatherRisk: document.getElementById('inp-weather-risk').value,
       distLag: Math.max(0, parseInt(inpDistLag.value) || 2),
@@ -622,6 +641,7 @@
       investment: inpInvestment.value, idcPct: inpIdcPct.value,
       overheadPct: inpOverheadPct.value, bonusDepr: inpBonusDepr.value,
       distLag: inpDistLag.value, assumptions: getAssumptionsFromUI(),
+      rigStartDates: { rig1: inpRig1Start.value, rig2: inpRig2Start.value, rig3: inpRig3Start.value },
       wells: getWellListWithProforma(),
       display: {
         milestones: document.getElementById('opt-milestones').checked,
@@ -650,6 +670,11 @@
       if (cfg.bonusDepr !== undefined) inpBonusDepr.value = cfg.bonusDepr;
       if (cfg.distLag !== undefined) inpDistLag.value = cfg.distLag;
       if (cfg.assumptions) setAssumptionsUI(cfg.assumptions);
+      if (cfg.rigStartDates) {
+        if (cfg.rigStartDates.rig1) inpRig1Start.value = cfg.rigStartDates.rig1;
+        if (cfg.rigStartDates.rig2) inpRig2Start.value = cfg.rigStartDates.rig2;
+        if (cfg.rigStartDates.rig3) inpRig3Start.value = cfg.rigStartDates.rig3;
+      }
       if (cfg.wells && cfg.wells.length > 0) {
         wellListBody.innerHTML = '';
         for (var i = 0; i < cfg.wells.length; i++) {

@@ -78,6 +78,8 @@ function generateSchedule(opts) {
   var postFracKeys = ['fracExec', 'drillOut', 'flowback', 'stabilized'];
   var wellFacilitiesEnd = [];
 
+  var rigStartDates = opts.rigStartDates || {};
+
   var rigWells = {};
   for (var rw = 0; rw < wellDefs.length; rw++) {
     var rigNum = wellDefs[rw].rig;
@@ -94,11 +96,14 @@ function generateSchedule(opts) {
     var wellPhases = [];
     var wellCursor;
 
+    // Use per-rig start date if set, otherwise fall back to project start
+    var rigStart = rigStartDates[wellRig] ? new Date(rigStartDates[wellRig]) : new Date(drillingStartBase);
+
     var prevOnRig = rigPrevWell[wellRig];
 
-    wellCursor = new Date(drillingStartBase);
+    wellCursor = new Date(rigStart);
     if (a.preDrill > 0) {
-      var preDrill = makePhase('preDrill', drillingStartBase, a.preDrill, wellName);
+      var preDrill = makePhase('preDrill', rigStart, a.preDrill, wellName);
       wellPhases.push(preDrill);
       allBars.push(preDrill);
       wellCursor = addDays(preDrill.end, 1);
@@ -178,7 +183,8 @@ function generateSchedule(opts) {
     }
 
     var fracReadyDate;
-    var completionEnd = lastCompletionPrep ? addDays(lastCompletionPrep.end, 1) : new Date(drillingStartBase);
+    var rigStart2 = rigStartDates[wellDefs[w2].rig] ? new Date(rigStartDates[wellDefs[w2].rig]) : new Date(drillingStartBase);
+    var completionEnd = lastCompletionPrep ? addDays(lastCompletionPrep.end, 1) : rigStart2;
     var thisFacEnd = wellFacilitiesEnd[w2] ? addDays(wellFacilitiesEnd[w2], 1) : completionEnd;
     fracReadyDate = completionEnd > thisFacEnd ? completionEnd : thisFacEnd;
 
