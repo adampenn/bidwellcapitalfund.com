@@ -154,6 +154,18 @@
             <label class="toggle-label"><input type="checkbox" id="opt-consolidated" /> Consolidated view (phases as rows)</label>
           </div>
 
+          <h3 class="control-group-title" style="margin-top:1.25rem;">Weather Delays</h3>
+          <label class="toggle-label" style="margin-bottom:0.5rem;"><input type="checkbox" id="opt-weather" checked /> Model weather delays (Tulsa, OK)</label>
+          <div class="field" style="margin-bottom:0.5rem;">
+            <label for="inp-weather-risk" style="font-size:0.75rem;">Risk Profile</label>
+            <select id="inp-weather-risk" style="padding:0.35rem 0.5rem;font-size:0.8125rem;">
+              <option value="optimistic">Optimistic (mild year)</option>
+              <option value="average" selected>Average (typical year)</option>
+              <option value="conservative">Conservative (harsh year)</option>
+            </select>
+          </div>
+          <div id="weather-info" class="weather-info-text">Est. delays shown per phase after generating.</div>
+
           <div class="action-btns" style="margin-top:1.25rem;">
             <button id="btn-generate" class="btn-primary-action">Generate Timeline</button>
             <button id="btn-reset" class="btn-secondary-action">Reset to Defaults</button>
@@ -531,6 +543,16 @@ body {
   margin-right: 0.45rem; vertical-align: middle;
 }
 
+/* ---- Weather Info ---- */
+.weather-info-text {
+  font-size: 0.6875rem; color: #9b9ba8; line-height: 1.4;
+}
+.weather-delay-badge {
+  display: inline-block; background: #fef3c7; color: #92400e;
+  font-size: 0.625rem; font-weight: 600; padding: 0.1rem 0.4rem;
+  border-radius: 3px; margin-left: 0.35rem; vertical-align: middle;
+}
+
 /* ---- Well List ---- */
 .well-list-section {
   margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #ececf0;
@@ -799,6 +821,94 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     { label: 'Flowback / Production', color: '#065f46' }
   ];
 
+  /**
+   * WEATHER DELAY MODEL — Tulsa, Oklahoma
+   *
+   * Based on ~50 years of NOAA/NWS historical data for Tulsa, OK:
+   * - Ice storms: Dec–Feb, worst in Jan. Major events ~every 3–5 years,
+   *   minor icing events 2–4x per winter. Typical rig shutdown: 2–5 days.
+   * - Severe thunderstorms/tornadoes: Apr–Jun peak (tornado alley).
+   *   Avg ~6 severe storm days/month in peak. Shutdown: 0.5–1 day each.
+   * - Extreme cold (<20°F): Dec–Feb, ~8 days/winter below 20°F.
+   *   Operations slow but rarely full shutdown unless icing.
+   * - Flooding/heavy rain: Apr–Jun, Oct. Avg 4–5 days >1" rain/month
+   *   in peak. Site access issues: 1–2 day delays.
+   * - Extreme heat (>105°F): Jul–Aug, rare (1–3 days/year avg).
+   *   Safety slowdowns but minimal full shutdowns.
+   * - Snow: Dec–Feb, avg ~9" total/winter. Usually melts in 1–2 days.
+   *
+   * Expected delay days per month for OUTDOOR rig operations.
+   * "average" = typical year. "optimistic" = mild. "conservative" = bad year.
+   * Pre-drill/permitting and facilities (indoor/office work) use reduced rates.
+   */
+  var WEATHER_DELAY_DAYS = {
+    // Expected delay days per month for field operations (drilling, frac, flowback)
+    // [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]
+    average: {
+      field:  [3.5, 2.5, 1.5, 2.0, 2.5, 2.0, 1.0, 1.0, 1.0, 1.0, 1.5, 3.0],
+      indoor: [1.5, 1.0, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.5, 1.5]
+    },
+    optimistic: {
+      field:  [2.0, 1.5, 1.0, 1.0, 1.5, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 1.5],
+      indoor: [1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]
+    },
+    conservative: {
+      field:  [6.0, 4.5, 2.5, 3.0, 3.5, 3.0, 1.5, 1.5, 1.5, 2.0, 2.5, 5.0],
+      indoor: [3.0, 2.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 0.5, 1.0, 1.0, 2.5]
+    }
+  };
+
+  // Month names for weather delay tooltips
+  var WEATHER_RISK_LABELS = [
+    'Jan: ice storms, extreme cold',
+    'Feb: ice, cold snaps',
+    'Mar: late winter storms, early severe',
+    'Apr: severe storms, tornadoes, flooding',
+    'May: peak severe weather, heavy rain',
+    'Jun: storms, heat building',
+    'Jul: extreme heat, isolated storms',
+    'Aug: extreme heat, isolated storms',
+    'Sep: mild, occasional storms',
+    'Oct: early cold fronts, rain',
+    'Nov: first freeze events',
+    'Dec: ice storms, cold, snow'
+  ];
+
+  /**
+   * Which phase keys are "field" (outdoor rig operations) vs "indoor" (office/permitting).
+   * Field operations get the full weather delay; indoor gets reduced.
+   */
+  var INDOOR_PHASES = ['preDrill', 'facilities', 'fracBuffer'];
+
+  /**
+   * Calculate weather delay days for a phase spanning startDate to endDate.
+   * Prorates partial months.
+   */
+  function calcWeatherDelay(startDate, endDate, phaseKey, riskProfile) {
+    if (!riskProfile || riskProfile === 'none') return 0;
+    var profile = WEATHER_DELAY_DAYS[riskProfile] || WEATHER_DELAY_DAYS.average;
+    var isIndoor = INDOOR_PHASES.indexOf(phaseKey) !== -1;
+    var rates = isIndoor ? profile.indoor : profile.field;
+
+    var totalDelay = 0;
+    var cursor = new Date(startDate);
+    var end = new Date(endDate);
+
+    while (cursor <= end) {
+      var month = cursor.getMonth(); // 0–11
+      var daysInMonth = new Date(cursor.getFullYear(), month + 1, 0).getDate();
+      // How many days of this month does the phase span?
+      var monthEnd = new Date(cursor.getFullYear(), month + 1, 0);
+      var spanEnd = end < monthEnd ? end : monthEnd;
+      var daysInSpan = daysBetween(cursor, spanEnd) + 1;
+      var fraction = daysInSpan / daysInMonth;
+      totalDelay += rates[month] * fraction;
+      cursor = addDays(spanEnd, 1);
+    }
+
+    return Math.round(totalDelay);
+  }
+
   /* ==========================================================
      DATE UTILITIES
      ========================================================== */
@@ -1058,6 +1168,10 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     var globalBuffer = Math.max(0, parseInt(inpBuffer.value) || 0);
     var a = getAssumptionsFromUI();
 
+    var weatherEnabled = document.getElementById('opt-weather').checked;
+    var weatherRisk = document.getElementById('inp-weather-risk').value;
+    var totalWeatherDays = 0;
+
     if (numWells < 1) {
       alert('Please add at least 1 well.');
       return null;
@@ -1070,7 +1184,15 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     var cursor = new Date(startDate);
 
     function makePhase(key, start, duration, wellName) {
-      var end = addDays(start, duration - 1);
+      var baseDuration = duration;
+      var weatherDays = 0;
+      if (weatherEnabled && duration > 0) {
+        var baseEnd = addDays(start, duration - 1);
+        weatherDays = calcWeatherDelay(start, baseEnd, key, weatherRisk);
+      }
+      var totalDuration = duration + weatherDays;
+      var end = addDays(start, totalDuration - 1);
+      totalWeatherDays += weatherDays;
       return {
         key: key,
         name: PHASE_NAMES[key] || key,
@@ -1079,7 +1201,9 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
         well: wellName || 'Project',
         start: new Date(start),
         end: end,
-        duration: duration
+        duration: totalDuration,
+        baseDuration: baseDuration,
+        weatherDays: weatherDays
       };
     }
 
@@ -1408,7 +1532,11 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       march31Deadline: march31NextYear,
       tdcPerWell: tdcPerWell,
       tdcByYear: tdcByYear,
-      tdcYears: tdcYears
+      tdcYears: tdcYears,
+      // Weather
+      weatherEnabled: weatherEnabled,
+      weatherRisk: weatherRisk,
+      totalWeatherDays: totalWeatherDays
     };
   }
 
@@ -1421,13 +1549,17 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       ? 'Overlapped (' + data.overlapOffset + 'd offset)'
       : 'Sequential';
 
+    var weatherNote = data.weatherEnabled
+      ? '<span class="weather-delay-badge">+' + data.totalWeatherDays + 'd weather</span>'
+      : '';
+
     summaryCard.innerHTML =
       '<div class="summary-item"><div class="summary-item-label">Project Start</div><div class="summary-item-value">' + formatDate(data.startDate) + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Wells</div><div class="summary-item-value">' + data.numWells + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Drilling Mode</div><div class="summary-item-value">' + modeLabel + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Est. First Production</div><div class="summary-item-value">' + formatDate(data.firstProductionDate) + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(data.finalStabilizedDate) + '</div></div>' +
-      '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + data.totalDays + ' days</div></div>';
+      '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + data.totalDays + ' days' + weatherNote + '</div></div>';
   }
 
   /* ==========================================================
@@ -1771,7 +1903,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
           ' data-tt-well="' + escapeAttr(bar.well) + '"' +
           ' data-tt-start="' + formatDate(bar.start) + '"' +
           ' data-tt-end="' + formatDate(bar.end) + '"' +
-          ' data-tt-dur="' + bar.duration + ' days"' +
+          ' data-tt-dur="' + bar.duration + ' days' + (bar.weatherDays > 0 ? ' (incl. ' + bar.weatherDays + 'd weather)' : '') + '"' +
           '></div>';
 
         if (showMilestones && bar.key === 'stabilized') {
@@ -1865,7 +1997,9 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       html += '<tr class="well-divider"><td colspan="5">Project-Wide</td></tr>';
       for (var pp = 0; pp < data.projectPhases.length; pp++) {
         var p = data.projectPhases[pp];
-        html += '<tr><td>Project</td><td><span class="phase-color" style="background:' + p.color + ';"></span>' + p.name + '</td><td>' + formatDate(p.start) + '</td><td>' + formatDate(p.end) + '</td><td>' + p.duration + 'd</td></tr>';
+        var pDurStr = p.duration + 'd';
+        if (p.weatherDays > 0) pDurStr += ' <span class="weather-delay-badge">+' + p.weatherDays + 'd</span>';
+        html += '<tr><td>Project</td><td><span class="phase-color" style="background:' + p.color + ';"></span>' + p.name + '</td><td>' + formatDate(p.start) + '</td><td>' + formatDate(p.end) + '</td><td>' + pDurStr + '</td></tr>';
       }
     }
 
@@ -1875,7 +2009,9 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       var phases = data.wells[w];
       for (var ph = 0; ph < phases.length; ph++) {
         var phase = phases[ph];
-        html += '<tr><td>' + wn + '</td><td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td><td>' + formatDate(phase.start) + '</td><td>' + formatDate(phase.end) + '</td><td>' + phase.duration + 'd</td></tr>';
+        var durStr = phase.duration + 'd';
+        if (phase.weatherDays > 0) durStr += ' <span class="weather-delay-badge">+' + phase.weatherDays + 'd</span>';
+        html += '<tr><td>' + wn + '</td><td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td><td>' + formatDate(phase.start) + '</td><td>' + formatDate(phase.end) + '</td><td>' + durStr + '</td></tr>';
       }
     }
 
@@ -2060,6 +2196,14 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     renderLegend();
     renderGantt(generatedData);
     renderTable(generatedData);
+
+    // Update weather info
+    var weatherInfo = document.getElementById('weather-info');
+    if (generatedData.weatherEnabled) {
+      weatherInfo.innerHTML = 'Weather delays: <strong>' + generatedData.totalWeatherDays + ' days</strong> total (' + generatedData.weatherRisk + ' profile). Delays are heaviest Dec–Feb (ice) and Apr–Jun (storms).';
+    } else {
+      weatherInfo.textContent = 'Weather delays disabled.';
+    }
 
     outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
