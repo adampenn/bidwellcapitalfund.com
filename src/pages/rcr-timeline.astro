@@ -91,6 +91,28 @@
             <label for="inp-buffer">Global Buffer (days)</label>
             <input type="number" id="inp-buffer" min="0" max="90" value="0" />
           </div>
+
+          <h3 class="control-group-title" style="margin-top:1.25rem;">Investment &amp; Tax Inputs</h3>
+          <div class="field">
+            <label for="inp-investment">Total Investment ($)</label>
+            <input type="number" id="inp-investment" min="0" step="1000" value="5000000" />
+          </div>
+          <div class="field">
+            <label for="inp-idc-pct">IDC % of Investment</label>
+            <input type="number" id="inp-idc-pct" min="0" max="100" value="80" />
+          </div>
+          <div class="field">
+            <label for="inp-overhead-pct">Overhead %</label>
+            <input type="number" id="inp-overhead-pct" min="0" max="100" value="5" />
+          </div>
+          <div class="field">
+            <label for="inp-bonus-depr">Bonus Depreciation %</label>
+            <input type="number" id="inp-bonus-depr" min="0" max="100" value="100" />
+          </div>
+          <div class="field">
+            <label for="inp-dist-lag">Distribution Lag (months)</label>
+            <input type="number" id="inp-dist-lag" min="0" max="12" value="2" />
+          </div>
         </div>
 
         <!-- Column 2: Timeline Assumptions -->
@@ -126,6 +148,7 @@
             <label class="toggle-label"><input type="checkbox" id="opt-weekends" /> Weekend shading</label>
             <label class="toggle-label"><input type="checkbox" id="opt-today" checked /> Today line</label>
             <label class="toggle-label"><input type="checkbox" id="opt-summary-view" /> Summary view (1 row per well)</label>
+            <label class="toggle-label"><input type="checkbox" id="opt-consolidated" /> Consolidated view (phases as rows)</label>
           </div>
 
           <h3 class="control-group-title" style="margin-top:1.25rem;">Scenario Presets</h3>
@@ -151,6 +174,18 @@
 
       <!-- Executive Summary -->
       <div id="summary-card" class="summary-card"></div>
+
+      <!-- Cashflow Timeline -->
+      <div id="cashflow-card" class="info-card" style="display:none;">
+        <h3 class="info-card-title">Cashflow &amp; Distribution Timeline</h3>
+        <div id="cashflow-content" class="info-card-body"></div>
+      </div>
+
+      <!-- Tax Deduction Summary -->
+      <div id="tax-card" class="info-card" style="display:none;">
+        <h3 class="info-card-title">Tax Deduction Summary</h3>
+        <div id="tax-content" class="info-card-body"></div>
+      </div>
 
       <!-- Export Actions -->
       <div class="export-bar no-print">
@@ -195,6 +230,8 @@
       <div class="pdf-subtitle">Rush Creek Resources — Confidential</div>
     </div>
     <div id="pdf-summary"></div>
+    <div id="pdf-cashflow"></div>
+    <div id="pdf-tax"></div>
     <div id="pdf-gantt" class="pdf-gantt-container"></div>
     <div id="pdf-table"></div>
     <div class="pdf-footer">
@@ -471,6 +508,37 @@ body {
   margin-right: 0.45rem; vertical-align: middle;
 }
 
+/* ---- Info Cards (Cashflow & Tax) ---- */
+.info-card {
+  background: #fff; border: 1px solid #e5e5ea; border-radius: 10px;
+  padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+}
+.info-card-title {
+  font-family: 'DM Serif Display', Georgia, serif; font-size: 1.1rem;
+  font-weight: 400; margin-bottom: 0.75rem; color: #1a1a2e;
+}
+.info-card-body {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.info-metric { }
+.info-metric-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #9b9ba8; margin-bottom: 0.2rem;
+}
+.info-metric-value { font-size: 0.9375rem; font-weight: 500; color: #1a1a2e; }
+.info-metric-note { font-size: 0.6875rem; color: #6b6b80; margin-top: 0.1rem; }
+.info-metric-value.highlight-green { color: #059669; }
+.info-metric-value.highlight-amber { color: #d97706; }
+.info-metric-value.highlight-red { color: #dc2626; }
+
+/* Consolidated Gantt rows */
+.gantt-label-row.consolidated-category {
+  font-weight: 600; font-size: 0.6875rem; color: #1a1a2e; background: #f9f9fb;
+}
+.gantt-bar.consolidated-bar { opacity: 0.7; border: 1px solid rgba(255,255,255,0.4); }
+.gantt-bar.consolidated-bar:hover { opacity: 1; }
+
 /* ---- App Footer ---- */
 .app-footer { border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem; }
 .app-footer p { font-size: 0.6875rem; color: #9b9ba8; max-width: 80ch; }
@@ -678,6 +746,16 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     return Math.round((b.getTime() - a.getTime()) / msPerDay);
   }
 
+  function addMonths(date, months) {
+    var d = new Date(date);
+    d.setMonth(d.getMonth() + months);
+    return d;
+  }
+
+  function formatCurrency(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
   function isWeekend(date) {
     var day = date.getDay();
     return day === 0 || day === 6;
@@ -712,6 +790,12 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
   var overlapField = document.getElementById('overlap-field');
   var inpBuffer = document.getElementById('inp-buffer');
 
+  var inpInvestment = document.getElementById('inp-investment');
+  var inpIdcPct = document.getElementById('inp-idc-pct');
+  var inpOverheadPct = document.getElementById('inp-overhead-pct');
+  var inpBonusDepr = document.getElementById('inp-bonus-depr');
+  var inpDistLag = document.getElementById('inp-dist-lag');
+
   var btnGenerate = document.getElementById('btn-generate');
   var btnReset = document.getElementById('btn-reset');
   var btnPDF = document.getElementById('btn-pdf');
@@ -722,6 +806,10 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
   var ganttContainer = document.getElementById('gantt-container');
   var ganttLegend = document.getElementById('gantt-legend');
   var tableContainer = document.getElementById('table-container');
+  var cashflowCard = document.getElementById('cashflow-card');
+  var cashflowContent = document.getElementById('cashflow-content');
+  var taxCard = document.getElementById('tax-card');
+  var taxContent = document.getElementById('tax-content');
 
   var tooltip = null;
 
@@ -763,6 +851,11 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     inpMode.value = 'sequential';
     inpOverlap.value = 4;
     inpBuffer.value = 0;
+    inpInvestment.value = 5000000;
+    inpIdcPct.value = 80;
+    inpOverheadPct.value = 5;
+    inpBonusDepr.value = 100;
+    inpDistLag.value = 2;
     overlapField.style.display = 'none';
     setAssumptionsUI(DEFAULT_ASSUMPTIONS);
     updatePresetButtons('base');
@@ -972,6 +1065,72 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       }
     }
 
+    // ---- Cashflow & Distribution calculations ----
+    var distLag = Math.max(0, parseInt(inpDistLag.value) || 2);
+    var lastFlowback = null;
+    var firstStabilized = null;
+    var lastStabilized = null;
+    var firstSpudDate = null;
+
+    for (var cf = 0; cf < allBars.length; cf++) {
+      if (allBars[cf].key === 'flowback') {
+        if (!lastFlowback || allBars[cf].end > lastFlowback) lastFlowback = allBars[cf].end;
+      }
+      if (allBars[cf].key === 'stabilized') {
+        if (!firstStabilized || allBars[cf].start < firstStabilized) firstStabilized = allBars[cf].start;
+        if (!lastStabilized || allBars[cf].end > lastStabilized) lastStabilized = allBars[cf].end;
+      }
+      // Spud date = first drilling activity (rigMob or drillSurface)
+      if (allBars[cf].key === 'rigMob' || allBars[cf].key === 'sitePrep' || allBars[cf].key === 'drillSurface') {
+        if (!firstSpudDate || allBars[cf].start < firstSpudDate) firstSpudDate = allBars[cf].start;
+      }
+    }
+
+    var firstProductionMonth = firstFlowback ? new Date(firstFlowback.getFullYear(), firstFlowback.getMonth(), 1) : null;
+    var lastProductionMonth = lastStabilized ? new Date(lastStabilized.getFullYear(), lastStabilized.getMonth(), 1) : null;
+    var firstDistDate = firstProductionMonth ? addMonths(firstProductionMonth, distLag) : null;
+    var lastProductionCheck = lastProductionMonth ? addMonths(lastProductionMonth, distLag) : null;
+
+    // Per-well flowback dates for TDC timing
+    var wellFlowbackDates = [];
+    for (var wf = 0; wf < wells.length; wf++) {
+      for (var wfp = 0; wfp < wells[wf].length; wfp++) {
+        if (wells[wf][wfp].key === 'flowback') {
+          wellFlowbackDates.push({ well: 'Well ' + (wf + 1), date: wells[wf][wfp].start });
+          break;
+        }
+      }
+    }
+
+    // ---- Tax Deduction calculations ----
+    var totalInvestment = Math.max(0, parseFloat(inpInvestment.value) || 0);
+    var idcPct = Math.max(0, Math.min(100, parseFloat(inpIdcPct.value) || 80));
+    var overheadPct = Math.max(0, Math.min(100, parseFloat(inpOverheadPct.value) || 5));
+    var tdcPct = Math.max(0, 100 - idcPct - overheadPct);
+    var bonusDeprPct = Math.max(0, Math.min(100, parseFloat(inpBonusDepr.value) || 100));
+
+    var idcAmount = totalInvestment * (idcPct / 100);
+    var tdcAmount = totalInvestment * (tdcPct / 100);
+    var overheadAmount = totalInvestment * (overheadPct / 100);
+    var bonusDeprAmount = tdcAmount * (bonusDeprPct / 100);
+    var remainingTdc = tdcAmount - bonusDeprAmount;
+
+    // IDC deductible year: year of investment if spudded by March 31 of following year
+    var investmentYear = startDate.getFullYear();
+    var march31NextYear = new Date(investmentYear + 1, 2, 31); // March 31 of next year
+    var idcDeductibleYear = investmentYear;
+    var idcQualifies = true;
+    if (firstSpudDate && firstSpudDate > march31NextYear) {
+      idcQualifies = false;
+      idcDeductibleYear = firstSpudDate ? firstSpudDate.getFullYear() : investmentYear;
+    }
+
+    // TDC deductible when equipment goes into service (wells fracked and flowing)
+    // Each well's TDC portion is deductible when that well starts flowing
+    // For simplicity: first well TDC = year of first flowback, last well = year of last flowback
+    var tdcFirstYear = firstFlowback ? firstFlowback.getFullYear() : investmentYear;
+    var tdcLastYear = lastFlowback ? new Date(lastFlowback).getFullYear() : investmentYear;
+
     return {
       startDate: startDate,
       endDate: projectEnd,
@@ -984,7 +1143,32 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       projectPhases: projectPhases,
       wells: wells,
       allBars: allBars,
-      assumptions: a
+      assumptions: a,
+      // Cashflow
+      distLag: distLag,
+      firstDistDate: firstDistDate,
+      lastProductionCheck: lastProductionCheck,
+      firstProductionMonth: firstProductionMonth,
+      lastProductionMonth: lastProductionMonth,
+      wellFlowbackDates: wellFlowbackDates,
+      // Tax
+      totalInvestment: totalInvestment,
+      idcPct: idcPct,
+      tdcPct: tdcPct,
+      overheadPct: overheadPct,
+      idcAmount: idcAmount,
+      tdcAmount: tdcAmount,
+      overheadAmount: overheadAmount,
+      bonusDeprPct: bonusDeprPct,
+      bonusDeprAmount: bonusDeprAmount,
+      remainingTdc: remainingTdc,
+      investmentYear: investmentYear,
+      idcDeductibleYear: idcDeductibleYear,
+      idcQualifies: idcQualifies,
+      firstSpudDate: firstSpudDate,
+      march31Deadline: march31NextYear,
+      tdcFirstYear: tdcFirstYear,
+      tdcLastYear: tdcLastYear
     };
   }
 
@@ -1004,6 +1188,82 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       '<div class="summary-item"><div class="summary-item-label">Est. First Production</div><div class="summary-item-value">' + formatDate(data.firstProductionDate) + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(data.finalStabilizedDate) + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + data.totalDays + ' days</div></div>';
+  }
+
+  /* ==========================================================
+     RENDER: CASHFLOW & DISTRIBUTION TIMELINE
+     ========================================================== */
+
+  function renderCashflow(data, targetEl) {
+    var container = targetEl || cashflowContent;
+    if (!data.firstProductionMonth) {
+      if (!targetEl) cashflowCard.style.display = 'none';
+      return;
+    }
+    if (!targetEl) cashflowCard.style.display = 'block';
+
+    var html =
+      '<div class="info-metric"><div class="info-metric-label">First Production</div><div class="info-metric-value">' + formatDate(data.firstProductionDate) + '</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">First Distribution Check</div><div class="info-metric-value highlight-green">' + formatDate(data.firstDistDate) + '</div>' +
+      '<div class="info-metric-note">' + data.distLag + '-month lag from production</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">All Wells Stabilized</div><div class="info-metric-value">' + formatDate(data.finalStabilizedDate) + '</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">Last Production Period Check</div><div class="info-metric-value">' + formatDate(data.lastProductionCheck) + '</div>' +
+      '<div class="info-metric-note">Check for final stabilization month</div></div>';
+
+    // Per-well flowback summary
+    if (data.wellFlowbackDates.length > 0) {
+      html += '<div class="info-metric" style="grid-column:1/-1;"><div class="info-metric-label">Per-Well Production &amp; First Distribution</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.35rem;margin-top:0.35rem;">';
+      for (var i = 0; i < data.wellFlowbackDates.length; i++) {
+        var wf = data.wellFlowbackDates[i];
+        var distDate = addMonths(new Date(wf.date.getFullYear(), wf.date.getMonth(), 1), data.distLag);
+        html += '<div style="font-size:0.75rem;color:#3a3a4a;"><strong>' + wf.well + '</strong>: flows ' + formatShortDate(wf.date) + ' → check ' + formatShortDate(distDate) + '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  /* ==========================================================
+     RENDER: TAX DEDUCTION SUMMARY
+     ========================================================== */
+
+  function renderTax(data, targetEl) {
+    var container = targetEl || taxContent;
+    if (data.totalInvestment <= 0) {
+      if (!targetEl) taxCard.style.display = 'none';
+      return;
+    }
+    if (!targetEl) taxCard.style.display = 'block';
+
+    var idcStatusClass = data.idcQualifies ? 'highlight-green' : 'highlight-red';
+    var idcStatusText = data.idcQualifies
+      ? 'Qualifies — spud by ' + formatDate(data.march31Deadline)
+      : 'At risk — spud date (' + formatDate(data.firstSpudDate) + ') is after ' + formatDate(data.march31Deadline);
+
+    var firstYearDeduction = data.idcAmount + data.bonusDeprAmount;
+    var firstYearPct = data.totalInvestment > 0 ? Math.round((firstYearDeduction / data.totalInvestment) * 100) : 0;
+
+    var html =
+      '<div class="info-metric"><div class="info-metric-label">Total Investment</div><div class="info-metric-value">' + formatCurrency(data.totalInvestment) + '</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">IDC (' + data.idcPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.idcAmount) + '</div>' +
+      '<div class="info-metric-note">Deductible in ' + data.idcDeductibleYear + '</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">TDC (' + data.tdcPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.tdcAmount) + '</div>' +
+      '<div class="info-metric-note">Deductible when wells flow (' + data.tdcFirstYear + (data.tdcFirstYear !== data.tdcLastYear ? '–' + data.tdcLastYear : '') + ')</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">Overhead (' + data.overheadPct + '%)</div><div class="info-metric-value">' + formatCurrency(data.overheadAmount) + '</div></div>' +
+      '<div class="info-metric"><div class="info-metric-label">Bonus Depreciation (' + data.bonusDeprPct + '% of TDC)</div><div class="info-metric-value highlight-green">' + formatCurrency(data.bonusDeprAmount) + '</div>' +
+      '<div class="info-metric-note">First-year TDC write-off</div></div>';
+
+    if (data.remainingTdc > 0) {
+      html += '<div class="info-metric"><div class="info-metric-label">Remaining TDC (MACRS)</div><div class="info-metric-value">' + formatCurrency(data.remainingTdc) + '</div>' +
+        '<div class="info-metric-note">Depreciated over 7-year schedule</div></div>';
+    }
+
+    html += '<div class="info-metric"><div class="info-metric-label">Year 1 Total Deduction</div><div class="info-metric-value highlight-green">' + formatCurrency(firstYearDeduction) + ' (' + firstYearPct + '%)</div>' +
+      '<div class="info-metric-note">IDC + bonus depreciation on TDC</div></div>' +
+      '<div class="info-metric" style="grid-column:1/-1;"><div class="info-metric-label">IDC Deduction Status</div><div class="info-metric-value ' + idcStatusClass + '" style="font-size:0.8125rem;">' + idcStatusText + '</div></div>';
+
+    container.innerHTML = html;
   }
 
   /* ==========================================================
@@ -1030,6 +1290,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     var showToday = document.getElementById('opt-today').checked;
     var compact = document.getElementById('opt-compact').checked;
     var summaryView = document.getElementById('opt-summary-view').checked;
+    var consolidatedView = document.getElementById('opt-consolidated').checked;
 
     if (!forPdf) {
       document.body.classList.toggle('compact', compact);
@@ -1039,7 +1300,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     var autoCompact = data.numWells >= 8 && !summaryView;
     var effectiveCompact = compact || autoCompact;
 
-    var rowHeight = summaryView ? 28 : (effectiveCompact ? 20 : 30);
+    var rowHeight = consolidatedView ? 36 : (summaryView ? 28 : (effectiveCompact ? 20 : 30));
     var labelWidth = showLabels ? (summaryView ? 100 : 180) : 0;
     var headerHeight = 24;
 
@@ -1057,7 +1318,63 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     // Build row data
     var rows = [];
 
-    if (summaryView) {
+    if (consolidatedView) {
+      // Consolidated view: phase categories as rows, all wells' bars overlap
+      var categoryOrder = ['Pre-drill / Permitting', 'Drilling', 'Completion Prep', 'Facilities', 'Frac & Completion', 'Production'];
+      var categoryKeys = {
+        'Pre-drill / Permitting': ['preDrill'],
+        'Drilling': ['rigMob', 'sitePrep', 'drillSurface', 'drillTD', 'logEval', 'runCasing'],
+        'Completion Prep': ['perforate', 'acidize', 'swabTest'],
+        'Facilities': ['facilities'],
+        'Frac & Completion': ['fracBuffer', 'fracExec', 'drillOut'],
+        'Production': ['flowback', 'stabilized']
+      };
+      var categoryColors = {
+        'Pre-drill / Permitting': '#94a3b8',
+        'Drilling': '#3b82f6',
+        'Completion Prep': '#f59e0b',
+        'Facilities': '#8b5cf6',
+        'Frac & Completion': '#10b981',
+        'Production': '#065f46'
+      };
+
+      for (var ci = 0; ci < categoryOrder.length; ci++) {
+        var catName = categoryOrder[ci];
+        var catKeys = categoryKeys[catName];
+        var catBars = [];
+        // Collect all bars from all wells that match this category
+        for (var cb = 0; cb < data.allBars.length; cb++) {
+          if (catKeys.indexOf(data.allBars[cb].key) !== -1) {
+            // Create a consolidated bar spanning the full category range per well
+            catBars.push(data.allBars[cb]);
+          }
+        }
+        if (catBars.length > 0) {
+          // Group bars by well, create one merged bar per well
+          var wellBars = {};
+          for (var wb = 0; wb < catBars.length; wb++) {
+            var wn = catBars[wb].well;
+            if (!wellBars[wn]) wellBars[wn] = { start: catBars[wb].start, end: catBars[wb].end, well: wn };
+            else {
+              if (catBars[wb].start < wellBars[wn].start) wellBars[wn].start = catBars[wb].start;
+              if (catBars[wb].end > wellBars[wn].end) wellBars[wn].end = catBars[wb].end;
+            }
+          }
+          var mergedBars = [];
+          var wellKeys = Object.keys(wellBars);
+          for (var mk = 0; mk < wellKeys.length; mk++) {
+            var mb = wellBars[wellKeys[mk]];
+            mergedBars.push({
+              key: catKeys[0], name: catName, color: categoryColors[catName],
+              category: catName, well: mb.well,
+              start: mb.start, end: mb.end,
+              duration: daysBetween(mb.start, mb.end) + 1
+            });
+          }
+          rows.push({ type: 'phase', label: catName, bars: mergedBars, isConsolidated: true });
+        }
+      }
+    } else if (summaryView) {
       // Summary view: one row per well with all bars stacked
       // Plus one row for project-wide
       if (data.projectPhases.length > 0) {
@@ -1110,6 +1427,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       for (var r = 0; r < rows.length; r++) {
         var cls = rows[r].type === 'header' ? 'gantt-label-row well-header' : 'gantt-label-row';
         if (rows[r].isProject) cls += ' project-phase';
+        if (rows[r].isConsolidated) cls += ' consolidated-category';
         html += '<div class="' + cls + '" style="height:' + rowHeight + 'px;">' + rows[r].label + '</div>';
       }
       html += '</div>';
@@ -1154,7 +1472,7 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
         var barLeft = daysBetween(minDate, bar.start) * pxPerDay;
         var barWidth = Math.max(bar.duration * pxPerDay, 2);
         var barTop = Math.round((rowHeight - barHeight) / 2);
-        var extraClass = row.isSummary ? ' summary-bar' : '';
+        var extraClass = row.isSummary ? ' summary-bar' : (row.isConsolidated ? ' consolidated-bar' : '');
 
         html += '<div class="gantt-bar' + extraClass + '" style="left:' + barLeft + 'px;width:' + barWidth + 'px;top:' + barTop + 'px;height:' + barHeight + 'px;background:' + bar.color + ';"' +
           ' data-tt-name="' + escapeAttr(bar.name) + '"' +
@@ -1283,6 +1601,8 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
     var overlay = document.getElementById('pdf-overlay');
     var pdfSummary = document.getElementById('pdf-summary');
+    var pdfCashflow = document.getElementById('pdf-cashflow');
+    var pdfTax = document.getElementById('pdf-tax');
     var pdfGantt = document.getElementById('pdf-gantt');
     var pdfTable = document.getElementById('pdf-table');
     var pdfDate = document.getElementById('pdf-date');
@@ -1303,6 +1623,20 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(d.finalStabilizedDate) + '</div></div>' +
       '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + d.totalDays + ' days</div></div>' +
       '</div>';
+
+    // Render cashflow and tax for PDF
+    if (d.firstProductionMonth) {
+      pdfCashflow.innerHTML = '<div class="info-card" style="margin-bottom:1rem;"><h3 class="info-card-title" style="font-size:0.95rem;">Cashflow &amp; Distribution Timeline</h3><div class="info-card-body" id="pdf-cashflow-inner"></div></div>';
+      renderCashflow(d, document.getElementById('pdf-cashflow-inner'));
+    } else {
+      pdfCashflow.innerHTML = '';
+    }
+    if (d.totalInvestment > 0) {
+      pdfTax.innerHTML = '<div class="info-card" style="margin-bottom:1rem;"><h3 class="info-card-title" style="font-size:0.95rem;">Tax Deduction Summary</h3><div class="info-card-body" id="pdf-tax-inner"></div></div>';
+      renderTax(d, document.getElementById('pdf-tax-inner'));
+    } else {
+      pdfTax.innerHTML = '';
+    }
 
     // Render Gantt for PDF (auto-summary for 6+ wells)
     renderGantt(d, pdfGantt, true);
@@ -1389,6 +1723,23 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
       }
     }
 
+    if (d.firstDistDate) {
+      text += '\nCASHFLOW TIMELINE\n' +
+        '----------------------------------------\n' +
+        'First Distribution Check: ' + formatDate(d.firstDistDate) + ' (' + d.distLag + '-month lag)\n' +
+        'Last Stabilization Period Check: ' + formatDate(d.lastProductionCheck) + '\n';
+    }
+
+    if (d.totalInvestment > 0) {
+      text += '\nTAX DEDUCTIONS\n' +
+        '----------------------------------------\n' +
+        'Total Investment: ' + formatCurrency(d.totalInvestment) + '\n' +
+        'IDC (' + d.idcPct + '%): ' + formatCurrency(d.idcAmount) + ' — deductible ' + d.idcDeductibleYear + '\n' +
+        'TDC (' + d.tdcPct + '%): ' + formatCurrency(d.tdcAmount) + '\n' +
+        'Bonus Depreciation (' + d.bonusDeprPct + '% of TDC): ' + formatCurrency(d.bonusDeprAmount) + '\n' +
+        'Year 1 Total Deduction: ' + formatCurrency(d.idcAmount + d.bonusDeprAmount) + '\n';
+    }
+
     text += '\n--- Bidwell Capital — Confidential ---';
 
     navigator.clipboard.writeText(text).then(function() {
@@ -1407,6 +1758,8 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
 
     outputEl.style.display = 'block';
     renderSummary(generatedData);
+    renderCashflow(generatedData);
+    renderTax(generatedData);
     renderLegend();
     renderGantt(generatedData);
     renderTable(generatedData);
