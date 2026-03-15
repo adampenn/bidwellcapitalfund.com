@@ -170,6 +170,11 @@
             <button id="btn-generate" class="btn-primary-action">Generate Timeline</button>
             <button id="btn-reset" class="btn-secondary-action">Reset to Defaults</button>
           </div>
+          <div class="action-btns" style="margin-top:0.5rem;">
+            <button id="btn-save-config" class="btn-secondary-action">Save Config</button>
+            <button id="btn-load-config" class="btn-secondary-action">Load Config</button>
+            <input type="file" id="config-file-input" accept=".json" style="display:none;" />
+          </div>
         </div>
 
       </div>
@@ -2244,8 +2249,157 @@ body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75
     });
   }
 
-  // Initialize
-  populateDefaults();
+  /* ==========================================================
+     CONFIG SAVE / LOAD / SESSION CACHE
+     ========================================================== */
+
+  var btnSaveConfig = document.getElementById('btn-save-config');
+  var btnLoadConfig = document.getElementById('btn-load-config');
+  var configFileInput = document.getElementById('config-file-input');
+  var CONFIG_SESSION_KEY = 'rcr_timeline_config';
+
+  function gatherConfig() {
+    return {
+      version: 1,
+      projectStart: inpStart.value,
+      drillingMode: inpMode.value,
+      overlapOffset: inpOverlap.value,
+      globalBuffer: inpBuffer.value,
+      investment: inpInvestment.value,
+      idcPct: inpIdcPct.value,
+      overheadPct: inpOverheadPct.value,
+      bonusDepr: inpBonusDepr.value,
+      distLag: inpDistLag.value,
+      assumptions: getAssumptionsFromUI(),
+      wells: getWellList(),
+      display: {
+        milestones: document.getElementById('opt-milestones').checked,
+        labels: document.getElementById('opt-labels').checked,
+        compact: document.getElementById('opt-compact').checked,
+        weekends: document.getElementById('opt-weekends').checked,
+        today: document.getElementById('opt-today').checked,
+        summaryView: document.getElementById('opt-summary-view').checked,
+        consolidated: document.getElementById('opt-consolidated').checked,
+        weather: document.getElementById('opt-weather').checked,
+        weatherRisk: document.getElementById('inp-weather-risk').value
+      }
+    };
+  }
+
+  function applyConfig(cfg) {
+    if (!cfg || cfg.version === undefined) return false;
+    try {
+      if (cfg.projectStart) inpStart.value = cfg.projectStart;
+      if (cfg.drillingMode) {
+        inpMode.value = cfg.drillingMode;
+        overlapField.style.display = cfg.drillingMode === 'overlap' ? 'block' : 'none';
+      }
+      if (cfg.overlapOffset !== undefined) inpOverlap.value = cfg.overlapOffset;
+      if (cfg.globalBuffer !== undefined) inpBuffer.value = cfg.globalBuffer;
+      if (cfg.investment !== undefined) inpInvestment.value = cfg.investment;
+      if (cfg.idcPct !== undefined) inpIdcPct.value = cfg.idcPct;
+      if (cfg.overheadPct !== undefined) inpOverheadPct.value = cfg.overheadPct;
+      if (cfg.bonusDepr !== undefined) inpBonusDepr.value = cfg.bonusDepr;
+      if (cfg.distLag !== undefined) inpDistLag.value = cfg.distLag;
+      if (cfg.assumptions) setAssumptionsUI(cfg.assumptions);
+      if (cfg.wells && cfg.wells.length > 0) {
+        wellListBody.innerHTML = '';
+        for (var i = 0; i < cfg.wells.length; i++) {
+          addWellRow(cfg.wells[i].name, cfg.wells[i].rig);
+        }
+      }
+      if (cfg.display) {
+        var d = cfg.display;
+        if (d.milestones !== undefined) document.getElementById('opt-milestones').checked = d.milestones;
+        if (d.labels !== undefined) document.getElementById('opt-labels').checked = d.labels;
+        if (d.compact !== undefined) document.getElementById('opt-compact').checked = d.compact;
+        if (d.weekends !== undefined) document.getElementById('opt-weekends').checked = d.weekends;
+        if (d.today !== undefined) document.getElementById('opt-today').checked = d.today;
+        if (d.summaryView !== undefined) document.getElementById('opt-summary-view').checked = d.summaryView;
+        if (d.consolidated !== undefined) document.getElementById('opt-consolidated').checked = d.consolidated;
+        if (d.weather !== undefined) document.getElementById('opt-weather').checked = d.weather;
+        if (d.weatherRisk) document.getElementById('inp-weather-risk').value = d.weatherRisk;
+      }
+      return true;
+    } catch (e) {
+      console.warn('Failed to apply config:', e);
+      return false;
+    }
+  }
+
+  function saveConfigToFile() {
+    var cfg = gatherConfig();
+    var json = JSON.stringify(cfg, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var dateStr = toDateInputValue(new Date());
+    var wellCount = cfg.wells.length;
+    a.download = 'rcr-config-' + wellCount + 'wells-' + dateStr + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function loadConfigFromFile(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var cfg = JSON.parse(e.target.result);
+        if (applyConfig(cfg)) {
+          saveConfigToSession();
+          generateAndRender();
+        } else {
+          alert('Invalid config file format.');
+        }
+      } catch (err) {
+        alert('Could not parse config file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function saveConfigToSession() {
+    try {
+      sessionStorage.setItem(CONFIG_SESSION_KEY, JSON.stringify(gatherConfig()));
+    } catch (e) {}
+  }
+
+  function loadConfigFromSession() {
+    try {
+      var stored = sessionStorage.getItem(CONFIG_SESSION_KEY);
+      if (stored) {
+        var cfg = JSON.parse(stored);
+        return applyConfig(cfg);
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  btnSaveConfig.addEventListener('click', saveConfigToFile);
+  btnLoadConfig.addEventListener('click', function() { configFileInput.click(); });
+  configFileInput.addEventListener('change', function() {
+    if (configFileInput.files.length > 0) {
+      loadConfigFromFile(configFileInput.files[0]);
+      configFileInput.value = '';
+    }
+  });
+
+  // Auto-save config to session after each generation
+  var origGenerateAndRender = generateAndRender;
+  generateAndRender = function() {
+    origGenerateAndRender();
+    if (generatedData) saveConfigToSession();
+  };
+
+  /* ==========================================================
+     INITIALIZATION
+     ========================================================== */
+
+  // Try to restore from session first, then fall back to defaults
+  if (!loadConfigFromSession()) {
+    populateDefaults();
+  }
   if (!checkSessionAuth()) {
     authInput.focus();
   }
