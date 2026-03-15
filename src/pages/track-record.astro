@@ -739,16 +739,19 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .chart-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
     overflow: hidden;
   }
   .chart-card canvas {
-    max-width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
     height: auto !important;
+    display: block;
   }
   .chart-card h3 {
     font-size: 1.125rem;
     margin-bottom: 1rem;
+    text-align: center;
   }
   .chart-legend {
     display: flex;
@@ -757,6 +760,7 @@ import Layout from '../layouts/Layout.astro';
     margin-top: 0.75rem;
     font-size: 0.75rem;
     color: var(--text-secondary);
+    justify-content: center;
   }
 
   @media (max-width: 400px) {
