@@ -1,0 +1,1367 @@
+---
+/**
+ * Oil Well Development Timeline Modeling Tool
+ *
+ * Private, password-protected internal tool for modeling oil well development timelines.
+ * Standalone page — does not use the site Layout component.
+ * Not linked in site navigation.
+ *
+ * To split this file later:
+ *   - auth logic → timeline/auth.js
+ *   - calculation engine → timeline/engine.js
+ *   - date utilities → timeline/dates.js
+ *   - rendering → timeline/render.js
+ *   - styles → timeline/styles.css
+ */
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Development Timeline — Bidwell Capital</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<div id="auth-screen">
+  <div class="auth-container">
+    <div class="auth-brand">Bidwell Capital</div>
+    <div class="auth-card">
+      <h2 class="auth-title">Development Timeline Tool</h2>
+      <p class="auth-subtitle">Enter the access code to continue.</p>
+      <div class="auth-field">
+        <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
+      </div>
+      <div id="auth-error" class="auth-error"></div>
+      <button id="auth-btn" class="btn-primary-action">Unlock</button>
+    </div>
+    <p class="auth-footer">For authorized users only.</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP (hidden until authenticated)
+     ============================================================ -->
+<div id="app" style="display:none;">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header-inner container-wide">
+      <div class="app-brand">Bidwell Capital</div>
+      <h1 class="app-title">Oil Well Development Timeline</h1>
+    </div>
+  </header>
+
+  <!-- Controls Panel -->
+  <section class="controls-section">
+    <div class="container-wide">
+      <div class="controls-grid">
+
+        <!-- Column 1: Project Inputs -->
+        <div class="control-group">
+          <h3 class="control-group-title">Project Inputs</h3>
+          <div class="field">
+            <label for="inp-start">Project Start Date</label>
+            <input type="date" id="inp-start" />
+          </div>
+          <div class="field">
+            <label for="inp-wells">Number of Wells</label>
+            <input type="number" id="inp-wells" min="1" max="50" value="3" />
+          </div>
+          <div class="field">
+            <label for="inp-mode">Drilling Mode</label>
+            <select id="inp-mode">
+              <option value="sequential">Sequential</option>
+              <option value="overlap">Overlapped</option>
+            </select>
+          </div>
+          <div class="field" id="overlap-field" style="display:none;">
+            <label for="inp-overlap">Overlap Offset (days)</label>
+            <input type="number" id="inp-overlap" min="1" max="365" value="4" />
+          </div>
+          <div class="field">
+            <label for="inp-buffer">Global Buffer (days)</label>
+            <input type="number" id="inp-buffer" min="0" max="90" value="0" />
+          </div>
+        </div>
+
+        <!-- Column 2: Timeline Assumptions -->
+        <div class="control-group">
+          <h3 class="control-group-title">Timeline Assumptions (days)</h3>
+          <div class="assumptions-grid">
+            <div class="field-sm"><label>Pre-drill / Permitting</label><input type="number" class="assumption" data-key="preDrill" min="0" /></div>
+            <div class="field-sm"><label>Rig Mobilization</label><input type="number" class="assumption" data-key="rigMob" min="0" /></div>
+            <div class="field-sm"><label>Site Prep / Rig Up</label><input type="number" class="assumption" data-key="sitePrep" min="0" /></div>
+            <div class="field-sm"><label>Drill Surface + Casing</label><input type="number" class="assumption" data-key="drillSurface" min="0" /></div>
+            <div class="field-sm"><label>Drill to TD</label><input type="number" class="assumption" data-key="drillTD" min="0" /></div>
+            <div class="field-sm"><label>Log & Evaluate</label><input type="number" class="assumption" data-key="logEval" min="0" /></div>
+            <div class="field-sm"><label>Run Production Casing</label><input type="number" class="assumption" data-key="runCasing" min="0" /></div>
+            <div class="field-sm"><label>Perforate</label><input type="number" class="assumption" data-key="perforate" min="0" /></div>
+            <div class="field-sm"><label>Acidize / Stimulate</label><input type="number" class="assumption" data-key="acidize" min="0" /></div>
+            <div class="field-sm"><label>Swab / Flow Test</label><input type="number" class="assumption" data-key="swabTest" min="0" /></div>
+            <div class="field-sm"><label>Facilities / Infrastructure</label><input type="number" class="assumption" data-key="facilities" min="0" /></div>
+            <div class="field-sm"><label>Frac Scheduling Buffer</label><input type="number" class="assumption" data-key="fracBuffer" min="0" /></div>
+            <div class="field-sm"><label>Frac Execution</label><input type="number" class="assumption" data-key="fracExec" min="0" /></div>
+            <div class="field-sm"><label>Drill Out / Cleanup</label><input type="number" class="assumption" data-key="drillOut" min="0" /></div>
+            <div class="field-sm"><label>Flowback</label><input type="number" class="assumption" data-key="flowback" min="0" /></div>
+            <div class="field-sm"><label>Stabilized Production</label><input type="number" class="assumption" data-key="stabilized" min="0" /></div>
+          </div>
+        </div>
+
+        <!-- Column 3: Display & Actions -->
+        <div class="control-group">
+          <h3 class="control-group-title">Display Settings</h3>
+          <div class="toggle-group">
+            <label class="toggle-label"><input type="checkbox" id="opt-milestones" checked /> Show milestone markers</label>
+            <label class="toggle-label"><input type="checkbox" id="opt-labels" checked /> Show per-well labels</label>
+            <label class="toggle-label"><input type="checkbox" id="opt-compact" /> Compact mode</label>
+            <label class="toggle-label"><input type="checkbox" id="opt-weekends" /> Weekend shading</label>
+            <label class="toggle-label"><input type="checkbox" id="opt-today" checked /> Today line</label>
+          </div>
+
+          <h3 class="control-group-title" style="margin-top:1.25rem;">Scenario Presets</h3>
+          <div class="preset-btns">
+            <button class="btn-preset" data-scenario="fast">Fast</button>
+            <button class="btn-preset active" data-scenario="base">Base</button>
+            <button class="btn-preset" data-scenario="conservative">Conservative</button>
+          </div>
+
+          <div class="action-btns">
+            <button id="btn-generate" class="btn-primary-action">Generate Timeline</button>
+            <button id="btn-reset" class="btn-secondary-action">Reset to Defaults</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Output Section -->
+  <section id="output" class="output-section" style="display:none;">
+    <div class="container-wide">
+
+      <!-- Executive Summary -->
+      <div id="summary-card" class="summary-card"></div>
+
+      <!-- Export Actions -->
+      <div class="export-bar">
+        <button id="btn-csv" class="btn-export">Export CSV</button>
+        <button id="btn-copy" class="btn-export">Copy Summary</button>
+      </div>
+
+      <!-- Gantt Chart -->
+      <div class="gantt-section">
+        <h2 class="section-heading">Project Timeline</h2>
+        <div id="gantt-container" class="gantt-container"></div>
+      </div>
+
+      <!-- Per-Well Table -->
+      <div class="table-section">
+        <h2 class="section-heading">Detailed Schedule</h2>
+        <div id="table-container" class="table-container"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container-wide">
+      <p>This tool is for internal modeling purposes only. Timelines are estimates based on user-defined assumptions and do not constitute guarantees. &copy; Bidwell Capital.</p>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     STYLES
+     ============================================================ -->
+<style is:inline>
+/* ---- Reset & Base ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  color: #1a1a2e;
+  background: #ffffff;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.container-wide { max-width: 1340px; margin: 0 auto; padding: 0 2rem; }
+
+/* ---- Auth Screen ---- */
+#auth-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: #f8f8fa;
+}
+.auth-container { text-align: center; width: 100%; max-width: 380px; padding: 2rem; }
+.auth-brand {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.25rem; color: #1a1a2e; margin-bottom: 2rem;
+  letter-spacing: 0.02em;
+}
+.auth-card {
+  background: #fff; border: 1px solid #e5e5ea; border-radius: 12px;
+  padding: 2.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.auth-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.35rem; font-weight: 400; margin-bottom: 0.35rem; }
+.auth-subtitle { font-size: 0.875rem; color: #6b6b80; margin-bottom: 1.5rem; }
+.auth-field { margin-bottom: 0.75rem; }
+.auth-field input {
+  width: 100%; padding: 0.7rem 1rem; border: 1px solid #d5d5dc; border-radius: 8px;
+  font-size: 0.9375rem; font-family: inherit; outline: none; transition: border-color 0.2s;
+  text-align: center; letter-spacing: 0.1em;
+}
+.auth-field input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.auth-error { font-size: 0.8125rem; color: #dc2626; min-height: 1.25rem; margin-bottom: 0.5rem; }
+.auth-footer { font-size: 0.75rem; color: #9b9ba8; margin-top: 1.5rem; }
+
+/* ---- Buttons ---- */
+.btn-primary-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 100%; padding: 0.7rem 1.5rem; border: none; border-radius: 8px;
+  background: #1a1a2e; color: #fff; font-family: inherit; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: background 0.2s;
+}
+.btn-primary-action:hover { background: #2d2d48; }
+.btn-secondary-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 100%; padding: 0.65rem 1.5rem; border: 1px solid #d5d5dc; border-radius: 8px;
+  background: #fff; color: #1a1a2e; font-family: inherit; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary-action:hover { border-color: #1a1a2e; }
+
+/* ---- App Header ---- */
+.app-header {
+  border-bottom: 1px solid #e5e5ea; padding: 1rem 0;
+}
+.app-header-inner { display: flex; align-items: center; gap: 1.5rem; }
+.app-brand {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.05rem; color: #1a1a2e; white-space: nowrap;
+}
+.app-title {
+  font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 400;
+  color: #6b6b80; letter-spacing: 0.02em;
+}
+
+/* ---- Controls ---- */
+.controls-section { padding: 1.75rem 0; border-bottom: 1px solid #e5e5ea; background: #fafafc; }
+.controls-grid { display: grid; grid-template-columns: 240px 1fr 260px; gap: 2rem; }
+@media (max-width: 1024px) { .controls-grid { grid-template-columns: 1fr; } }
+
+.control-group-title {
+  font-family: 'DM Sans', sans-serif; font-size: 0.6875rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em; color: #9b9ba8;
+  margin-bottom: 0.875rem; padding-bottom: 0.5rem; border-bottom: 1px solid #ececf0;
+}
+
+.field { margin-bottom: 0.75rem; }
+.field label {
+  display: block; font-size: 0.8125rem; font-weight: 500; color: #3a3a4a;
+  margin-bottom: 0.25rem;
+}
+.field input, .field select {
+  width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d5d5dc;
+  border-radius: 6px; font-size: 0.875rem; font-family: inherit;
+  outline: none; background: #fff; transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.08); }
+
+/* Assumptions grid */
+.assumptions-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem 1rem; }
+@media (max-width: 1024px) { .assumptions-grid { grid-template-columns: 1fr 1fr 1fr; } }
+@media (max-width: 640px) { .assumptions-grid { grid-template-columns: 1fr 1fr; } }
+.field-sm label { display: block; font-size: 0.6875rem; color: #6b6b80; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.field-sm input {
+  width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d5d5dc;
+  border-radius: 5px; font-size: 0.8125rem; font-family: inherit;
+  outline: none; text-align: center; background: #fff;
+}
+.field-sm input:focus { border-color: #3b82f6; }
+
+/* Toggles */
+.toggle-group { display: flex; flex-direction: column; gap: 0.45rem; }
+.toggle-label {
+  font-size: 0.8125rem; color: #3a3a4a; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+}
+.toggle-label input { accent-color: #3b82f6; }
+
+/* Presets */
+.preset-btns { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+.btn-preset {
+  flex: 1; padding: 0.4rem 0.5rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  background: #fff; font-size: 0.75rem; font-family: inherit; font-weight: 500;
+  color: #6b6b80; cursor: pointer; transition: all 0.2s;
+}
+.btn-preset:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.btn-preset.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
+.action-btns { display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* ---- Output Section ---- */
+.output-section { padding: 2rem 0 3rem; }
+
+.section-heading {
+  font-family: 'DM Serif Display', Georgia, serif; font-size: 1.35rem;
+  font-weight: 400; margin-bottom: 1rem; color: #1a1a2e;
+}
+
+/* Summary Card */
+.summary-card {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+  background: #e5e5ea; border: 1px solid #e5e5ea; border-radius: 10px;
+  overflow: hidden; margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) { .summary-card { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px) { .summary-card { grid-template-columns: repeat(2, 1fr); } }
+.summary-item { background: #fff; padding: 1.1rem 1.25rem; }
+.summary-item-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #9b9ba8; margin-bottom: 0.3rem;
+}
+.summary-item-value { font-size: 1rem; font-weight: 500; color: #1a1a2e; }
+
+/* Export bar */
+.export-bar { display: flex; gap: 0.5rem; margin-bottom: 1.75rem; }
+.btn-export {
+  padding: 0.45rem 1rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  background: #fff; font-size: 0.75rem; font-family: inherit; font-weight: 500;
+  color: #6b6b80; cursor: pointer; transition: all 0.2s;
+}
+.btn-export:hover { border-color: #1a1a2e; color: #1a1a2e; }
+
+/* ---- Gantt Chart ---- */
+.gantt-section { margin-bottom: 2.5rem; }
+.gantt-container {
+  overflow-x: auto; border: 1px solid #e5e5ea; border-radius: 10px;
+  background: #fff; position: relative;
+}
+.gantt-wrapper { display: flex; min-width: max-content; }
+.gantt-labels {
+  flex-shrink: 0; border-right: 1px solid #e5e5ea; background: #fafafc;
+  position: sticky; left: 0; z-index: 5;
+}
+.gantt-label-row {
+  display: flex; align-items: center; padding: 0 1rem;
+  border-bottom: 1px solid #f0f0f4; font-size: 0.75rem; color: #3a3a4a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gantt-label-row.well-header {
+  font-weight: 600; font-size: 0.6875rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #1a1a2e; background: #f0f0f4;
+}
+.gantt-label-row.project-phase { font-style: italic; color: #6b6b80; }
+.gantt-chart-area { flex: 1; position: relative; overflow: hidden; }
+.gantt-header {
+  display: flex; border-bottom: 1px solid #e5e5ea; background: #fafafc;
+  position: sticky; top: 0; z-index: 4;
+}
+.gantt-tick {
+  font-size: 0.625rem; color: #9b9ba8; text-align: left; padding: 0.45rem 0.35rem;
+  border-right: 1px solid #f0f0f4; white-space: nowrap;
+}
+.gantt-rows { position: relative; }
+.gantt-row { border-bottom: 1px solid #f0f0f4; position: relative; }
+.gantt-row.well-header-row { background: #f0f0f4; }
+.gantt-bar {
+  position: absolute; border-radius: 3px; cursor: pointer;
+  transition: filter 0.15s; min-width: 2px;
+}
+.gantt-bar:hover { filter: brightness(1.12); box-shadow: 0 1px 6px rgba(0,0,0,0.15); z-index: 3; }
+
+/* Gantt milestone marker */
+.gantt-milestone {
+  position: absolute; top: 50%; transform: translate(-50%, -50%) rotate(45deg);
+  width: 7px; height: 7px; background: #dc2626; z-index: 2;
+}
+
+/* Weekend shading */
+.gantt-weekend {
+  position: absolute; top: 0; bottom: 0; background: rgba(0,0,0,0.02); pointer-events: none;
+}
+
+/* Today line */
+.gantt-today-line {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: #dc2626; z-index: 6; pointer-events: none;
+}
+.gantt-today-label {
+  position: absolute; top: 2px; font-size: 0.5625rem; font-weight: 600;
+  color: #dc2626; white-space: nowrap; transform: translateX(4px);
+}
+
+/* Tooltip */
+.gantt-tooltip {
+  position: fixed; z-index: 100; padding: 0.65rem 0.85rem;
+  background: #1a1a2e; color: #fff; border-radius: 8px; font-size: 0.75rem;
+  line-height: 1.5; pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2); max-width: 260px;
+}
+.gantt-tooltip.visible { opacity: 1; }
+.gantt-tooltip strong { font-weight: 600; }
+.gantt-tooltip .tt-well { color: #94a3b8; font-size: 0.6875rem; }
+.gantt-tooltip .tt-dates { margin-top: 0.25rem; color: #c4c4d4; }
+
+/* ---- Table ---- */
+.table-container { overflow-x: auto; }
+.schedule-table {
+  width: 100%; border-collapse: collapse; font-size: 0.8125rem;
+  border: 1px solid #e5e5ea; border-radius: 10px; overflow: hidden;
+}
+.schedule-table thead th {
+  background: #fafafc; text-align: left; padding: 0.65rem 0.85rem;
+  font-weight: 600; font-size: 0.6875rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; border-bottom: 1px solid #e5e5ea;
+  white-space: nowrap;
+}
+.schedule-table tbody td {
+  padding: 0.5rem 0.85rem; border-bottom: 1px solid #f0f0f4; color: #3a3a4a;
+  white-space: nowrap;
+}
+.schedule-table tbody tr:hover { background: #fafafc; }
+.schedule-table .well-divider td { background: #f0f0f4; font-weight: 600; color: #1a1a2e; padding: 0.55rem 0.85rem; }
+.schedule-table .phase-color {
+  display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+  margin-right: 0.45rem; vertical-align: middle;
+}
+
+/* ---- App Footer ---- */
+.app-footer {
+  border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem;
+}
+.app-footer p { font-size: 0.6875rem; color: #9b9ba8; max-width: 80ch; }
+
+/* ---- Print ---- */
+@media print {
+  #auth-screen { display: none !important; }
+  .controls-section, .export-bar, .app-header, .app-footer { display: none !important; }
+  .output-section { padding: 0; }
+  .gantt-container { border: 1px solid #ccc; break-inside: avoid; }
+  .schedule-table { font-size: 0.7rem; }
+  body { font-size: 12px; }
+}
+
+/* ---- Compact mode ---- */
+body.compact .gantt-label-row { height: 22px !important; font-size: 0.625rem; }
+body.compact .gantt-row { height: 22px !important; }
+body.compact .gantt-bar { top: 3px !important; height: 16px !important; }
+body.compact .schedule-table tbody td { padding: 0.3rem 0.65rem; }
+</style>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script is:inline>
+(function() {
+  'use strict';
+
+  /* ==========================================================
+     CONFIGURATION
+     ========================================================== */
+
+  /**
+   * ACCESS PASSWORD
+   * Change this value to update the password for the tool.
+   *
+   * WARNING: This is a frontend-only password check. It is NOT secure
+   * for protecting sensitive data. The password is visible in the page
+   * source code. If this tool handles confidential information, replace
+   * this with server-side authentication:
+   *   - Server-side session/cookie check
+   *   - CMS private page protection
+   *   - Cloudflare Access / Vercel Password Protection
+   *   - HTTP Basic Auth at the web server level
+   *
+   * To swap out this auth layer later, replace the handleUnlock()
+   * function and the #auth-screen HTML with your server-side solution.
+   * The rest of the app is independent of the auth mechanism.
+   */
+  var ACCESS_PASSWORD = 'bidwell2025';
+
+  /**
+   * DEFAULT TIMELINE ASSUMPTIONS (in days)
+   * Edit these to change the base scenario defaults.
+   */
+  var DEFAULT_ASSUMPTIONS = {
+    preDrill: 21,
+    rigMob: 2,
+    sitePrep: 1,
+    drillSurface: 2,
+    drillTD: 5,
+    logEval: 1,
+    runCasing: 1,
+    perforate: 2,
+    acidize: 2,
+    swabTest: 3,
+    facilities: 60,
+    fracBuffer: 7,
+    fracExec: 3,
+    drillOut: 3,
+    flowback: 10,
+    stabilized: 15
+  };
+
+  /**
+   * SCENARIO PRESETS
+   * Fast = aggressive schedule, Conservative = padded schedule.
+   */
+  var SCENARIO_PRESETS = {
+    fast: {
+      preDrill: 14, rigMob: 1, sitePrep: 1, drillSurface: 1, drillTD: 3,
+      logEval: 1, runCasing: 1, perforate: 1, acidize: 1, swabTest: 2,
+      facilities: 45, fracBuffer: 3, fracExec: 2, drillOut: 2, flowback: 7, stabilized: 10
+    },
+    base: Object.assign({}, DEFAULT_ASSUMPTIONS),
+    conservative: {
+      preDrill: 30, rigMob: 3, sitePrep: 2, drillSurface: 3, drillTD: 8,
+      logEval: 2, runCasing: 2, perforate: 3, acidize: 3, swabTest: 5,
+      facilities: 90, fracBuffer: 14, fracExec: 5, drillOut: 5, flowback: 14, stabilized: 21
+    }
+  };
+
+  /**
+   * PHASE COLOR PALETTE
+   * Edit these to change the Gantt bar colors.
+   */
+  var PHASE_COLORS = {
+    preDrill:     '#94a3b8',  // slate gray
+    rigMob:       '#60a5fa',  // light blue
+    sitePrep:     '#60a5fa',
+    drillSurface: '#3b82f6',  // blue
+    drillTD:      '#2563eb',  // deeper blue
+    logEval:      '#3b82f6',
+    runCasing:    '#3b82f6',
+    perforate:    '#f59e0b',  // amber
+    acidize:      '#f59e0b',
+    swabTest:     '#d97706',  // darker amber
+    facilities:   '#8b5cf6',  // purple
+    fracBuffer:   '#a3a3a3',  // gray
+    fracExec:     '#10b981',  // green
+    drillOut:     '#10b981',
+    flowback:     '#059669',  // teal green
+    stabilized:   '#065f46'   // dark green
+  };
+
+  /**
+   * PHASE DISPLAY NAMES
+   */
+  var PHASE_NAMES = {
+    preDrill:     'Pre-drill / Permitting',
+    rigMob:       'Rig Mobilization',
+    sitePrep:     'Site Prep / Rig Up',
+    drillSurface: 'Drill Surface + Casing',
+    drillTD:      'Drill to TD',
+    logEval:      'Log & Evaluate',
+    runCasing:    'Run Production Casing',
+    perforate:    'Perforate',
+    acidize:      'Acidize / Stimulate',
+    swabTest:     'Swab / Flow Test',
+    facilities:   'Facilities / Infrastructure',
+    fracBuffer:   'Frac Scheduling Buffer',
+    fracExec:     'Frac Execution',
+    drillOut:     'Drill Out / Cleanup',
+    flowback:     'Flowback',
+    stabilized:   'Stabilized Production'
+  };
+
+  /**
+   * PHASE CATEGORIES (for grouping)
+   */
+  var PHASE_CATEGORY = {
+    preDrill: 'Project-Wide',
+    rigMob: 'Drilling', sitePrep: 'Drilling', drillSurface: 'Drilling',
+    drillTD: 'Drilling', logEval: 'Drilling', runCasing: 'Drilling',
+    perforate: 'Completion Prep', acidize: 'Completion Prep', swabTest: 'Completion Prep',
+    facilities: 'Facilities',
+    fracBuffer: 'Frac & Completion', fracExec: 'Frac & Completion', drillOut: 'Frac & Completion',
+    flowback: 'Production', stabilized: 'Production'
+  };
+
+  /* ==========================================================
+     DATE UTILITIES
+     ========================================================== */
+
+  function addDays(date, days) {
+    var d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  function formatDate(date) {
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+  }
+
+  function formatShortDate(date) {
+    return (date.getMonth() + 1) + '/' + date.getDate();
+  }
+
+  function daysBetween(a, b) {
+    var msPerDay = 86400000;
+    return Math.round((b.getTime() - a.getTime()) / msPerDay);
+  }
+
+  function isWeekend(date) {
+    var day = date.getDay();
+    return day === 0 || day === 6;
+  }
+
+  function toDateInputValue(date) {
+    return date.getFullYear() + '-' +
+      String(date.getMonth() + 1).padStart(2, '0') + '-' +
+      String(date.getDate()).padStart(2, '0');
+  }
+
+  function parseDateInput(str) {
+    var parts = str.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  }
+
+  /* ==========================================================
+     DOM REFERENCES
+     ========================================================== */
+
+  var authScreen = document.getElementById('auth-screen');
+  var authInput = document.getElementById('auth-input');
+  var authBtn = document.getElementById('auth-btn');
+  var authError = document.getElementById('auth-error');
+  var appEl = document.getElementById('app');
+  var outputEl = document.getElementById('output');
+
+  var inpStart = document.getElementById('inp-start');
+  var inpWells = document.getElementById('inp-wells');
+  var inpMode = document.getElementById('inp-mode');
+  var inpOverlap = document.getElementById('inp-overlap');
+  var overlapField = document.getElementById('overlap-field');
+  var inpBuffer = document.getElementById('inp-buffer');
+
+  var btnGenerate = document.getElementById('btn-generate');
+  var btnReset = document.getElementById('btn-reset');
+  var btnCSV = document.getElementById('btn-csv');
+  var btnCopy = document.getElementById('btn-copy');
+
+  var summaryCard = document.getElementById('summary-card');
+  var ganttContainer = document.getElementById('gantt-container');
+  var tableContainer = document.getElementById('table-container');
+
+  var tooltip = null; // created on demand
+
+  /* ==========================================================
+     STATE
+     ========================================================== */
+
+  var generatedData = null; // holds last generated schedule
+
+  /* ==========================================================
+     AUTH MODULE
+     ========================================================== */
+
+  function handleUnlock() {
+    var pwd = authInput.value.trim();
+    if (pwd === ACCESS_PASSWORD) {
+      authScreen.style.display = 'none';
+      appEl.style.display = 'block';
+      // Auto-generate on first unlock
+      generateAndRender();
+    } else {
+      authError.textContent = 'Incorrect access code. Please try again.';
+      authInput.value = '';
+      authInput.focus();
+    }
+  }
+
+  authBtn.addEventListener('click', handleUnlock);
+  authInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleUnlock();
+  });
+
+  /* ==========================================================
+     POPULATE UI WITH DEFAULTS
+     ========================================================== */
+
+  function populateDefaults() {
+    // Set start date to today
+    inpStart.value = toDateInputValue(new Date());
+    inpWells.value = 3;
+    inpMode.value = 'sequential';
+    inpOverlap.value = 4;
+    inpBuffer.value = 0;
+    overlapField.style.display = 'none';
+    setAssumptionsUI(DEFAULT_ASSUMPTIONS);
+    updatePresetButtons('base');
+  }
+
+  function setAssumptionsUI(a) {
+    var inputs = document.querySelectorAll('.assumption');
+    for (var i = 0; i < inputs.length; i++) {
+      var key = inputs[i].getAttribute('data-key');
+      if (a[key] !== undefined) inputs[i].value = a[key];
+    }
+  }
+
+  function getAssumptionsFromUI() {
+    var a = {};
+    var inputs = document.querySelectorAll('.assumption');
+    for (var i = 0; i < inputs.length; i++) {
+      var key = inputs[i].getAttribute('data-key');
+      var val = parseInt(inputs[i].value) || 0;
+      a[key] = Math.max(0, val);
+    }
+    return a;
+  }
+
+  function updatePresetButtons(activeScenario) {
+    var btns = document.querySelectorAll('.btn-preset');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('active', btns[i].getAttribute('data-scenario') === activeScenario);
+    }
+  }
+
+  /* ==========================================================
+     SCHEDULE CALCULATION ENGINE
+     ========================================================== */
+
+  /**
+   * Generates the full project schedule.
+   *
+   * Schedule logic:
+   * 1. Pre-drill runs first (project-wide)
+   * 2. Drilling program starts after pre-drill
+   *    - Sequential: well N starts after well N-1 drilling ends
+   *    - Overlap: well N starts overlapOffset days after well N-1 starts
+   * 3. Per-well: drilling phases → completion prep phases
+   * 4. Facilities (project-wide): starts when first well begins completion prep
+   * 5. Frac: starts after MAX(well completion prep end, facilities end) + frac buffer
+   * 6. Post-frac: frac exec → drill out → flowback → stabilized production
+   *
+   * To modify the schedule logic, edit this function.
+   * To add new phases, add them to DEFAULT_ASSUMPTIONS, PHASE_NAMES, PHASE_COLORS, and here.
+   */
+  function generateSchedule() {
+    var startDate = parseDateInput(inpStart.value);
+    var numWells = Math.max(1, parseInt(inpWells.value) || 1);
+    var mode = inpMode.value;
+    var overlapOffset = Math.max(1, parseInt(inpOverlap.value) || 4);
+    var globalBuffer = Math.max(0, parseInt(inpBuffer.value) || 0);
+    var a = getAssumptionsFromUI();
+
+    // Validate
+    if (numWells < 1) {
+      alert('Please enter at least 1 well.');
+      return null;
+    }
+
+    var projectPhases = [];
+    var wells = [];
+    var allBars = [];
+    var cursor = new Date(startDate);
+
+    // --- Phase helper: creates a phase entry ---
+    function makePhase(key, start, duration, wellName) {
+      var end = addDays(start, duration - 1); // inclusive end
+      return {
+        key: key,
+        name: PHASE_NAMES[key] || key,
+        color: PHASE_COLORS[key] || '#888',
+        category: PHASE_CATEGORY[key] || '',
+        well: wellName || 'Project',
+        start: new Date(start),
+        end: end,
+        duration: duration
+      };
+    }
+
+    // 1. Pre-drill (project-wide)
+    if (a.preDrill > 0) {
+      var preDrill = makePhase('preDrill', cursor, a.preDrill, 'Project');
+      projectPhases.push(preDrill);
+      allBars.push(preDrill);
+      cursor = addDays(preDrill.end, 1);
+    }
+
+    var drillingStartBase = new Date(cursor);
+
+    // 2. Drilling phases per well
+    var drillingPhaseKeys = ['rigMob', 'sitePrep', 'drillSurface', 'drillTD', 'logEval', 'runCasing'];
+    var completionPrepKeys = ['perforate', 'acidize', 'swabTest'];
+    var postFracKeys = ['fracExec', 'drillOut', 'flowback', 'stabilized'];
+
+    var facilitiesStart = null;
+    var facilitiesEnd = null;
+
+    // First pass: calculate drilling and completion prep for all wells
+    for (var w = 0; w < numWells; w++) {
+      var wellName = 'Well ' + (w + 1);
+      var wellPhases = [];
+      var wellCursor;
+
+      // Determine drilling start for this well
+      if (w === 0) {
+        wellCursor = new Date(drillingStartBase);
+      } else if (mode === 'sequential') {
+        // Start after previous well's drilling ends
+        var prevWell = wells[w - 1];
+        var prevLastDrilling = null;
+        for (var p = 0; p < prevWell.length; p++) {
+          if (drillingPhaseKeys.indexOf(prevWell[p].key) !== -1) {
+            prevLastDrilling = prevWell[p];
+          }
+        }
+        wellCursor = addDays(prevLastDrilling.end, 1);
+      } else {
+        // Overlap mode: start overlapOffset days after previous well's drilling start
+        var prevWellStart = wells[w - 1][0].start;
+        wellCursor = addDays(prevWellStart, overlapOffset);
+      }
+
+      // Drilling phases
+      for (var d = 0; d < drillingPhaseKeys.length; d++) {
+        var key = drillingPhaseKeys[d];
+        if (a[key] > 0) {
+          var phase = makePhase(key, wellCursor, a[key], wellName);
+          wellPhases.push(phase);
+          allBars.push(phase);
+          wellCursor = addDays(phase.end, 1);
+        }
+      }
+
+      // Completion prep phases (after drilling)
+      for (var c = 0; c < completionPrepKeys.length; c++) {
+        var ck = completionPrepKeys[c];
+        if (a[ck] > 0) {
+          var cp = makePhase(ck, wellCursor, a[ck], wellName);
+          wellPhases.push(cp);
+          allBars.push(cp);
+          wellCursor = addDays(cp.end, 1);
+        }
+      }
+
+      // Track when first well starts completion prep (for facilities start)
+      if (w === 0 && completionPrepKeys.length > 0) {
+        for (var fc = 0; fc < wellPhases.length; fc++) {
+          if (completionPrepKeys.indexOf(wellPhases[fc].key) !== -1) {
+            facilitiesStart = new Date(wellPhases[fc].start);
+            break;
+          }
+        }
+      }
+
+      wells.push(wellPhases);
+    }
+
+    // 3. Facilities (project-wide, shared)
+    if (a.facilities > 0) {
+      if (!facilitiesStart) facilitiesStart = new Date(drillingStartBase);
+      var facPhase = makePhase('facilities', facilitiesStart, a.facilities, 'Project');
+      projectPhases.push(facPhase);
+      allBars.push(facPhase);
+      facilitiesEnd = facPhase.end;
+    }
+
+    // 4. Frac and post-frac phases per well
+    for (var w2 = 0; w2 < numWells; w2++) {
+      var wellName2 = 'Well ' + (w2 + 1);
+      var wellPhases2 = wells[w2];
+      var lastCompletionPrep = null;
+
+      for (var lc = 0; lc < wellPhases2.length; lc++) {
+        if (completionPrepKeys.indexOf(wellPhases2[lc].key) !== -1) {
+          lastCompletionPrep = wellPhases2[lc];
+        }
+      }
+
+      // Frac can't start until both completion prep and facilities are done
+      var fracReadyDate;
+      var completionEnd = lastCompletionPrep ? addDays(lastCompletionPrep.end, 1) : new Date(drillingStartBase);
+      var facEnd = facilitiesEnd ? addDays(facilitiesEnd, 1) : completionEnd;
+
+      // Take the later of the two
+      fracReadyDate = completionEnd > facEnd ? completionEnd : facEnd;
+
+      // Frac scheduling buffer
+      if (a.fracBuffer > 0) {
+        var bufferPhase = makePhase('fracBuffer', fracReadyDate, a.fracBuffer, wellName2);
+        wellPhases2.push(bufferPhase);
+        allBars.push(bufferPhase);
+        fracReadyDate = addDays(bufferPhase.end, 1);
+      }
+
+      // Post-frac phases
+      var postCursor = fracReadyDate;
+      for (var pf = 0; pf < postFracKeys.length; pf++) {
+        var pfKey = postFracKeys[pf];
+        if (a[pfKey] > 0) {
+          var pfPhase = makePhase(pfKey, postCursor, a[pfKey], wellName2);
+          wellPhases2.push(pfPhase);
+          allBars.push(pfPhase);
+          postCursor = addDays(pfPhase.end, 1);
+        }
+      }
+
+      // Global buffer
+      if (globalBuffer > 0) {
+        var bufPhase = {
+          key: 'globalBuffer',
+          name: 'Buffer',
+          color: '#d4d4d8',
+          category: 'Buffer',
+          well: wellName2,
+          start: new Date(postCursor),
+          end: addDays(postCursor, globalBuffer - 1),
+          duration: globalBuffer
+        };
+        wellPhases2.push(bufPhase);
+        allBars.push(bufPhase);
+      }
+    }
+
+    // Calculate project dates
+    var projectEnd = startDate;
+    var firstProdDate = null;
+    for (var b = 0; b < allBars.length; b++) {
+      if (allBars[b].end > projectEnd) projectEnd = allBars[b].end;
+      if (allBars[b].key === 'stabilized' || allBars[b].key === 'flowback') {
+        if (!firstProdDate || allBars[b].start < firstProdDate) {
+          firstProdDate = allBars[b].start;
+        }
+      }
+    }
+
+    // Find first flowback or stabilized start as "first production"
+    var firstFlowback = null;
+    for (var fb = 0; fb < allBars.length; fb++) {
+      if (allBars[fb].key === 'flowback') {
+        if (!firstFlowback || allBars[fb].start < firstFlowback) {
+          firstFlowback = allBars[fb].start;
+        }
+      }
+    }
+
+    return {
+      startDate: startDate,
+      endDate: projectEnd,
+      numWells: numWells,
+      mode: mode,
+      overlapOffset: overlapOffset,
+      totalDays: daysBetween(startDate, projectEnd) + 1,
+      firstProductionDate: firstFlowback || projectEnd,
+      finalStabilizedDate: projectEnd,
+      projectPhases: projectPhases,
+      wells: wells,
+      allBars: allBars,
+      assumptions: a
+    };
+  }
+
+  /* ==========================================================
+     RENDER: EXECUTIVE SUMMARY
+     ========================================================== */
+
+  function renderSummary(data) {
+    var modeLabel = data.mode === 'overlap'
+      ? 'Overlapped (' + data.overlapOffset + 'd offset)'
+      : 'Sequential';
+
+    summaryCard.innerHTML =
+      '<div class="summary-item"><div class="summary-item-label">Project Start</div><div class="summary-item-value">' + formatDate(data.startDate) + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Wells</div><div class="summary-item-value">' + data.numWells + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Drilling Mode</div><div class="summary-item-value">' + modeLabel + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Est. First Production</div><div class="summary-item-value">' + formatDate(data.firstProductionDate) + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Final Stabilized</div><div class="summary-item-value">' + formatDate(data.finalStabilizedDate) + '</div></div>' +
+      '<div class="summary-item"><div class="summary-item-label">Total Duration</div><div class="summary-item-value">' + data.totalDays + ' days</div></div>';
+  }
+
+  /* ==========================================================
+     RENDER: GANTT CHART
+     ========================================================== */
+
+  function renderGantt(data) {
+    var showMilestones = document.getElementById('opt-milestones').checked;
+    var showLabels = document.getElementById('opt-labels').checked;
+    var showWeekends = document.getElementById('opt-weekends').checked;
+    var showToday = document.getElementById('opt-today').checked;
+    var compact = document.getElementById('opt-compact').checked;
+
+    document.body.classList.toggle('compact', compact);
+
+    var rowHeight = compact ? 22 : 32;
+    var labelWidth = showLabels ? 200 : 0;
+    var headerHeight = 28;
+
+    // Build row data: project phases, then per-well grouped
+    var rows = [];
+
+    // Project-wide phases
+    if (data.projectPhases.length > 0) {
+      rows.push({ type: 'header', label: 'Project-Wide', bars: [] });
+      for (var pp = 0; pp < data.projectPhases.length; pp++) {
+        rows.push({ type: 'phase', label: data.projectPhases[pp].name, bars: [data.projectPhases[pp]], isProject: true });
+      }
+    }
+
+    // Per-well phases
+    for (var w = 0; w < data.wells.length; w++) {
+      var wellName = 'Well ' + (w + 1);
+      rows.push({ type: 'header', label: wellName, bars: [] });
+
+      var phases = data.wells[w];
+      for (var p = 0; p < phases.length; p++) {
+        rows.push({ type: 'phase', label: phases[p].name, bars: [phases[p]] });
+      }
+    }
+
+    // Calculate date range
+    var minDate = data.startDate;
+    var maxDate = data.endDate;
+    var totalDays = daysBetween(minDate, maxDate) + 1;
+
+    // Pixels per day — responsive
+    var availWidth = ganttContainer.clientWidth - labelWidth - 40;
+    var pxPerDay = Math.max(availWidth / totalDays, 8);
+    if (totalDays > 200) pxPerDay = Math.max(pxPerDay, 4);
+    if (totalDays < 60) pxPerDay = Math.min(Math.max(pxPerDay, 14), 22);
+    var chartWidth = totalDays * pxPerDay;
+
+    // Determine tick interval
+    var tickIntervalDays;
+    if (totalDays <= 60) tickIntervalDays = 7;
+    else if (totalDays <= 180) tickIntervalDays = 14;
+    else tickIntervalDays = 30;
+
+    // Build HTML
+    var html = '<div class="gantt-wrapper">';
+
+    // Labels column
+    if (showLabels) {
+      html += '<div class="gantt-labels" style="width:' + labelWidth + 'px;">';
+      html += '<div style="height:' + headerHeight + 'px;border-bottom:1px solid #e5e5ea;"></div>';
+      for (var r = 0; r < rows.length; r++) {
+        var cls = rows[r].type === 'header' ? 'gantt-label-row well-header' : 'gantt-label-row';
+        if (rows[r].isProject) cls += ' project-phase';
+        html += '<div class="' + cls + '" style="height:' + rowHeight + 'px;">' + rows[r].label + '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Chart area
+    html += '<div class="gantt-chart-area" style="width:' + chartWidth + 'px;">';
+
+    // Header with date ticks
+    html += '<div class="gantt-header" style="height:' + headerHeight + 'px;">';
+    for (var t = 0; t < totalDays; t += tickIntervalDays) {
+      var tickDate = addDays(minDate, t);
+      var tickLeft = t * pxPerDay;
+      var tickWidth = Math.min(tickIntervalDays, totalDays - t) * pxPerDay;
+      html += '<div class="gantt-tick" style="position:absolute;left:' + tickLeft + 'px;width:' + tickWidth + 'px;height:' + headerHeight + 'px;line-height:' + headerHeight + 'px;">' + formatShortDate(tickDate) + '</div>';
+    }
+    html += '</div>';
+
+    // Rows area
+    html += '<div class="gantt-rows" style="position:relative;">';
+
+    // Weekend shading
+    if (showWeekends) {
+      for (var wd = 0; wd < totalDays; wd++) {
+        var checkDate = addDays(minDate, wd);
+        if (isWeekend(checkDate)) {
+          html += '<div class="gantt-weekend" style="left:' + (wd * pxPerDay) + 'px;width:' + pxPerDay + 'px;height:' + (rows.length * rowHeight) + 'px;"></div>';
+        }
+      }
+    }
+
+    // Rows and bars
+    for (var r2 = 0; r2 < rows.length; r2++) {
+      var row = rows[r2];
+      var rowCls = 'gantt-row' + (row.type === 'header' ? ' well-header-row' : '');
+      html += '<div class="' + rowCls + '" style="height:' + rowHeight + 'px;">';
+
+      for (var b = 0; b < row.bars.length; b++) {
+        var bar = row.bars[b];
+        var barLeft = daysBetween(minDate, bar.start) * pxPerDay;
+        var barWidth = Math.max(bar.duration * pxPerDay, 2);
+        var barTop = Math.round((rowHeight - (compact ? 16 : 20)) / 2);
+        var barHeight = compact ? 16 : 20;
+
+        html += '<div class="gantt-bar" style="left:' + barLeft + 'px;width:' + barWidth + 'px;top:' + barTop + 'px;height:' + barHeight + 'px;background:' + bar.color + ';"' +
+          ' data-tt-name="' + escapeAttr(bar.name) + '"' +
+          ' data-tt-well="' + escapeAttr(bar.well) + '"' +
+          ' data-tt-start="' + formatDate(bar.start) + '"' +
+          ' data-tt-end="' + formatDate(bar.end) + '"' +
+          ' data-tt-dur="' + bar.duration + ' days"' +
+          '></div>';
+
+        // Milestone markers at start and end of stabilized production
+        if (showMilestones && bar.key === 'stabilized') {
+          var msLeft = barLeft + barWidth;
+          html += '<div class="gantt-milestone" style="left:' + msLeft + 'px;"></div>';
+        }
+      }
+
+      html += '</div>';
+    }
+
+    // Today line
+    if (showToday) {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var todayOffset = daysBetween(minDate, today);
+      if (todayOffset >= 0 && todayOffset <= totalDays) {
+        var todayLeft = todayOffset * pxPerDay;
+        html += '<div class="gantt-today-line" style="left:' + todayLeft + 'px;height:' + (rows.length * rowHeight) + 'px;"><span class="gantt-today-label">Today</span></div>';
+      }
+    }
+
+    html += '</div>'; // gantt-rows
+    html += '</div>'; // gantt-chart-area
+    html += '</div>'; // gantt-wrapper
+
+    ganttContainer.innerHTML = html;
+
+    // Attach tooltip listeners
+    initTooltips();
+  }
+
+  function escapeAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  /* ==========================================================
+     TOOLTIPS
+     ========================================================== */
+
+  function initTooltips() {
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'gantt-tooltip';
+      document.body.appendChild(tooltip);
+    }
+
+    var bars = ganttContainer.querySelectorAll('.gantt-bar');
+    for (var i = 0; i < bars.length; i++) {
+      bars[i].addEventListener('mouseenter', showTooltip);
+      bars[i].addEventListener('mousemove', moveTooltip);
+      bars[i].addEventListener('mouseleave', hideTooltip);
+    }
+  }
+
+  function showTooltip(e) {
+    var el = e.currentTarget;
+    tooltip.innerHTML =
+      '<strong>' + el.getAttribute('data-tt-name') + '</strong>' +
+      '<div class="tt-well">' + el.getAttribute('data-tt-well') + '</div>' +
+      '<div class="tt-dates">' + el.getAttribute('data-tt-start') + ' — ' + el.getAttribute('data-tt-end') + '</div>' +
+      '<div>' + el.getAttribute('data-tt-dur') + '</div>';
+    tooltip.classList.add('visible');
+    moveTooltip(e);
+  }
+
+  function moveTooltip(e) {
+    var x = e.clientX + 14;
+    var y = e.clientY + 14;
+    // Keep tooltip within viewport
+    var rect = tooltip.getBoundingClientRect();
+    if (x + 260 > window.innerWidth) x = e.clientX - 270;
+    if (y + 100 > window.innerHeight) y = e.clientY - 100;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+
+  function hideTooltip() {
+    tooltip.classList.remove('visible');
+  }
+
+  /* ==========================================================
+     RENDER: SCHEDULE TABLE
+     ========================================================== */
+
+  function renderTable(data) {
+    var html = '<table class="schedule-table"><thead><tr>' +
+      '<th>Well</th><th>Phase</th><th>Start Date</th><th>End Date</th><th>Duration</th>' +
+      '</tr></thead><tbody>';
+
+    // Project phases
+    if (data.projectPhases.length > 0) {
+      html += '<tr class="well-divider"><td colspan="5">Project-Wide</td></tr>';
+      for (var pp = 0; pp < data.projectPhases.length; pp++) {
+        var p = data.projectPhases[pp];
+        html += '<tr>' +
+          '<td>Project</td>' +
+          '<td><span class="phase-color" style="background:' + p.color + ';"></span>' + p.name + '</td>' +
+          '<td>' + formatDate(p.start) + '</td>' +
+          '<td>' + formatDate(p.end) + '</td>' +
+          '<td>' + p.duration + 'd</td>' +
+          '</tr>';
+      }
+    }
+
+    // Per-well phases
+    for (var w = 0; w < data.wells.length; w++) {
+      var wellName = 'Well ' + (w + 1);
+      html += '<tr class="well-divider"><td colspan="5">' + wellName + '</td></tr>';
+
+      var phases = data.wells[w];
+      for (var ph = 0; ph < phases.length; ph++) {
+        var phase = phases[ph];
+        html += '<tr>' +
+          '<td>' + wellName + '</td>' +
+          '<td><span class="phase-color" style="background:' + phase.color + ';"></span>' + phase.name + '</td>' +
+          '<td>' + formatDate(phase.start) + '</td>' +
+          '<td>' + formatDate(phase.end) + '</td>' +
+          '<td>' + phase.duration + 'd</td>' +
+          '</tr>';
+      }
+    }
+
+    html += '</tbody></table>';
+    tableContainer.innerHTML = html;
+  }
+
+  /* ==========================================================
+     EXPORT: CSV
+     ========================================================== */
+
+  function exportCSV() {
+    if (!generatedData) return;
+    var d = generatedData;
+    var lines = ['Well,Phase,Start Date,End Date,Duration (days)'];
+
+    // Project phases
+    for (var pp = 0; pp < d.projectPhases.length; pp++) {
+      var p = d.projectPhases[pp];
+      lines.push('Project,"' + p.name + '",' + formatDate(p.start) + ',' + formatDate(p.end) + ',' + p.duration);
+    }
+
+    // Per-well
+    for (var w = 0; w < d.wells.length; w++) {
+      var wellName = 'Well ' + (w + 1);
+      for (var ph = 0; ph < d.wells[w].length; ph++) {
+        var phase = d.wells[w][ph];
+        lines.push(wellName + ',"' + phase.name + '",' + formatDate(phase.start) + ',' + formatDate(phase.end) + ',' + phase.duration);
+      }
+    }
+
+    var csv = lines.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'well-timeline-' + toDateInputValue(new Date()) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /* ==========================================================
+     EXPORT: COPY INVESTOR SUMMARY
+     ========================================================== */
+
+  function copySummary() {
+    if (!generatedData) return;
+    var d = generatedData;
+    var modeLabel = d.mode === 'overlap'
+      ? 'Overlapped (' + d.overlapOffset + '-day offset)'
+      : 'Sequential';
+
+    var text =
+      'OIL WELL DEVELOPMENT TIMELINE SUMMARY\n' +
+      '========================================\n\n' +
+      'Project Start Date: ' + formatDate(d.startDate) + '\n' +
+      'Number of Wells: ' + d.numWells + '\n' +
+      'Drilling Mode: ' + modeLabel + '\n\n' +
+      'Estimated First Production: ' + formatDate(d.firstProductionDate) + '\n' +
+      'Final Stabilized Production: ' + formatDate(d.finalStabilizedDate) + '\n' +
+      'Total Project Duration: ' + d.totalDays + ' days\n\n' +
+      'PER-WELL SUMMARY\n' +
+      '----------------------------------------\n';
+
+    for (var w = 0; w < d.wells.length; w++) {
+      var wellName = 'Well ' + (w + 1);
+      var phases = d.wells[w];
+      if (phases.length > 0) {
+        var wellStart = phases[0].start;
+        var wellEnd = phases[phases.length - 1].end;
+        text += wellName + ': ' + formatDate(wellStart) + ' — ' + formatDate(wellEnd) + '\n';
+      }
+    }
+
+    text += '\n--- Generated by Bidwell Capital Timeline Tool ---';
+
+    navigator.clipboard.writeText(text).then(function() {
+      btnCopy.textContent = 'Copied!';
+      setTimeout(function() { btnCopy.textContent = 'Copy Summary'; }, 2000);
+    });
+  }
+
+  /* ==========================================================
+     MAIN: GENERATE AND RENDER
+     ========================================================== */
+
+  function generateAndRender() {
+    generatedData = generateSchedule();
+    if (!generatedData) return;
+
+    outputEl.style.display = 'block';
+    renderSummary(generatedData);
+    renderGantt(generatedData);
+    renderTable(generatedData);
+
+    // Smooth scroll to output
+    outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ==========================================================
+     EVENT LISTENERS
+     ========================================================== */
+
+  // Generate timeline
+  btnGenerate.addEventListener('click', generateAndRender);
+
+  // Reset to defaults
+  btnReset.addEventListener('click', function() {
+    populateDefaults();
+    outputEl.style.display = 'none';
+  });
+
+  // Export buttons
+  btnCSV.addEventListener('click', exportCSV);
+  btnCopy.addEventListener('click', copySummary);
+
+  // Drilling mode toggle
+  inpMode.addEventListener('change', function() {
+    overlapField.style.display = inpMode.value === 'overlap' ? 'block' : 'none';
+  });
+
+  // Scenario presets
+  var presetBtns = document.querySelectorAll('.btn-preset');
+  for (var i = 0; i < presetBtns.length; i++) {
+    presetBtns[i].addEventListener('click', function() {
+      var scenario = this.getAttribute('data-scenario');
+      var preset = SCENARIO_PRESETS[scenario];
+      if (preset) {
+        setAssumptionsUI(preset);
+        updatePresetButtons(scenario);
+      }
+    });
+  }
+
+  // Initialize
+  populateDefaults();
+  authInput.focus();
+
+})();
+</script>
+
+</body>
+</html>
