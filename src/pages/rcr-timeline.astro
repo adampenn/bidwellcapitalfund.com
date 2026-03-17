@@ -1,0 +1,1189 @@
+---
+/**
+ * Oklahoma Oil Well Development Timeline — Rush Creek Resources
+ *
+ * Private, password-protected internal tool for modeling oil well development timelines.
+ * Standalone page — does not use the site Layout component.
+ * Not linked in site navigation. URL: /rcr-timeline
+ *
+ * Modular JS files loaded from /timeline/:
+ *   - config.js    — constants, presets, weather data, phase definitions
+ *   - dates.js     — date utility functions
+ *   - proforma.js  — proforma financial engine & well database
+ *   - engine.js    — schedule calculation engine
+ *   - render.js    — all rendering functions
+ *   - app.js       — main controller wiring everything together
+ */
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Oklahoma Oil Timeline — Bidwell Capital</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<div id="auth-screen">
+  <div class="auth-container">
+    <div class="auth-brand">Bidwell Capital</div>
+    <div class="auth-card">
+      <h2 class="auth-title">Oklahoma Oil Timeline</h2>
+      <p class="auth-subtitle">Enter the access code to continue.</p>
+      <div class="auth-field">
+        <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
+      </div>
+      <div id="auth-error" class="auth-error"></div>
+      <button id="auth-btn" class="btn-primary-action">Unlock</button>
+    </div>
+    <p class="auth-footer">For authorized users only.</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP (hidden until authenticated)
+     ============================================================ -->
+<div id="app" style="display:none;">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header-inner container-wide">
+      <div class="app-brand">Bidwell Capital</div>
+      <h1 class="app-title">Oklahoma Oil Timeline — Rush Creek Resources</h1>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       PRIMARY CONTROLS BAR
+       ============================================================ -->
+  <section class="primary-controls no-print">
+    <div class="container-wide primary-controls-inner">
+      <div class="primary-field">
+        <label for="inp-start">Start Date</label>
+        <input type="date" id="inp-start" />
+      </div>
+      <div class="primary-field">
+        <label for="inp-mode">Drilling Mode</label>
+        <select id="inp-mode">
+          <option value="sequential">Sequential</option>
+          <option value="overlap">Overlapped</option>
+        </select>
+      </div>
+      <div class="primary-field" id="overlap-field" style="display:none;">
+        <label for="inp-overlap">Offset (days)</label>
+        <input type="number" id="inp-overlap" min="1" max="365" value="4" />
+      </div>
+      <div class="primary-field">
+        <label>Scenario</label>
+        <div class="preset-btns">
+          <button class="btn-preset" data-scenario="fast">Fast</button>
+          <button class="btn-preset active" data-scenario="base">Base</button>
+          <button class="btn-preset" data-scenario="conservative">Conservative</button>
+        </div>
+      </div>
+      <div class="primary-field primary-field-action">
+        <button id="btn-generate" class="btn-generate">Generate Timeline</button>
+      </div>
+    </div>
+    <!-- Rig Start Dates -->
+    <div class="container-wide rig-start-bar">
+      <span class="rig-start-label">Rig Start Dates</span>
+      <div class="rig-start-fields">
+        <div class="rig-start-field">
+          <label for="inp-rig1-start">Rig 1</label>
+          <input type="date" id="inp-rig1-start" class="rig-start-input" />
+          <span class="rig-start-note">(defaults to project start)</span>
+        </div>
+        <div class="rig-start-field">
+          <label for="inp-rig2-start">Rig 2</label>
+          <input type="date" id="inp-rig2-start" class="rig-start-input" />
+          <span class="rig-start-note">(leave blank = project start)</span>
+        </div>
+        <div class="rig-start-field">
+          <label for="inp-rig3-start">Rig 3</label>
+          <input type="date" id="inp-rig3-start" class="rig-start-input" />
+          <span class="rig-start-note">(leave blank = project start)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ACCORDION PANELS
+       ============================================================ -->
+  <section class="controls-section no-print">
+    <div class="container-wide">
+
+      <!-- WELLS ACCORDION -->
+      <div class="accordion" data-accordion="wells" data-open="true">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Wells</span>
+          <span id="well-count-badge" class="accordion-badge">0 wells</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="well-list-header">
+            <div class="well-list-actions">
+              <input type="number" id="inp-quick-wells" min="1" max="50" value="10" class="inp-quick-wells" />
+              <button id="btn-set-wells" class="btn-sm">Set Wells</button>
+              <button id="btn-add-well" class="btn-sm">+ 1</button>
+              <button id="btn-pf-load-fund6" class="btn-sm">Load Fund 6</button>
+              <button id="btn-clear-wells" class="btn-sm btn-sm-muted">Clear</button>
+            </div>
+          </div>
+          <div class="well-list-table-wrap">
+            <div class="bulk-edit-bar" id="bulk-edit-bar" style="display:none;">
+              <span class="bulk-sel-count" id="bulk-sel-count">0 selected</span>
+              <label class="bulk-field">Rig
+                <select id="bulk-rig">
+                  <option value="">—</option>
+                  <option value="1">Rig 1</option><option value="2">Rig 2</option><option value="3">Rig 3</option>
+                </select>
+              </label>
+              <label class="bulk-field">Type
+                <select id="bulk-type">
+                  <option value="">—</option>
+                  <option value="gas">Gas</option><option value="water">Water</option>
+                </select>
+              </label>
+              <label class="bulk-field">Cost ($)
+                <input type="number" id="bulk-cost" placeholder="—" min="0" step="1000" />
+              </label>
+              <label class="bulk-field">WI (%)
+                <input type="number" id="bulk-wi" placeholder="—" min="0" max="100" step="0.001" />
+              </label>
+              <button id="bulk-apply" class="btn-sm">Apply</button>
+              <button id="bulk-delete" class="btn-sm btn-sm-danger">Delete</button>
+            </div>
+            <table class="well-list-table">
+              <thead>
+                <tr>
+                  <th style="width:28px;"><input type="checkbox" id="well-select-all" title="Select all" /></th>
+                  <th style="width:28px;">#</th>
+                  <th style="min-width:120px;">Well Name</th>
+                  <th style="width:70px;">Rig</th>
+                  <th style="width:85px;">Type</th>
+                  <th style="width:100px;">Cost ($)</th>
+                  <th style="width:70px;">WI (%)</th>
+                  <th style="width:28px;" title="Expand details"></th>
+                  <th style="width:28px;"></th>
+                </tr>
+              </thead>
+              <tbody id="well-list-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVESTMENT & TAX ACCORDION -->
+      <div class="accordion" data-accordion="investment">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Investment &amp; Tax Inputs</span>
+          <span id="investment-badge" class="accordion-badge">$5,000,000</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-fields-grid">
+            <div class="field">
+              <label for="inp-investment">Total Investment ($)</label>
+              <input type="number" id="inp-investment" min="0" step="1000" value="5000000" />
+            </div>
+            <div class="field">
+              <label for="inp-idc-pct">IDC % of Investment</label>
+              <input type="number" id="inp-idc-pct" min="0" max="100" value="80" />
+            </div>
+            <div class="field">
+              <label for="inp-overhead-pct">Overhead %</label>
+              <input type="number" id="inp-overhead-pct" min="0" max="100" value="5" />
+            </div>
+            <div class="field">
+              <label for="inp-bonus-depr">Bonus Depreciation %</label>
+              <input type="number" id="inp-bonus-depr" min="0" max="100" value="100" />
+            </div>
+            <div class="field">
+              <label for="inp-dist-lag">Distribution Lag (months)</label>
+              <input type="number" id="inp-dist-lag" min="0" max="12" value="2" />
+            </div>
+            <div class="field">
+              <label for="inp-buffer">Global Buffer (days)</label>
+              <input type="number" id="inp-buffer" min="0" max="90" value="0" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE ASSUMPTIONS ACCORDION -->
+      <div class="accordion" data-accordion="assumptions">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Timeline Assumptions</span>
+          <span class="accordion-badge-muted">days per phase</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Pre-drill</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Pre-drill / Permitting</label><input type="number" class="assumption" data-key="preDrill" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Drilling</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Rig Mobilization</label><input type="number" class="assumption" data-key="rigMob" min="0" /></div>
+              <div class="field-sm"><label>Site Prep / Rig Up</label><input type="number" class="assumption" data-key="sitePrep" min="0" /></div>
+              <div class="field-sm"><label>Drill Surface + Casing</label><input type="number" class="assumption" data-key="drillSurface" min="0" /></div>
+              <div class="field-sm"><label>Drill to TD</label><input type="number" class="assumption" data-key="drillTD" min="0" /></div>
+              <div class="field-sm"><label>Log &amp; Evaluate</label><input type="number" class="assumption" data-key="logEval" min="0" /></div>
+              <div class="field-sm"><label>Run Production Casing</label><input type="number" class="assumption" data-key="runCasing" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Completion Prep</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Perforate</label><input type="number" class="assumption" data-key="perforate" min="0" /></div>
+              <div class="field-sm"><label>Acidize / Stimulate</label><input type="number" class="assumption" data-key="acidize" min="0" /></div>
+              <div class="field-sm"><label>Swab / Flow Test</label><input type="number" class="assumption" data-key="swabTest" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Facilities</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Facilities / Infrastructure</label><input type="number" class="assumption" data-key="facilities" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Frac &amp; Completion</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Frac Scheduling Buffer</label><input type="number" class="assumption" data-key="fracBuffer" min="0" /></div>
+              <div class="field-sm"><label>Frac Execution</label><input type="number" class="assumption" data-key="fracExec" min="0" /></div>
+              <div class="field-sm"><label>Drill Out / Cleanup</label><input type="number" class="assumption" data-key="drillOut" min="0" /></div>
+            </div>
+          </div>
+          <div class="assumptions-phase-group">
+            <div class="assumptions-phase-label">Production</div>
+            <div class="assumptions-phase-fields">
+              <div class="field-sm"><label>Flowback</label><input type="number" class="assumption" data-key="flowback" min="0" /></div>
+              <div class="field-sm"><label>Stabilized Production</label><input type="number" class="assumption" data-key="stabilized" min="0" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISPLAY & WEATHER ACCORDION -->
+      <div class="accordion" data-accordion="display">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Display &amp; Weather</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="display-weather-grid">
+            <div>
+              <div class="control-group-title">Display Settings</div>
+              <div class="toggle-group">
+                <label class="toggle-label"><input type="checkbox" id="opt-milestones" checked /> Show milestone markers</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-labels" checked /> Show per-well labels</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-compact" /> Compact mode</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-weekends" /> Weekend shading</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-today" checked /> Today line</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-summary-view" /> Summary view (1 row per well)</label>
+                <label class="toggle-label"><input type="checkbox" id="opt-consolidated" /> Consolidated view (phases as rows)</label>
+              </div>
+            </div>
+            <div>
+              <div class="control-group-title">Weather Delays</div>
+              <label class="toggle-label" style="margin-bottom:0.5rem;"><input type="checkbox" id="opt-weather" checked /> Model weather delays (Tulsa, OK)</label>
+              <div class="field" style="margin-bottom:0.5rem;">
+                <label for="inp-weather-risk" style="font-size:0.75rem;">Risk Profile</label>
+                <select id="inp-weather-risk" style="padding:0.35rem 0.5rem;font-size:0.8125rem;">
+                  <option value="optimistic">Optimistic (mild year)</option>
+                  <option value="average" selected>Average (typical year)</option>
+                  <option value="conservative">Conservative (harsh year)</option>
+                </select>
+              </div>
+              <div id="weather-info" class="weather-info-text">Est. delays shown per phase after generating.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFORMA ASSUMPTIONS ACCORDION -->
+      <div class="accordion" data-accordion="proforma-assumptions">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title">Proforma Assumptions</span>
+          <span class="accordion-badge-muted">oil price, uptime, LP/GP</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="pf-globals-bar">
+            <div class="pf-global-field">
+              <label for="pf-oil-price">Oil Price ($/bbl)</label>
+              <input type="number" id="pf-oil-price" min="0" step="1" value="60" />
+            </div>
+            <div class="pf-global-field">
+              <label for="pf-uptime">Well Uptime (%)</label>
+              <input type="number" id="pf-uptime" min="0" max="100" step="1" value="90" />
+            </div>
+            <div class="pf-global-field">
+              <label for="pf-price-growth">Annual Price Growth (%)</label>
+              <input type="number" id="pf-price-growth" min="-50" max="50" step="0.5" value="0" />
+            </div>
+            <div class="pf-global-field">
+              <label for="pf-capital-raise">Capital Raise ($)</label>
+              <input type="number" id="pf-capital-raise" min="0" step="10000" value="1450000" />
+            </div>
+            <div class="pf-global-field">
+              <label for="pf-rev-share">GP Rev Share (%)</label>
+              <input type="number" id="pf-rev-share" min="0" max="100" step="1" value="20" />
+            </div>
+          </div>
+          <div class="pf-run-bar">
+            <button id="btn-pf-run" class="btn-generate">Run Proforma</button>
+            <span class="pf-run-hint">Uses wells from the Wells list above</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECONDARY ACTIONS -->
+      <div class="secondary-actions">
+        <button id="btn-reset" class="btn-secondary-action">Reset to Defaults</button>
+        <button id="btn-save-config" class="btn-secondary-action">Save Config</button>
+        <button id="btn-load-config" class="btn-secondary-action">Load Config</button>
+        <input type="file" id="config-file-input" accept=".json" style="display:none;" />
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       OUTPUT SECTION
+       ============================================================ -->
+  <section id="output" class="output-section" style="display:none;">
+    <div class="container-wide">
+
+      <!-- Executive Summary -->
+      <div id="summary-card" class="summary-card"></div>
+
+      <!-- Cashflow Timeline -->
+      <div id="cashflow-card" class="info-card" style="display:none;">
+        <h3 class="info-card-title">Cashflow &amp; Distribution Timeline</h3>
+        <div id="cashflow-content" class="info-card-body"></div>
+      </div>
+
+      <!-- Tax Deduction Summary -->
+      <div id="tax-card" class="info-card" style="display:none;">
+        <h3 class="info-card-title">Tax Deduction Summary</h3>
+        <div id="tax-content" class="info-card-body"></div>
+      </div>
+
+      <!-- Export Actions -->
+      <div class="export-bar no-print">
+        <button id="btn-pdf" class="btn-export">Export PDF</button>
+        <button id="btn-csv" class="btn-export">Export CSV</button>
+        <button id="btn-copy" class="btn-export">Copy Summary</button>
+      </div>
+
+      <!-- Gantt Chart -->
+      <div class="gantt-section">
+        <h2 class="section-heading">Project Timeline</h2>
+        <div class="gantt-legend" id="gantt-legend"></div>
+        <div id="gantt-container" class="gantt-container"></div>
+      </div>
+
+      <!-- Per-Well Table (collapsible) -->
+      <div class="accordion output-accordion" data-accordion="schedule">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title section-heading" style="margin-bottom:0;">Detailed Schedule</span>
+          <span class="accordion-chevron">&#9662;</span>
+        </button>
+        <div class="accordion-body">
+          <div id="table-container" class="table-container"></div>
+        </div>
+      </div>
+
+      <!-- Proforma Output -->
+      <div id="proforma-output" class="proforma-section" style="display:none;"></div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container-wide">
+      <p>This tool is for internal modeling purposes only. Timelines are estimates based on user-defined assumptions and do not constitute guarantees. &copy; Bidwell Capital.</p>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     PDF PRINT OVERLAY (hidden, used for PDF generation)
+     ============================================================ -->
+<div id="pdf-overlay" style="display:none;">
+  <div id="pdf-content" class="pdf-content">
+    <div class="pdf-header">
+      <div class="pdf-brand">Bidwell Capital</div>
+      <div class="pdf-title">Oklahoma Oil Development Timeline</div>
+      <div class="pdf-subtitle">Rush Creek Resources — Confidential</div>
+    </div>
+    <div id="pdf-summary"></div>
+    <div id="pdf-cashflow"></div>
+    <div id="pdf-tax"></div>
+    <div id="pdf-gantt" class="pdf-gantt-container"></div>
+    <div id="pdf-table"></div>
+    <div class="pdf-footer">
+      <p>Generated <span id="pdf-date"></span> — For internal use only. This timeline is based on estimated assumptions and does not constitute a guarantee of project delivery.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     STYLES
+     ============================================================ -->
+<style is:inline>
+/* ---- Reset & Base ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  color: #1a1a2e;
+  background: #ffffff;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.container-wide { max-width: 1340px; margin: 0 auto; padding: 0 2rem; }
+
+/* ---- Auth Screen ---- */
+#auth-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: #f8f8fa;
+}
+.auth-container { text-align: center; width: 100%; max-width: 380px; padding: 2rem; }
+.auth-brand {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.25rem; color: #1a1a2e; margin-bottom: 2rem;
+  letter-spacing: 0.02em;
+}
+.auth-card {
+  background: #fff; border: 1px solid #e5e5ea; border-radius: 12px;
+  padding: 2.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.auth-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.35rem; font-weight: 400; margin-bottom: 0.35rem; }
+.auth-subtitle { font-size: 0.875rem; color: #6b6b80; margin-bottom: 1.5rem; }
+.auth-field { margin-bottom: 0.75rem; }
+.auth-field input {
+  width: 100%; padding: 0.7rem 1rem; border: 1px solid #d5d5dc; border-radius: 8px;
+  font-size: 0.9375rem; font-family: inherit; outline: none; transition: border-color 0.2s;
+  text-align: center; letter-spacing: 0.1em;
+}
+.auth-field input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.auth-error { font-size: 0.8125rem; color: #dc2626; min-height: 1.25rem; margin-bottom: 0.5rem; }
+.auth-footer { font-size: 0.75rem; color: #9b9ba8; margin-top: 1.5rem; }
+
+/* ---- Buttons ---- */
+.btn-primary-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 100%; padding: 0.7rem 1.5rem; border: none; border-radius: 8px;
+  background: #1a1a2e; color: #fff; font-family: inherit; font-size: 0.875rem;
+  font-weight: 500; cursor: pointer; transition: background 0.2s;
+}
+.btn-primary-action:hover { background: #2d2d48; }
+.btn-secondary-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0.5rem 1rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  background: #fff; color: #6b6b80; font-family: inherit; font-size: 0.75rem;
+  font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary-action:hover { border-color: #1a1a2e; color: #1a1a2e; }
+
+/* ---- App Header ---- */
+.app-header { border-bottom: 1px solid #e5e5ea; padding: 1rem 0; }
+.app-header-inner { display: flex; align-items: center; gap: 1.5rem; }
+.app-brand {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.05rem; color: #1a1a2e; white-space: nowrap;
+}
+.app-title {
+  font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 400;
+  color: #6b6b80; letter-spacing: 0.02em;
+}
+
+/* ---- Primary Controls Bar ---- */
+.primary-controls {
+  background: #fafafc; border-bottom: 1px solid #e5e5ea;
+  padding: 0.75rem 0;
+}
+.primary-controls-inner {
+  display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap;
+}
+.primary-field label {
+  display: block; font-size: 0.625rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; color: #9b9ba8;
+  margin-bottom: 0.2rem;
+}
+.primary-field input, .primary-field select {
+  padding: 0.4rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  font-size: 0.8125rem; font-family: inherit; outline: none; background: #fff;
+}
+.primary-field input:focus, .primary-field select:focus {
+  border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.08);
+}
+.primary-field-action { margin-left: auto; }
+.btn-generate {
+  padding: 0.55rem 1.5rem; border: none; border-radius: 8px;
+  background: #1a1a2e; color: #fff; font-family: inherit; font-size: 0.8125rem;
+  font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap;
+}
+.btn-generate:hover { background: #2d2d48; }
+
+/* Presets in primary bar */
+.primary-field .preset-btns { display: flex; gap: 0.35rem; }
+.btn-preset {
+  padding: 0.35rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  background: #fff; font-size: 0.6875rem; font-family: inherit; font-weight: 500;
+  color: #6b6b80; cursor: pointer; transition: all 0.2s;
+}
+.btn-preset:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.btn-preset.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
+/* ---- Rig Start Dates ---- */
+.rig-start-bar {
+  display: flex; align-items: center; gap: 1rem;
+  padding-top: 0.5rem; flex-wrap: wrap;
+}
+.rig-start-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #9b9ba8; white-space: nowrap;
+}
+.rig-start-fields {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+}
+.rig-start-field {
+  display: flex; align-items: center; gap: 0.35rem;
+}
+.rig-start-field label {
+  font-size: 0.6875rem; font-weight: 600; color: #3a3a4a; white-space: nowrap;
+}
+.rig-start-input {
+  padding: 0.3rem 0.5rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  font-size: 0.75rem; font-family: inherit; outline: none; background: #fff;
+}
+.rig-start-input:focus { border-color: #3b82f6; }
+.rig-start-note {
+  font-size: 0.5625rem; color: #9b9ba8;
+}
+
+/* ---- Accordion System ---- */
+.controls-section { padding: 0.75rem 0; border-bottom: 1px solid #e5e5ea; }
+
+.accordion { border: 1px solid #e5e5ea; border-radius: 8px; margin-bottom: 0.5rem; background: #fff; }
+.accordion-header {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%;
+  padding: 0.65rem 1rem; border: none; background: none; cursor: pointer;
+  font-family: inherit; text-align: left; transition: background 0.15s;
+}
+.accordion-header:hover { background: #fafafc; border-radius: 8px; }
+.accordion-title {
+  font-size: 0.8125rem; font-weight: 600; color: #1a1a2e;
+}
+.accordion-badge {
+  font-size: 0.6875rem; font-weight: 500; color: #fff; background: #1a1a2e;
+  padding: 0.1rem 0.5rem; border-radius: 10px; margin-left: auto;
+}
+.accordion-badge-muted {
+  font-size: 0.625rem; font-weight: 400; color: #9b9ba8;
+  margin-left: auto;
+}
+.accordion-chevron {
+  font-size: 0.75rem; color: #9b9ba8; transition: transform 0.2s;
+}
+.accordion.open .accordion-chevron { transform: rotate(180deg); }
+.accordion-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+  padding: 0 1rem;
+}
+.accordion.open .accordion-body {
+  max-height: 2000px; padding: 0 1rem 1rem;
+}
+
+/* ---- Accordion Fields Grid ---- */
+.accordion-fields-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+/* ---- Controls shared ---- */
+.control-group-title {
+  font-family: 'DM Sans', sans-serif; font-size: 0.6875rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em; color: #9b9ba8;
+  margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid #ececf0;
+}
+
+.field { margin-bottom: 0.75rem; }
+.field label {
+  display: block; font-size: 0.8125rem; font-weight: 500; color: #3a3a4a;
+  margin-bottom: 0.25rem;
+}
+.field input, .field select {
+  width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d5d5dc;
+  border-radius: 6px; font-size: 0.875rem; font-family: inherit;
+  outline: none; background: #fff; transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.08); }
+
+/* ---- Assumptions Phase Groups ---- */
+.assumptions-phase-group {
+  margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f4;
+}
+.assumptions-phase-group:last-child { border-bottom: none; margin-bottom: 0; }
+.assumptions-phase-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #9b9ba8; margin-bottom: 0.4rem;
+}
+.assumptions-phase-fields {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.4rem 0.75rem;
+}
+.field-sm label {
+  display: block; font-size: 0.6875rem; color: #6b6b80; margin-bottom: 0.15rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.field-sm input {
+  width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d5d5dc;
+  border-radius: 5px; font-size: 0.8125rem; font-family: inherit;
+  outline: none; text-align: center; background: #fff;
+}
+.field-sm input:focus { border-color: #3b82f6; }
+
+/* ---- Display & Weather Grid ---- */
+.display-weather-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+}
+@media (max-width: 640px) { .display-weather-grid { grid-template-columns: 1fr; } }
+
+/* Toggles */
+.toggle-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.toggle-label {
+  font-size: 0.8125rem; color: #3a3a4a; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+}
+.toggle-label input { accent-color: #3b82f6; }
+
+/* ---- Secondary Actions ---- */
+.secondary-actions {
+  display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;
+}
+
+/* ---- Well List ---- */
+.well-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.well-list-actions { display: flex; gap: 0.35rem; align-items: center; }
+.inp-quick-wells {
+  width: 50px; padding: 0.2rem 0.35rem; border: 1px solid #d5d5dc;
+  border-radius: 5px; font-size: 0.75rem; text-align: center; font-family: inherit;
+  outline: none;
+}
+.btn-sm {
+  padding: 0.25rem 0.6rem; border: 1px solid #d5d5dc; border-radius: 5px;
+  background: #fff; font-size: 0.6875rem; font-family: inherit; font-weight: 500;
+  color: #3a3a4a; cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.btn-sm-muted { color: #9b9ba8; }
+.btn-sm-muted:hover { color: #dc2626; border-color: #dc2626; }
+.bulk-edit-bar {
+  display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem;
+  background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px;
+  margin-bottom: 0.5rem; flex-wrap: wrap; font-size: 0.8125rem;
+}
+.bulk-sel-count { font-weight: 600; color: #4338ca; margin-right: 0.25rem; white-space: nowrap; }
+.bulk-field { display: flex; align-items: center; gap: 0.25rem; color: #555; font-size: 0.75rem; white-space: nowrap; }
+.bulk-field select, .bulk-field input {
+  padding: 0.2rem 0.35rem; border: 1px solid #c7d2fe; border-radius: 4px;
+  font-size: 0.8125rem; background: #fff; width: 80px;
+}
+.btn-sm-danger { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fca5a5 !important; }
+.btn-sm-danger:hover { background: #fecaca !important; }
+.well-main-row.bulk-selected { background: #eef2ff; }
+.well-list-table-wrap {
+  max-height: 320px; overflow-y: auto; border: 1px solid #e5e5ea;
+  border-radius: 8px; background: #fff;
+}
+.well-list-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.well-list-table thead th {
+  position: sticky; top: 0; background: #fafafc; text-align: left;
+  padding: 0.4rem 0.5rem; font-size: 0.625rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em; color: #9b9ba8;
+  border-bottom: 1px solid #e5e5ea;
+}
+.well-list-table tbody td {
+  padding: 0.25rem 0.5rem; border-bottom: 1px solid #f0f0f4;
+}
+.well-list-table tbody td:first-child {
+  font-size: 0.6875rem; color: #9b9ba8; text-align: center;
+}
+.well-list-table .well-name-input {
+  width: 100%; border: 1px solid transparent; border-radius: 4px;
+  padding: 0.25rem 0.4rem; font-size: 0.8125rem; font-family: inherit;
+  background: transparent; outline: none; transition: border-color 0.15s;
+}
+.well-list-table .well-name-input:focus {
+  border-color: #3b82f6; background: #fff;
+}
+.well-list-table .well-rig-select {
+  width: 100%; border: 1px solid #e5e5ea; border-radius: 4px;
+  padding: 0.2rem 0.3rem; font-size: 0.75rem; font-family: inherit;
+  background: #fff; outline: none; cursor: pointer;
+}
+.well-list-table .well-rig-select:focus { border-color: #3b82f6; }
+.btn-remove-well {
+  border: none; background: none; color: #d5d5dc; font-size: 1rem;
+  cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; transition: color 0.15s;
+}
+.btn-remove-well:hover { color: #dc2626; }
+
+/* ---- Output Section ---- */
+.output-section { padding: 2rem 0 3rem; }
+
+.section-heading {
+  font-family: 'DM Serif Display', Georgia, serif; font-size: 1.35rem;
+  font-weight: 400; margin-bottom: 0.5rem; color: #1a1a2e;
+}
+
+/* Summary Card */
+.summary-card {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+  background: #e5e5ea; border: 1px solid #e5e5ea; border-radius: 10px;
+  overflow: hidden; margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) { .summary-card { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px) { .summary-card { grid-template-columns: repeat(2, 1fr); } }
+.summary-item { background: #fff; padding: 1.1rem 1.25rem; }
+.summary-item-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #9b9ba8; margin-bottom: 0.3rem;
+}
+.summary-item-value { font-size: 1rem; font-weight: 500; color: #1a1a2e; }
+
+/* Export bar */
+.export-bar { display: flex; gap: 0.5rem; margin-bottom: 1.75rem; }
+.btn-export {
+  padding: 0.45rem 1rem; border: 1px solid #d5d5dc; border-radius: 6px;
+  background: #fff; font-size: 0.75rem; font-family: inherit; font-weight: 500;
+  color: #6b6b80; cursor: pointer; transition: all 0.2s;
+}
+.btn-export:hover { border-color: #1a1a2e; color: #1a1a2e; }
+
+/* ---- Info Cards (Cashflow & Tax) ---- */
+.info-card {
+  background: #fff; border: 1px solid #e5e5ea; border-radius: 10px;
+  padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+}
+.info-card-title {
+  font-family: 'DM Serif Display', Georgia, serif; font-size: 1.1rem;
+  font-weight: 400; margin-bottom: 0.75rem; color: #1a1a2e;
+}
+.info-card-body {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.info-metric { }
+.info-metric-label {
+  font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #9b9ba8; margin-bottom: 0.2rem;
+}
+.info-metric-value { font-size: 0.9375rem; font-weight: 500; color: #1a1a2e; }
+.info-metric-note { font-size: 0.6875rem; color: #6b6b80; margin-top: 0.1rem; }
+.info-metric-value.highlight-green { color: #059669; }
+.info-metric-value.highlight-amber { color: #d97706; }
+.info-metric-value.highlight-red { color: #dc2626; }
+
+/* ---- Gantt Legend ---- */
+.gantt-legend {
+  display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;
+  font-size: 0.6875rem; color: #6b6b80;
+}
+.gantt-legend-item { display: flex; align-items: center; gap: 0.35rem; }
+.gantt-legend-swatch {
+  width: 12px; height: 8px; border-radius: 2px; flex-shrink: 0;
+}
+
+/* ---- Gantt Chart ---- */
+.gantt-section { margin-bottom: 2.5rem; }
+.gantt-container {
+  overflow-x: auto; border: 1px solid #e5e5ea; border-radius: 10px;
+  background: #fff; position: relative;
+}
+.gantt-wrapper { display: flex; min-width: max-content; }
+.gantt-labels {
+  flex-shrink: 0; border-right: 1px solid #e5e5ea; background: #fafafc;
+  position: sticky; left: 0; z-index: 5;
+}
+.gantt-label-row {
+  display: flex; align-items: center; padding: 0 0.75rem;
+  border-bottom: 1px solid #f0f0f4; font-size: 0.6875rem; color: #3a3a4a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gantt-label-row.well-header {
+  font-weight: 600; font-size: 0.625rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #1a1a2e; background: #f0f0f4;
+}
+.gantt-label-row.project-phase { font-style: italic; color: #6b6b80; }
+.gantt-chart-area { flex: 1; position: relative; overflow: hidden; }
+.gantt-header {
+  display: flex; border-bottom: 1px solid #e5e5ea; background: #fafafc;
+  position: sticky; top: 0; z-index: 4;
+}
+.gantt-tick {
+  font-size: 0.5625rem; color: #9b9ba8; text-align: left; padding: 0.35rem 0.25rem;
+  border-right: 1px solid #f0f0f4; white-space: nowrap;
+}
+.gantt-rows { position: relative; }
+.gantt-row { border-bottom: 1px solid #f0f0f4; position: relative; }
+.gantt-row.well-header-row { background: #f0f0f4; }
+.gantt-bar {
+  position: absolute; border-radius: 3px; cursor: pointer;
+  transition: filter 0.15s; min-width: 2px;
+}
+.gantt-bar:hover { filter: brightness(1.12); box-shadow: 0 1px 6px rgba(0,0,0,0.15); z-index: 3; }
+
+/* Summary view: stacked bars on single row */
+.gantt-bar.summary-bar { opacity: 0.85; }
+
+/* Gantt milestone marker */
+.gantt-milestone {
+  position: absolute; top: 50%; transform: translate(-50%, -50%) rotate(45deg);
+  width: 7px; height: 7px; background: #dc2626; z-index: 2;
+}
+
+/* Weekend shading */
+.gantt-weekend {
+  position: absolute; top: 0; bottom: 0; background: rgba(0,0,0,0.02); pointer-events: none;
+}
+
+/* Today line */
+.gantt-today-line {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: #dc2626; z-index: 6; pointer-events: none;
+}
+.gantt-today-label {
+  position: absolute; top: 2px; font-size: 0.5625rem; font-weight: 600;
+  color: #dc2626; white-space: nowrap; transform: translateX(4px);
+}
+
+/* Tooltip */
+.gantt-tooltip {
+  position: fixed; z-index: 100; padding: 0.65rem 0.85rem;
+  background: #1a1a2e; color: #fff; border-radius: 8px; font-size: 0.75rem;
+  line-height: 1.5; pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2); max-width: 260px;
+}
+.gantt-tooltip.visible { opacity: 1; }
+.gantt-tooltip strong { font-weight: 600; }
+.gantt-tooltip .tt-well { color: #94a3b8; font-size: 0.6875rem; }
+.gantt-tooltip .tt-dates { margin-top: 0.25rem; color: #c4c4d4; }
+
+/* Consolidated Gantt rows */
+.gantt-label-row.consolidated-category {
+  font-weight: 600; font-size: 0.6875rem; color: #1a1a2e; background: #f9f9fb;
+}
+.gantt-bar.consolidated-bar { opacity: 0.7; border: 1px solid rgba(255,255,255,0.4); }
+.gantt-bar.consolidated-bar:hover { opacity: 1; }
+
+/* ---- Table ---- */
+.table-container { overflow-x: auto; }
+.schedule-table {
+  width: 100%; border-collapse: collapse; font-size: 0.8125rem;
+  border: 1px solid #e5e5ea; border-radius: 10px; overflow: hidden;
+}
+.schedule-table thead th {
+  background: #fafafc; text-align: left; padding: 0.65rem 0.85rem;
+  font-weight: 600; font-size: 0.6875rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; border-bottom: 1px solid #e5e5ea;
+  white-space: nowrap;
+}
+.schedule-table tbody td {
+  padding: 0.5rem 0.85rem; border-bottom: 1px solid #f0f0f4; color: #3a3a4a;
+  white-space: nowrap;
+}
+.schedule-table tbody tr:hover { background: #fafafc; }
+.schedule-table .well-divider td { background: #f0f0f4; font-weight: 600; color: #1a1a2e; padding: 0.55rem 0.85rem; }
+.schedule-table .phase-color {
+  display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+  margin-right: 0.45rem; vertical-align: middle;
+}
+
+/* ---- Weather Info ---- */
+.weather-info-text {
+  font-size: 0.6875rem; color: #9b9ba8; line-height: 1.4;
+}
+.weather-delay-badge {
+  display: inline-block; background: #fef3c7; color: #92400e;
+  font-size: 0.625rem; font-weight: 600; padding: 0.1rem 0.4rem;
+  border-radius: 3px; margin-left: 0.35rem; vertical-align: middle;
+}
+
+/* ---- Proforma Output ---- */
+.proforma-section {
+  margin-top: 2rem;
+}
+.proforma-section .section-heading {
+  margin-bottom: 1rem;
+}
+
+/* Fund Summary Table */
+.proforma-fund-summary {
+  border: 1px solid #e5e5ea; border-radius: 10px; overflow: hidden;
+  margin-bottom: 1.5rem; background: #fff;
+}
+.proforma-fund-row {
+  display: grid;
+  grid-template-columns: 180px repeat(10, 1fr);
+  border-bottom: 1px solid #f0f0f4;
+}
+.proforma-fund-row:last-child { border-bottom: none; }
+.proforma-fund-header {
+  background: #fafafc; font-weight: 600;
+}
+.proforma-fund-header .proforma-fund-label {
+  font-size: 0.8125rem; color: #1a1a2e;
+}
+.proforma-fund-header .proforma-fund-cell {
+  font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; color: #9b9ba8;
+}
+.proforma-fund-label {
+  padding: 0.5rem 0.75rem; font-size: 0.75rem; font-weight: 500; color: #3a3a4a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.proforma-fund-cell {
+  padding: 0.5rem 0.4rem; font-size: 0.6875rem; color: #3a3a4a;
+  text-align: right; white-space: nowrap;
+}
+.proforma-bold { font-weight: 600; }
+.proforma-bold .proforma-fund-label,
+.proforma-bold .proforma-fund-cell,
+.proforma-bold td { font-weight: 600; color: #1a1a2e; }
+.proforma-highlight { background: #f0fdf4; }
+.proforma-highlight .proforma-fund-cell { color: #059669; font-weight: 600; }
+
+/* Per-well accordions */
+.proforma-wells-detail { margin-top: 1rem; }
+.proforma-well-accordion {
+  border: 1px solid #e5e5ea; border-radius: 8px; margin-bottom: 0.4rem; background: #fff;
+}
+.proforma-well-accordion .accordion-header {
+  padding: 0.5rem 0.75rem; font-size: 0.8125rem;
+}
+.proforma-badge-gas {
+  font-size: 0.5625rem; font-weight: 600; padding: 0.1rem 0.4rem;
+  border-radius: 3px; background: #dbeafe; color: #1e40af;
+}
+.proforma-badge-water {
+  font-size: 0.5625rem; font-weight: 600; padding: 0.1rem 0.4rem;
+  border-radius: 3px; background: #e0e7ff; color: #3730a3;
+}
+
+.proforma-well-info {
+  display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem;
+  font-size: 0.75rem; color: #6b6b80;
+}
+
+.proforma-table-wrap { overflow-x: auto; }
+.proforma-table {
+  width: 100%; border-collapse: collapse; font-size: 0.6875rem;
+}
+.proforma-table thead th {
+  background: #fafafc; text-align: right; padding: 0.35rem 0.5rem;
+  font-weight: 600; font-size: 0.5625rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; border-bottom: 1px solid #e5e5ea;
+  white-space: nowrap;
+}
+.proforma-table thead th:first-child { text-align: left; }
+.proforma-table tbody td {
+  padding: 0.3rem 0.5rem; border-bottom: 1px solid #f0f0f4;
+  text-align: right; white-space: nowrap; color: #3a3a4a;
+}
+.proforma-table tbody td:first-child { text-align: left; color: #6b6b80; font-weight: 500; }
+.proforma-table tbody tr:hover { background: #fafafc; }
+.proforma-table .proforma-bold td { font-weight: 600; color: #1a1a2e; }
+
+/* ---- Proforma Well Builder ---- */
+.pf-globals-bar {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem; margin-bottom: 1rem; padding-bottom: 0.75rem;
+  border-bottom: 1px solid #ececf0;
+}
+.pf-global-field label {
+  display: block; font-size: 0.625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; margin-bottom: 0.15rem;
+}
+.pf-global-field input {
+  width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d5d5dc;
+  border-radius: 5px; font-size: 0.8125rem; font-family: inherit;
+  outline: none; background: #fff;
+}
+.pf-global-field input:focus { border-color: #3b82f6; }
+
+.pf-run-bar {
+  margin-top: 0.75rem; display: flex; gap: 0.75rem; align-items: center;
+}
+.pf-run-hint {
+  font-size: 0.6875rem; color: #9b9ba8;
+}
+
+/* Well detail expand row */
+.well-detail-row td {
+  padding: 0 !important; border-bottom: 1px solid #e5e5ea !important;
+  background: #fafafc;
+}
+.well-detail-inner {
+  padding: 0.5rem 0.75rem 0.75rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.4rem 0.6rem;
+}
+.well-detail-inner label {
+  display: block; font-size: 0.5625rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #9b9ba8; margin-bottom: 0.1rem;
+}
+.well-detail-inner input, .well-detail-inner select {
+  width: 100%; padding: 0.3rem 0.4rem; border: 1px solid #d5d5dc;
+  border-radius: 4px; font-size: 0.75rem; font-family: inherit;
+  outline: none; background: #fff;
+}
+.well-detail-inner input:focus { border-color: #3b82f6; }
+.well-detail-template {
+  grid-column: 1 / -1; margin-bottom: 0.25rem;
+}
+.well-detail-template select {
+  max-width: 280px;
+}
+.well-water-fields { display: none; }
+.well-water-fields.visible { display: contents; }
+
+/* Well type and cost inputs in main row */
+.well-type-select {
+  width: 100%; border: 1px solid #e5e5ea; border-radius: 4px;
+  padding: 0.2rem 0.25rem; font-size: 0.6875rem; font-family: inherit;
+  background: #fff; outline: none; cursor: pointer;
+}
+.well-type-select:focus { border-color: #3b82f6; }
+.well-cost-input, .well-wi-input {
+  width: 100%; border: 1px solid transparent; border-radius: 4px;
+  padding: 0.25rem 0.35rem; font-size: 0.75rem; font-family: inherit;
+  background: transparent; outline: none; text-align: right;
+}
+.well-cost-input:focus, .well-wi-input:focus {
+  border-color: #3b82f6; background: #fff;
+}
+.btn-expand-well {
+  border: none; background: none; color: #9b9ba8; font-size: 0.75rem;
+  cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; transition: all 0.15s;
+}
+.btn-expand-well:hover { color: #3b82f6; }
+.btn-expand-well.expanded { color: #3b82f6; transform: rotate(180deg); }
+
+/* ---- Output Accordions ---- */
+.output-accordion { margin-bottom: 1.5rem; }
+.output-accordion .accordion-header { padding: 0.75rem 1rem; }
+.output-accordion .section-heading { font-size: 1.2rem; }
+
+/* ---- App Footer ---- */
+.app-footer { border-top: 1px solid #e5e5ea; padding: 1.5rem 0; margin-top: 2rem; }
+.app-footer p { font-size: 0.6875rem; color: #9b9ba8; max-width: 80ch; }
+
+/* ---- PDF Overlay Styles ---- */
+#pdf-overlay {
+  position: fixed; inset: 0; z-index: 2000; background: #fff;
+  overflow: auto;
+}
+.pdf-content {
+  max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem;
+  font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a2e;
+}
+.pdf-header { margin-bottom: 2rem; border-bottom: 2px solid #1a1a2e; padding-bottom: 1.25rem; }
+.pdf-brand { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.1rem; color: #1a1a2e; margin-bottom: 0.25rem; }
+.pdf-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.75rem; margin-bottom: 0.25rem; }
+.pdf-subtitle { font-size: 0.875rem; color: #6b6b80; }
+.pdf-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e5ea; }
+.pdf-footer p { font-size: 0.6875rem; color: #9b9ba8; }
+.pdf-gantt-container { overflow: visible; margin: 1.5rem 0; }
+
+/* ---- Print Styles ---- */
+@page { size: landscape; margin: 0.5in; }
+@media print {
+  html, body { width: 100% !important; margin: 0 !important; padding: 0 !important;
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+    color-adjust: exact !important; font-size: 11px; }
+  /* Hide everything except the PDF overlay */
+  #app { display: none !important; }
+  #auth-screen { display: none !important; }
+  .no-print { display: none !important; }
+  /* Show the overlay as normal flow (not fixed) */
+  #pdf-overlay { display: block !important; position: static !important;
+    overflow: visible !important; background: #fff !important; }
+  .pdf-content { max-width: 100% !important; padding: 0 !important; }
+  .pdf-header { margin-bottom: 1rem; padding-bottom: 0.75rem; }
+  .pdf-brand { font-size: 0.9rem; }
+  .pdf-title { font-size: 1.3rem; }
+  .pdf-subtitle { font-size: 0.75rem; }
+  /* Gantt chart: fit to page width with horizontal scaling */
+  .pdf-gantt-container { overflow: visible !important; margin: 1rem 0;
+    break-inside: avoid; page-break-inside: avoid; }
+  .gantt-container { overflow: visible !important; border: 1px solid #ccc;
+    break-inside: avoid; page-break-inside: avoid;
+    max-width: 100% !important; transform-origin: top left; }
+  .gantt-chart-area { overflow: visible !important; }
+  .gantt-scroll { overflow: visible !important; }
+  /* Summary */
+  .summary-card { break-inside: avoid; page-break-inside: avoid; }
+  .summary-item { font-size: 0.7rem; }
+  /* Info cards */
+  .info-card { break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.75rem; }
+  /* Table */
+  .schedule-table { font-size: 0.6rem; break-before: page; page-break-before: always; }
+  .schedule-table thead th { padding: 0.2rem 0.35rem; font-size: 0.55rem; }
+  .schedule-table tbody td { padding: 0.2rem 0.35rem; }
+  /* Proforma tables */
+  .proforma-fund-summary { break-inside: avoid; page-break-inside: avoid; }
+  .proforma-fund-cell { font-size: 0.5rem !important; padding: 0.2rem 0.15rem !important; }
+  .proforma-fund-label { font-size: 0.55rem !important; }
+}
+
+/* ---- Compact mode ---- */
+body.compact .gantt-label-row { height: 20px !important; font-size: 0.5625rem; }
+body.compact .gantt-row { height: 20px !important; }
+body.compact .gantt-bar { top: 2px !important; height: 16px !important; }
+body.compact .schedule-table tbody td { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .proforma-fund-row { grid-template-columns: 140px repeat(10, 1fr); }
+  .proforma-fund-label { font-size: 0.625rem; }
+  .proforma-fund-cell { font-size: 0.5625rem; padding: 0.4rem 0.25rem; }
+}
+</style>
+
+<!-- ============================================================
+     JAVASCRIPT — Modular files
+     ============================================================ -->
+<script is:inline src="/timeline/config.js"></script>
+<script is:inline src="/timeline/dates.js"></script>
+<script is:inline src="/timeline/proforma.js"></script>
+<script is:inline src="/timeline/engine.js"></script>
+<script is:inline src="/timeline/render.js"></script>
+<script is:inline src="/timeline/app.js"></script>
+
+</body>
+</html>
