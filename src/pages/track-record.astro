@@ -788,14 +788,12 @@ import Layout from '../layouts/Layout.astro';
     margin-top: 1.5rem;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    max-height: 300px;
     cursor: pointer;
   }
 
   .re-deal-hero img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
   }
 
@@ -806,29 +804,21 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .before-after-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
   }
 
   .ba-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    display: contents;
   }
 
   .ba-img {
     position: relative;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    height: 160px;
+    aspect-ratio: 16 / 10;
     cursor: pointer;
-  }
-
-  @media (min-width: 768px) {
-    .ba-img {
-      height: 200px;
-    }
   }
 
   .ba-img img {
