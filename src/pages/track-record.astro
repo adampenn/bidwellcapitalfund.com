@@ -58,7 +58,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <div class="re-deal-description" style="margin-bottom: 1.5rem; max-width: 70ch;">
+        <div class="re-deal-description" style="margin-bottom: 1.5rem;">
           <p>Bidwell Capital has deployed $4.7M into private credit through a fund-of-funds structure. The portfolio consists of preferred equity and mezzanine debt positions across multifamily, industrial, and other commercial real estate assets. The positions below represent the underlying portfolio exposure.</p>
         </div>
 
@@ -142,14 +142,16 @@ import Layout from '../layouts/Layout.astro';
                 <span class="re-deal-stat-value rent-highlight">5% Annual</span>
               </div>
             </div>
-            <div class="re-deal-description">
-              <p>20-unit workforce housing community in Chico, CA. A portion of the units are undergoing full gut rehabs, repositioning them from $725/mo to $1,250/mo. The remaining units are being brought to market rents through operational improvements: normalizing leases, implementing RUBS for utility cost recovery, and maintaining high occupancy through active leasing.</p>
-              <p style="margin-top: 0.75rem;">The long-term strategy is to build equity through cashflow and forced appreciation, positioning the asset for a 1031 exchange into a larger property - chasing more cashflow while capturing the upside from repositioning.</p>
-              <p style="margin-top: 0.75rem;">Investors receive regular updates on leasing activity, rent collections, maintenance, and operational priorities.</p>
-            </div>
-            <!-- Property Exterior -->
-            <div class="re-deal-hero">
-              <img src="/photos/cherry/exterior.jpg" alt="Cherry St Apartments - Chico, CA" loading="lazy" />
+            <div class="deal-split">
+              <div class="re-deal-description">
+                <p>20-unit workforce housing community in Chico, CA. A portion of the units are undergoing full gut rehabs, repositioning them from $725/mo to $1,250/mo. The remaining units are being brought to market rents through operational improvements: normalizing leases, implementing RUBS for utility cost recovery, and maintaining high occupancy through active leasing.</p>
+                <p style="margin-top: 0.75rem;">The long-term strategy is to build equity through cashflow and forced appreciation, positioning the asset for a 1031 exchange into a larger property - chasing more cashflow while capturing the upside from repositioning.</p>
+                <p style="margin-top: 0.75rem;">Investors receive regular updates on leasing activity, rent collections, maintenance, and operational priorities.</p>
+              </div>
+              <!-- Property Exterior -->
+              <div class="re-deal-hero">
+                <img src="/photos/cherry/exterior.jpg" alt="Cherry St Apartments - Chico, CA" loading="lazy" />
+              </div>
             </div>
 
             <!-- Before & After -->
@@ -193,8 +195,12 @@ import Layout from '../layouts/Layout.astro';
           <div class="re-deal-body">
             <div class="re-deal-stats">
               <div class="re-deal-stat">
-                <span class="re-deal-stat-label">Units</span>
-                <span class="re-deal-stat-value">17</span>
+                <span class="re-deal-stat-label">Properties</span>
+                <span class="re-deal-stat-value">4</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Total Units</span>
+                <span class="re-deal-stat-value">15</span>
               </div>
               <div class="re-deal-stat">
                 <span class="re-deal-stat-label">Acquired</span>
@@ -202,7 +208,15 @@ import Layout from '../layouts/Layout.astro';
               </div>
               <div class="re-deal-stat">
                 <span class="re-deal-stat-label">Strategy</span>
-                <span class="re-deal-stat-value">Rehab to STR</span>
+                <span class="re-deal-stat-value">STR + Value-Add</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">STR Properties</span>
+                <span class="re-deal-stat-value">3 (12 Units)</span>
+              </div>
+              <div class="re-deal-stat">
+                <span class="re-deal-stat-label">Rehab Status</span>
+                <span class="re-deal-stat-value rent-highlight">Complete</span>
               </div>
               <div class="re-deal-stat">
                 <span class="re-deal-stat-label">Distribution</span>
@@ -210,10 +224,160 @@ import Layout from '../layouts/Layout.astro';
               </div>
             </div>
             <div class="re-deal-description">
-              <p>17-unit portfolio acquired and fully rehabbed, converted to furnished short-term rentals generating income from nightly and monthly bookings. Distributions are currently paused.</p>
+              <p>The fund acquired four multifamily properties totaling 15 units in Memphis throughout 2023. All four properties were fully rehabbed with new HVAC, electrical, plumbing, drywall, flooring, kitchens, and bathrooms. Three properties (963 New York St, 2033 Young Ave, and 2375 Forrest Ave) were converted into furnished short-term rentals operating on Airbnb, while 69 N Tucker is being leased as a long-term rental.</p>
+              <p style="margin-top: 0.75rem;">The three STR properties have been generating revenue since late 2023, with 2375 Forrest Ave as the strongest performer consistently reaching 73 to 84% occupancy. The team sends detailed monthly investor updates covering occupancy, revenue, expenses, and property-level P&amp;Ls for full transparency.</p>
+              <p style="margin-top: 0.75rem;">The fund is currently working to refinance all four properties to lower interest rates and return principal to investors. Distributions remain paused during this process.</p>
             </div>
-            <div class="re-deal-hero">
-              <img src="/photos/memphis/str-after.jpg" alt="Memphis STR unit - post rehab" loading="lazy" />
+            <!-- Property Before & Afters -->
+            <div class="before-after-section">
+              <span class="section-label" style="margin-bottom: 1rem;">Before &amp; After</span>
+              <div class="properties-grid">
+
+                <div class="property-ba">
+                  <h4 class="property-ba-title">69 N Tucker</h4>
+                  <div class="before-after-grid">
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/before-exterior.webp" alt="69 N Tucker exterior before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/after-exterior.jpg" alt="69 N Tucker exterior after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/before-kitchen.webp" alt="Kitchen before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/after-kitchen.jpg" alt="Kitchen after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/before-bathroom.webp" alt="Bathroom before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/after-bathroom.jpg" alt="Bathroom after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="property-ba">
+                  <h4 class="property-ba-title">2375 Forrest Ave</h4>
+                  <div class="before-after-grid">
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/forrest/before-exterior.jpg" alt="2375 Forrest Ave exterior before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/forrest/after-exterior.jpg" alt="2375 Forrest Ave exterior after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/forrest/before-kitchen.jpg" alt="Kitchen before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/forrest/after-kitchen.jpg" alt="Kitchen after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/forrest/before-bathroom.jpg" alt="Bathroom before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/forrest/after-bathroom.jpg" alt="Bathroom after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="property-ba">
+                  <h4 class="property-ba-title">2033 Young Ave</h4>
+                  <div class="before-after-grid">
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/young/before-exterior.webp" alt="2033 Young Ave exterior before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/young/after-exterior.jpg" alt="2033 Young Ave exterior after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/young/before-kitchen.webp" alt="Kitchen before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/young/after-kitchen.jpg" alt="Kitchen after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/young/before-bathroom.webp" alt="Bathroom before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/young/after-bathroom.jpg" alt="Bathroom after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="property-ba">
+                  <h4 class="property-ba-title">963 New York St</h4>
+                  <div class="before-after-grid">
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/newyork/before-exterior.jpg" alt="963 New York St exterior before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/newyork/after-exterior.jpg" alt="963 New York St exterior after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/newyork/before-kitchen.jpg" alt="Kitchen before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/newyork/after-kitchen.jpg" alt="Kitchen after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                    <div class="ba-pair">
+                      <div class="ba-img">
+                        <span class="ba-label ba-before">Before</span>
+                        <img src="/photos/memphis/newyork/before-livingroom.jpg" alt="Living room before renovation" loading="lazy" />
+                      </div>
+                      <div class="ba-img">
+                        <span class="ba-label ba-after">After</span>
+                        <img src="/photos/memphis/newyork/after-livingroom.jpg" alt="Living room after renovation" loading="lazy" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
         </article>
@@ -237,7 +401,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <div class="re-deal-description" style="margin-bottom: 2rem; max-width: 70ch;">
+        <div class="re-deal-description" style="margin-bottom: 2rem;">
           <p>Direct working interests in oil and gas drilling programs. Investors receive monthly distributions from well production and significant first-year tax deductions through intangible drilling costs (IDC).</p>
           <p style="margin-top: 0.75rem;">Early investments provided valuable operational learning. As a result, we have shifted toward partnering with larger operators with stronger balance sheets, repeatable drilling programs, and proven production histories.</p>
         </div>
@@ -483,6 +647,12 @@ import Layout from '../layouts/Layout.astro';
       <p class="disclaimer">Past performance is not indicative of future results. All investments involve risk, including total loss of principal. Distribution schedules are targets and not guaranteed. IDC deductions depend on individual tax circumstances — consult your tax advisor. The information presented is for informational purposes only and does not constitute an offer to sell or solicitation of an offer to buy any securities. These materials are intended for accredited investors only.</p>
     </div>
   </section>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <img src="" alt="" id="lightbox-img" />
+  </div>
 </Layout>
 
 <style>
@@ -663,16 +833,43 @@ import Layout from '../layouts/Layout.astro';
     margin-top: 1.5rem;
   }
 
+  /* Description + Hero split layout */
+  .deal-split {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 900px) {
+    .deal-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+  }
+
   .re-deal-hero {
-    margin-top: 1.5rem;
     border-radius: var(--radius-lg);
     overflow: hidden;
+    cursor: pointer;
+  }
+
+  .deal-split .re-deal-hero {
+    margin-top: 0;
   }
 
   .re-deal-hero img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     display: block;
+  }
+
+  @media (min-width: 900px) {
+    .re-deal-hero {
+      aspect-ratio: 4 / 3;
+    }
   }
 
   .before-after-section {
@@ -681,22 +878,46 @@ import Layout from '../layouts/Layout.astro';
     border-top: 1px solid var(--border);
   }
 
+  /* Properties 2-col grid */
+  .properties-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  @media (min-width: 900px) {
+    .properties-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .property-ba {
+    min-width: 0;
+  }
+
+  .property-ba-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--text-primary);
+  }
+
   .before-after-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
   }
 
   .ba-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    display: contents;
   }
 
   .ba-img {
     position: relative;
     border-radius: var(--radius-lg);
     overflow: hidden;
+    aspect-ratio: 16 / 10;
+    cursor: pointer;
   }
 
   .ba-img img {
@@ -704,6 +925,11 @@ import Layout from '../layouts/Layout.astro';
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .ba-img:hover img {
+    transform: scale(1.03);
   }
 
   .ba-label {
@@ -726,6 +952,54 @@ import Layout from '../layouts/Layout.astro';
   .ba-after {
     background: var(--accent);
     color: #fff;
+  }
+
+  /* Lightbox */
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    cursor: zoom-out;
+  }
+
+  .lightbox-overlay.active {
+    display: flex;
+  }
+
+  .lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   .re-deal-photos:empty {
@@ -873,6 +1147,42 @@ import Layout from '../layouts/Layout.astro';
         if (panel) panel.classList.add('active');
       });
     });
+  });
+
+  // Lightbox
+  var overlay = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightbox-img');
+
+  document.querySelectorAll('.ba-img, .re-deal-hero').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var img = el.querySelector('img');
+      if (img) {
+        lbImg.src = img.src;
+        lbImg.alt = img.alt;
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+
+  function closeLightbox() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay || e.target.classList.contains('lightbox-close')) {
+      closeLightbox();
+    }
+  });
+
+  document.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('active')) {
+      closeLightbox();
+    }
   });
 </script>
 

@@ -138,7 +138,6 @@ h3 {
 
 p {
   color: var(--text-secondary);
-  max-width: 65ch;
 }
 
 a {
@@ -309,5 +308,4 @@ img {
   font-size: 0.75rem;
   color: var(--text-tertiary);
   line-height: 1.6;
-  max-width: 80ch;
 }
