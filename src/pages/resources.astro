@@ -6,9 +6,9 @@ const cpaQuestions = [
     category: 'Background & Philosophy',
     questions: [
       'Can you describe your typical client profile and how you tailor your approach to each client?',
-      'How would you describe your role \u2014 a traditional tax preparer or a proactive tax strategist and advisor?',
+      'How would you describe your role — a traditional tax preparer or a proactive tax strategist and advisor?',
       'How do you stay up to date with changing tax laws, particularly around real estate, oil & gas, and the private investment space?',
-      "What\u2019s your philosophy on balancing aggressive tax planning with audit risk and long-term compliance?",
+      'What’s your philosophy on balancing aggressive tax planning with audit risk and long-term compliance?',
       'How do you measure success in your client relationships beyond just filing returns?',
     ],
   },
@@ -17,7 +17,7 @@ const cpaQuestions = [
     questions: [
       'How often do you meet or check in with clients outside of tax season?',
       'Do you schedule mid-year and year-end planning sessions to optimize tax outcomes before filing time?',
-      "How do you ensure clients understand the strategies you\u2019re implementing and their long-term impact?",
+      'How do you ensure clients understand the strategies you’re implementing and their long-term impact?',
       'What systems do you have for communication and document sharing (portals, secure uploads, etc.)?',
     ],
   },
@@ -25,7 +25,7 @@ const cpaQuestions = [
     category: 'Real Estate & Active Income Strategies',
     questions: [
       'How familiar are you with Real Estate Professional Status (REPS) and how it interacts with W-2 income?',
-      'Can you explain the short-term rental (STR) \u201cloophole\u201d and how it can offset W-2 or active income?',
+      'Can you explain the short-term rental (STR) “loophole” and how it can offset W-2 or active income?',
       'How do you help clients substantiate material participation for IRS standards?',
       'Have you guided clients through cost segregation studies or accelerated depreciation planning?',
       'What is your experience helping clients transition from W-2 to real estate professional status over time?',
@@ -34,8 +34,8 @@ const cpaQuestions = [
   {
     category: 'Oil & Gas and Alternative Investments',
     questions: [
-      "What\u2019s your experience with intangible drilling costs (IDC) and tangible depreciation in oil & gas deals?",
-      'For CA clients: How do you handle state differences, like California\u2019s IDC amortization rules vs. federal treatment?',
+      'What’s your experience with intangible drilling costs (IDC) and tangible depreciation in oil & gas deals?',
+      'For CA clients: How do you handle state differences, like California’s IDC amortization rules vs. federal treatment?',
       'Are you familiar with K-1 reporting from private placements?',
       'What other alternative or tax-advantaged investments do you typically recommend or support?',
     ],
@@ -45,9 +45,9 @@ const cpaQuestions = [
     questions: [
       'How do you collaborate with attorneys, financial advisors, or bookkeepers to ensure a cohesive plan?',
       'Can you walk me through your process for identifying and implementing new tax strategies each year?',
-      "What are some common mistakes you\u2019ve found when reviewing prior client returns?",
+      'What are some common mistakes you’ve found when reviewing prior client returns?',
       'What strategies have you found too risky to recommend, and why?',
-      "Can you give examples of clients where you\u2019ve amended returns to capture missed deductions or benefits?",
+      'Can you give examples of clients where you’ve amended returns to capture missed deductions or benefits?',
     ],
   },
   {
@@ -62,12 +62,17 @@ const cpaQuestions = [
   {
     category: 'Forward Planning & Education',
     questions: [
-      'How do you help clients plan for major financial events \u2014 property sales, business formation, or large investments?',
+      'How do you help clients plan for major financial events — property sales, business formation, or large investments?',
       'How do you stay educated on emerging tax law (e.g., bonus depreciation phase-outs, SECURE Act updates)?',
       'What are the next steps if we want to start with a review of my prior return or set up a tax plan before the next filing season?',
     ],
   },
 ];
+
+// SVG icon snippets for each resource
+const iconFile = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
+
+const iconDroplet = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>`;
 ---
 
 <Layout title="Resources - Bidwell Capital" description="Guides, tools, and resources for private investors from Bidwell Capital.">
@@ -75,55 +80,91 @@ const cpaQuestions = [
     <div class="container">
       <span class="section-label fade-up fade-up-1">Resources</span>
       <h1 class="fade-up fade-up-2">Investor resources</h1>
-      <p class="fade-up fade-up-3">Practical tools and guides to help you make better decisions with your capital.</p>
+      <p class="fade-up fade-up-3">Practical guides and tools to help you make better decisions with your capital. Short, specific, and written by operators.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
 
-      <!-- Resource Card: CPA Questions -->
-      <div class="resource-card card fade-up fade-up-4">
-        <div class="resource-header">
-          <div class="resource-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div class="resource-meta">
-            <span class="badge">Guide</span>
-            <h2>CPA Interview Questions for Investors</h2>
-            <p>30 questions designed to identify a CPA who acts as a proactive advisor &mdash; especially for investors looking to minimize tax liability through real estate, oil & gas, or other private placements.</p>
-          </div>
-          <a href="/resources/cpa-interview-questions.pdf" target="_blank" rel="noopener" class="btn btn-primary download-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PDF
-          </a>
-        </div>
-      </div>
+      <div class="resource-list">
 
-      <!-- On-page expandable content -->
-      <div class="questions-content">
-        <h3 class="questions-title">Preview the questions</h3>
-        <p class="questions-intro">Click any category below to see the questions, or download the branded PDF above to bring to your next CPA meeting.</p>
+        <!-- Resource: Oil & Gas Tax Benefits -->
+        <article class="resource-card card fade-up fade-up-4">
+          <div class="resource-header">
+            <div class="resource-icon" set:html={iconDroplet}></div>
+            <div class="resource-meta">
+              <span class="badge">Guide</span>
+              <h2>Tax benefits of oil &amp; gas working interests</h2>
+              <p>A plain-English walkthrough of IDCs, tangible depreciation, depletion, and the working-interest exception that lets these deductions offset W-2 and other active income. Includes a worked example, notes on California conformity, and the questions every investor should bring to their CPA.</p>
+              <ul class="resource-tags">
+                <li>IDCs &amp; TDCs</li>
+                <li>Depletion (&sect;613A)</li>
+                <li>&sect;469 working-interest exception</li>
+                <li>CA amortization</li>
+                <li>AMT &amp; recapture</li>
+              </ul>
+            </div>
+            <div class="resource-actions">
+              <a href="/oil-gas-tax-benefits" class="btn btn-primary">
+                Read guide
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            </div>
+          </div>
+        </article>
 
-        <div class="category-list">
-          {cpaQuestions.map((section) => (
-            <details class="category-item">
-              <summary class="category-name">{section.category}</summary>
-              <ol class="question-list">
-                {section.questions.map((q) => (
-                  <li class="question-item">{q}</li>
+        <!-- Resource: CPA Interview Questions -->
+        <article class="resource-card card fade-up fade-up-5">
+          <div class="resource-header">
+            <div class="resource-icon" set:html={iconFile}></div>
+            <div class="resource-meta">
+              <span class="badge">Checklist</span>
+              <h2>CPA interview questions for investors</h2>
+              <p>Thirty questions designed to identify a CPA who acts as a proactive advisor &mdash; especially for investors looking to minimize tax liability through real estate, oil &amp; gas, or other private placements.</p>
+              <ul class="resource-tags">
+                <li>REPS &amp; STR loophole</li>
+                <li>IDC treatment</li>
+                <li>K-1 reporting</li>
+                <li>Year-round planning</li>
+              </ul>
+            </div>
+            <div class="resource-actions">
+              <a href="/resources/cpa-interview-questions.pdf" target="_blank" rel="noopener" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download PDF
+              </a>
+            </div>
+          </div>
+
+          <!-- Inline preview -->
+          <details class="resource-preview">
+            <summary>Preview all 30 questions</summary>
+            <div class="preview-body">
+              <p class="preview-intro">Click any category below to see the questions, or download the branded PDF above to bring to your next CPA meeting.</p>
+              <div class="category-list">
+                {cpaQuestions.map((section) => (
+                  <details class="category-item">
+                    <summary class="category-name">{section.category}</summary>
+                    <ol class="question-list">
+                      {section.questions.map((q) => (
+                        <li class="question-item">{q}</li>
+                      ))}
+                    </ol>
+                  </details>
                 ))}
-              </ol>
-            </details>
-          ))}
-        </div>
+              </div>
+            </div>
+          </details>
+        </article>
+
       </div>
 
       <hr class="divider" />
 
       <div class="resources-cta">
         <p>Have a resource you think we should create? We are always looking for ways to help our investors make better decisions.</p>
-        <a href="/contact" class="btn btn-outline">Suggest a Resource</a>
+        <a href="/contact" class="btn btn-outline">Suggest a resource</a>
       </div>
 
     </div>
@@ -136,6 +177,13 @@ const cpaQuestions = [
   }
   .hero-sm h1 { margin: 0.5rem 0 1rem; }
   .hero-sm p { font-size: 1.125rem; max-width: 60ch; }
+
+  /* Resource list */
+  .resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
 
   /* Resource card */
   .resource-card {
@@ -183,10 +231,38 @@ const cpaQuestions = [
     line-height: 1.7;
   }
 
-  .download-btn {
+  .resource-tags {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .resource-tags li {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-secondary);
+  }
+
+  .resource-actions {
     flex-shrink: 0;
     align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .resource-actions .btn {
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   @media (max-width: 768px) {
@@ -199,24 +275,51 @@ const cpaQuestions = [
       height: 2.75rem;
     }
 
-    .download-btn {
+    .resource-actions {
+      flex-direction: row;
+    }
+
+    .resource-actions .btn {
       justify-self: start;
     }
   }
 
-  /* Questions content */
-  .questions-content {
-    margin-top: 3rem;
-    max-width: 48rem;
+  /* Inline preview (expandable) */
+  .resource-preview {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
   }
 
-  .questions-title {
-    margin-bottom: 0.5rem;
+  .resource-preview > summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color var(--transition);
   }
 
-  .questions-intro {
+  .resource-preview > summary::-webkit-details-marker { display: none; }
+  .resource-preview > summary::before {
+    content: '+';
+    color: var(--accent);
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .resource-preview[open] > summary::before { content: '−'; }
+  .resource-preview > summary:hover { color: var(--text-primary); }
+
+  .preview-body {
+    margin-top: 1.25rem;
+  }
+
+  .preview-intro {
     font-size: 0.9375rem;
-    margin-bottom: 2rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
   }
 
   .category-list {
@@ -227,7 +330,7 @@ const cpaQuestions = [
 
   .category-item {
     border-bottom: 1px solid var(--border);
-    padding: 1.25rem 0;
+    padding: 1.15rem 0;
   }
 
   .category-item:first-child {
@@ -256,11 +359,10 @@ const cpaQuestions = [
     font-size: 1.25rem;
     color: var(--accent);
     flex-shrink: 0;
-    transition: transform 0.2s ease;
   }
 
-  details[open] .category-name::after {
-    content: '\2212';
+  details[open] > .category-name::after {
+    content: '−';
   }
 
   .question-list {
