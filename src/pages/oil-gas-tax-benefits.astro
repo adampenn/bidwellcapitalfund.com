@@ -258,12 +258,12 @@ const faqs = [
     max-width: 1100px;
   }
 
-  /* Centered reading column for prose-heavy sections (the hook).
+  /* Reading column for prose-heavy sections (the hook). Left-aligned so section
+     labels and headings sit at the same left edge as the hero and other sections.
      Visual blocks like the stat bar, benefit cards, FAQ, and CTA box stay at the
      full 1100px container. */
   .article-col {
     max-width: 52rem;
-    margin: 0 auto;
   }
 
   h2 {
@@ -339,7 +339,7 @@ const faqs = [
   }
 
   .k1-figure {
-    margin: 1.75rem auto;
+    margin: 1.75rem 0;
     padding: 1rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
