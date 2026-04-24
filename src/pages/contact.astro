@@ -85,12 +85,13 @@ import Layout from '../layouts/Layout.astro';
         <iframe
           id="calendly-frame"
           title="Schedule a consultation with Bidwell Capital"
-          src="https://calendly.com/adampenn/bc-consultation?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a&hide_gdpr_banner=1"
+          src="https://calendly.com/adampenn/bc-consultation?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a&hide_gdpr_banner=1&embed_domain=bidwellcapitalfund.com&embed_type=Inline"
           data-theme-loaded="light"
           width="100%"
           height="1100"
           frameborder="0"
           loading="eager"
+          scrolling="no"
           style="display:block; border:0; min-width:320px; background:transparent;"
         ></iframe>
       </div>
@@ -102,9 +103,10 @@ import Layout from '../layouts/Layout.astro';
   // Render only the theme-matching Calendly iframe. No widget.js wrapper, no second iframe.
   (function() {
     var BASE = 'https://calendly.com/adampenn/bc-consultation';
+    var COMMON = '&hide_gdpr_banner=1&embed_domain=bidwellcapitalfund.com&embed_type=Inline';
     var PARAMS = {
-      dark:  '?background_color=1a1816&text_color=e8e0d6&primary_color=c48a5a&hide_gdpr_banner=1',
-      light: '?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a&hide_gdpr_banner=1'
+      dark:  '?background_color=1a1816&text_color=e8e0d6&primary_color=c48a5a' + COMMON,
+      light: '?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a' + COMMON
     };
     var frame = document.getElementById('calendly-frame');
     var skeleton = document.getElementById('calendly-skeleton');
@@ -129,6 +131,77 @@ import Layout from '../layouts/Layout.astro';
     new MutationObserver(function(ms) {
       for (var i = 0; i < ms.length; i++) if (ms[i].attributeName === 'data-theme') { apply(); break; }
     }).observe(document.documentElement, { attributes: true });
+  })();
+
+  // Dynamic iframe height. Listen to Calendly postMessage events and size the frame for each view.
+  // Calendly does not publish a reliable height in postMessages, so we use heuristics per view state
+  // plus a viewport-size breakpoint for mobile layouts (which stack vertically and need more height).
+  (function() {
+    var frame = document.getElementById('calendly-frame');
+    if (!frame) return;
+
+    function isMobile() { return window.innerWidth < 768; }
+
+    // Heights tuned for the Bidwell Capital Investor Consultation event type.
+    // Desktop shows calendar + times side by side; mobile stacks them vertically.
+    function heightFor(event) {
+      var mobile = isMobile();
+      switch (event) {
+        case 'calendly.profile_page_viewed':   // landing on the profile page
+        case 'calendly.event_type_viewed':     // calendar view with date picker
+          return mobile ? 1250 : 1100;
+        case 'calendly.date_and_time_selected': // date picked, time slots shown
+          return mobile ? 1450 : 1150;
+        case 'calendly.event_scheduled':       // form submitted, confirmation screen
+          return mobile ?  900 :  700;
+        default:
+          return mobile ? 1250 : 1100;
+      }
+    }
+
+    function setHeight(px) {
+      if (!px) return;
+      // Only update if the change is meaningful (avoid thrash).
+      var current = parseInt(frame.style.height || frame.getAttribute('height') || '0', 10);
+      if (Math.abs(current - px) < 10) return;
+      frame.style.height = px + 'px';
+    }
+
+    window.addEventListener('message', function(e) {
+      // Calendly sends from https://calendly.com
+      if (typeof e.origin !== 'string' || e.origin.indexOf('calendly.com') === -1) return;
+      var data = e.data;
+      if (!data || typeof data !== 'object') return;
+      var event = data.event;
+      if (typeof event !== 'string' || event.indexOf('calendly.') !== 0) return;
+      setHeight(heightFor(event));
+    });
+
+    // Re-evaluate on window resize (viewport crosses the mobile breakpoint).
+    var resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        // Use the last known state. If we never saw a message, fall back to default.
+        var last = frame.getAttribute('data-last-event') || 'calendly.event_type_viewed';
+        setHeight(heightFor(last));
+      }, 150);
+    });
+
+    // Remember the latest event so resize can reuse it.
+    window.addEventListener('message', function(e) {
+      if (typeof e.origin !== 'string' || e.origin.indexOf('calendly.com') === -1) return;
+      var data = e.data;
+      if (!data || typeof data !== 'object') return;
+      if (typeof data.event === 'string' && data.event.indexOf('calendly.') === 0) {
+        frame.setAttribute('data-last-event', data.event);
+      }
+    });
+
+    // Smooth the transition so the page does not jump.
+    frame.style.transition = 'height 0.35s ease';
+    // Initial mobile sizing in case the user loads on a narrow viewport.
+    if (isMobile()) setHeight(heightFor('calendly.event_type_viewed'));
   })();
 
   // If the user lands with #book in the URL, smooth-scroll to the Calendly section after layout.
