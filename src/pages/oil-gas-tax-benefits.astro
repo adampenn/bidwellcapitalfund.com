@@ -113,8 +113,9 @@ const faqs = [
   </section>
 
   <!-- The hook: real example -->
-  <section class="section">
+  <section class="section section-hook">
     <div class="container narrow">
+      <div class="article-col">
       <span class="section-label">From our last fund</span>
       <h2>$100,000 in, $99,000 deducted. Before a single barrel came out of the ground.</h2>
       <p class="lede">One investor in our most recent drilling fund committed $100,000 and was allocated approximately $99,000 in deductions against their 2025 ordinary income. This is the relevant line from their Schedule K-1:</p>
@@ -170,6 +171,7 @@ const faqs = [
       <p>Unlike most tax-advantaged real estate, these deductions offset <strong>ordinary income</strong>: W-2 wages, business income, short-term gains. They do not sit on the sidelines waiting for passive income to absorb them.</p>
 
       <p class="kicker">The government wants domestic energy developed. The tax code is built to reward the capital that makes it happen.</p>
+      </div>
     </div>
   </section>
 
@@ -237,7 +239,7 @@ const faqs = [
 </Layout>
 
 <style>
-  .hero-sm { padding: 5rem 0 2rem; }
+  .hero-sm { padding: 5rem 0 1.5rem; }
   .hero-sm h1 { margin: 0.5rem 0 1rem; }
   .hero-sm p { font-size: 1.125rem; max-width: 58ch; color: var(--text-secondary); }
 
@@ -245,29 +247,45 @@ const faqs = [
   .section-alt { background: var(--bg-secondary); }
   .section-cta { padding-top: 3rem; padding-bottom: 4rem; }
 
+  /* Tighten the gap between stat bar and the next section (default .section = 5rem each side). */
+  .section-tight + .section { padding-top: 3rem; }
+  .section-hook { padding-bottom: 3rem; }
+  .section-alt { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+
   /* Match the site-wide container width (1100px) used by /track-record and /about.
-     Reading width is controlled per-element inside via max-width on text blocks. */
+     Reading width is controlled by .article-col and per-element max-widths below. */
   .container.narrow {
     max-width: 1100px;
+  }
+
+  /* Centered reading column for prose-heavy sections (the hook).
+     Visual blocks like the stat bar, benefit cards, FAQ, and CTA box stay at the
+     full 1100px container. */
+  .article-col {
+    max-width: 52rem;
+    margin: 0 auto;
   }
 
   h2 {
     margin-bottom: 0.5rem;
   }
+  /* Cap the big headline so it wraps into 2-3 lines instead of stretching */
+  .article-col > h2 {
+    max-width: 28ch;
+  }
+
   .section-intro {
     color: var(--text-secondary);
     margin-bottom: 2rem;
     max-width: 54ch;
   }
 
-  /* Cap running text at a readable measure even though the container is full-width.
-     Benefit cards and FAQ items fill the container intentionally. */
+  /* Running text capped at a readable measure. */
   .hero-sm p,
   .lede,
   .kicker,
   .pull-quote,
-  .section > .container > p,
-  .section > .container.narrow > p {
+  .article-col > p {
     max-width: 62ch;
   }
 
@@ -321,7 +339,7 @@ const faqs = [
   }
 
   .k1-figure {
-    margin: 1.5rem 0;
+    margin: 1.75rem auto;
     padding: 1rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
