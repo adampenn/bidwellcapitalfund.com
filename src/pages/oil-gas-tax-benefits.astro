@@ -245,9 +245,10 @@ const faqs = [
   .section-alt { background: var(--bg-secondary); }
   .section-cta { padding-top: 3rem; padding-bottom: 4rem; }
 
-  /* Consistent reading width across hero, stats, body, FAQ, CTA. */
+  /* Match the site-wide container width (1100px) used by /track-record and /about.
+     Reading width is controlled per-element inside via max-width on text blocks. */
   .container.narrow {
-    max-width: 52rem;
+    max-width: 1100px;
   }
 
   h2 {
@@ -257,6 +258,17 @@ const faqs = [
     color: var(--text-secondary);
     margin-bottom: 2rem;
     max-width: 54ch;
+  }
+
+  /* Cap running text at a readable measure even though the container is full-width.
+     Benefit cards and FAQ items fill the container intentionally. */
+  .hero-sm p,
+  .lede,
+  .kicker,
+  .pull-quote,
+  .section > .container > p,
+  .section > .container.narrow > p {
+    max-width: 62ch;
   }
 
   /* Stat bar */
@@ -314,6 +326,7 @@ const faqs = [
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    max-width: 46rem;
   }
   .k1-figure svg {
     width: 100%;
