@@ -2,53 +2,66 @@
 import Layout from '../layouts/Layout.astro';
 
 // Active-income treatment leads, because it is what makes oil & gas
-// different from most other tax-advantaged investments.
+// different from most other tax-advantaged investments. Each benefit's detail
+// is a structured list of key points plus an optional tip callout, rather than
+// a run of undifferentiated paragraphs.
 const benefits = [
   {
     id: 'active',
     eyebrow: 'Benefit 1',
     title: 'Active-Income Treatment',
     tldr: 'Deductions offset W-2, business income, and short-term gains. Not just passive income.',
-    detail: `
-      <p>This is the feature that separates oil and gas from most other tax-advantaged alternatives.</p>
-      <p>Under IRC &sect;469, losses from passive activities generally cannot offset wages or business income. That is the rule that blocks most real-estate paper losses from hitting W-2.</p>
-      <p><strong>IRC &sect;469(c)(3)</strong> carves out a working-interest exception: a working interest in oil or gas is not a passive activity, provided your liability for the obligations of the activity is not limited. If the deal is structured correctly, deductions flow straight against ordinary income.</p>
-      <p class="tip"><strong>How we preserve the exception.</strong> Investors in our funds enter as general partners during the drilling phase, which preserves the working-interest exception and year-one IDC treatment. After completion we convert to limited partners to cap ongoing liability.</p>
-    `,
+    points: [
+      'This is the feature that separates oil and gas from most other tax-advantaged alternatives.',
+      'Under IRC &sect;469, losses from passive activities generally cannot offset wages or business income. That is the rule that blocks most real-estate paper losses from hitting W-2.',
+      '<strong>IRC &sect;469(c)(3)</strong> carves out a working-interest exception: a working interest in oil or gas is not a passive activity, provided your liability for the obligations of the activity is not limited. Deductions flow straight against ordinary income.',
+    ],
+    tip: {
+      title: 'How we preserve the exception',
+      body: 'Investors in our funds enter as general partners during the drilling phase, which preserves the working-interest exception and year-one IDC treatment. After completion we convert to limited partners to cap ongoing liability.',
+    },
   },
   {
     id: 'idcs',
     eyebrow: 'Benefit 2',
     title: 'Intangible Drilling Costs (IDCs)',
     tldr: '65 to 85% of your investment is typically deductible in year one.',
-    detail: `
-      <p>Under <strong>IRC &sect;263(c)</strong>, operators and their investors can elect to expense (rather than capitalize) the intangible costs of drilling a well. In a typical onshore well, IDCs represent 65 to 85% of total cost.</p>
-      <p>IDCs include labor, drilling fluids, site preparation, fuel, hauling, and bit repair. Anything that has no salvage value once the well is drilled.</p>
-      <p class="tip"><strong>December close rule.</strong> IDCs paid or incurred by year-end for a well that begins drilling by March 31 of the following year are generally deductible in the earlier year (Treas. Reg. &sect;1.612-4). This is what drives the "December close, deduct this year" framing in energy partnerships.</p>
-    `,
+    points: [
+      'Under <strong>IRC &sect;263(c)</strong>, operators and their investors can elect to expense (rather than capitalize) the intangible costs of drilling a well.',
+      'In a typical onshore well, IDCs represent 65 to 85% of total cost.',
+      'IDCs include labor, drilling fluids, site preparation, fuel, hauling, and bit repair. Anything that has no salvage value once the well is drilled.',
+    ],
+    tip: {
+      title: 'December close rule',
+      body: 'IDCs paid or incurred by year-end for a well that begins drilling by March 31 of the following year are generally deductible in the earlier year (Treas. Reg. &sect;1.612-4). This is what drives the &ldquo;December close, deduct this year&rdquo; framing in energy partnerships.',
+    },
   },
   {
     id: 'tdcs',
     eyebrow: 'Benefit 3',
     title: 'Tangible Drilling Costs (TDCs)',
     tldr: 'The remaining 15 to 35% is depreciated, often with bonus depreciation in year one.',
-    detail: `
-      <p>Tangible equipment (casing, tubing, wellhead, pumping units, tank batteries, flow lines) is capitalized and recovered through depreciation on a seven-year MACRS schedule under IRC &sect;168.</p>
-      <p>Bonus depreciation provisions have historically let investors write off a meaningful portion of TDCs in year one, though the bonus percentage has been phasing down under current law. Confirm the applicable rate with your CPA. It depends on when equipment is placed in service.</p>
-    `,
+    points: [
+      'Tangible equipment (casing, tubing, wellhead, pumping units, tank batteries, flow lines) is capitalized and recovered through depreciation on a seven-year MACRS schedule under IRC &sect;168.',
+      'Bonus depreciation provisions have historically let investors write off a meaningful portion of TDCs in year one, though the bonus percentage has been phasing down under current law.',
+      'Confirm the applicable rate with your CPA. It depends on when equipment is placed in service.',
+    ],
+    tip: null,
   },
   {
     id: 'depletion',
     eyebrow: 'Benefit 4',
     title: 'Depletion Allowance',
-    tldr: '15% of gross production revenue, deductible every year the well produces.',
-    detail: `
-      <p>Oil and gas are exhaustible resources. The tax code recognizes that with a depletion deduction against production revenue. There are two methods; eligible taxpayers generally take the higher of the two each year.</p>
-      <p><strong>Percentage depletion (&sect;613A)</strong>. 15% of gross income from the property, available to independent producers and royalty owners. Not limited to basis; it can continue after you have fully recovered your original investment. Capped at 100% of net income from the property and 65% of taxable income overall.</p>
-      <p><strong>Cost depletion (&sect;611 to &sect;613)</strong>. Allocates your adjusted basis across estimated reserves. Usually the smaller of the two.</p>
-      <p class="tip"><strong>Enhanced recovery properties.</strong> Qualifying enhanced-recovery and marginal-production wells can carry a higher effective rate, sometimes into the 25 to 30% range. A number of our units fall in this category.</p>
-      <p class="tip"><strong>Small producer cap.</strong> Percentage depletion is available so long as aggregate daily production does not exceed about 1,000 barrels of oil equivalent. Integrated majors are above the cap; virtually all private-placement investors are well below it.</p>
-    `,
+    tldr: '15 to 30% of gross production revenue, deductible every year the well produces.',
+    points: [
+      'Oil and gas are exhaustible resources. The tax code recognizes that with a depletion deduction against production revenue. Eligible taxpayers take the higher of two methods each year.',
+      '<strong>Percentage depletion (&sect;613A).</strong> 15% of gross income from the property for qualifying independent producers and royalty owners. Not limited to basis; it continues after you have fully recovered your original investment.',
+      '<strong>Cost depletion (&sect;611 to &sect;613).</strong> Allocates your adjusted basis across estimated reserves. Usually the smaller of the two.',
+    ],
+    tip: {
+      title: 'Enhanced recovery properties',
+      body: 'Qualifying enhanced-recovery and marginal-production wells can carry a higher effective rate, sometimes into the 25 to 30% range. A number of our units fall in this category.',
+    },
   },
 ];
 
@@ -84,7 +97,7 @@ const faqs = [
     <div class="container narrow">
       <span class="section-label fade-up fade-up-1">Guide</span>
       <h1 class="fade-up fade-up-2">Tax benefits of oil &amp; gas working interests</h1>
-      <p class="fade-up fade-up-3">One of the most tax-advantaged assets available to U.S. investors. Plain English up top, fine print where you can find it.</p>
+      <p class="fade-up fade-up-3">One of the most tax-advantaged assets available to U.S. investors.</p>
     </div>
   </section>
 
@@ -93,20 +106,16 @@ const faqs = [
     <div class="container narrow">
       <div class="stat-grid fade-up">
         <div class="stat">
-          <div class="stat-num">65&ndash;85%</div>
-          <div class="stat-label">IDCs as a share of well cost</div>
+          <div class="stat-num">~99%</div>
+          <div class="stat-label">Year 1 active deduction on your check</div>
         </div>
         <div class="stat">
-          <div class="stat-num">100%</div>
-          <div class="stat-label">IDCs deductible in year one</div>
+          <div class="stat-num">15&ndash;30%</div>
+          <div class="stat-label">Annual cashflow shielded from income</div>
         </div>
         <div class="stat">
-          <div class="stat-num">15%</div>
-          <div class="stat-label">Annual depletion on gross revenue</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">&sect;469</div>
-          <div class="stat-label">Losses offset W-2 &amp; business income</div>
+          <div class="stat-num">Ordinary</div>
+          <div class="stat-label">Offsets W-2, business, and short-term gains</div>
         </div>
       </div>
     </div>
@@ -179,8 +188,6 @@ const faqs = [
   <section class="section section-alt">
     <div class="container narrow">
       <span class="section-label">How it works</span>
-      <h2>The four benefits, one level down</h2>
-      <p class="section-intro">Skim the summary. Expand any card for the statute, thresholds, and gotchas.</p>
 
       <div class="benefit-list">
         {benefits.map((b) => (
@@ -193,7 +200,19 @@ const faqs = [
               </div>
               <span class="benefit-chevron" aria-hidden="true">+</span>
             </summary>
-            <div class="benefit-body" set:html={b.detail}></div>
+            <div class="benefit-body">
+              <ul class="benefit-points">
+                {b.points.map((p) => (
+                  <li set:html={p}></li>
+                ))}
+              </ul>
+              {b.tip && (
+                <div class="benefit-tip">
+                  <span class="benefit-tip-label">{b.tip.title}</span>
+                  <p set:html={b.tip.body}></p>
+                </div>
+              )}
+            </div>
           </details>
         ))}
       </div>
@@ -226,10 +245,6 @@ const faqs = [
         <p>If you are evaluating oil and gas as part of a broader tax and cashflow strategy, we are happy to walk through our current offerings and how these mechanics apply in each one.</p>
         <div class="cta-actions">
           <a href="/contact#book" class="btn btn-primary">Schedule a call</a>
-          <a href="/resources/oil-gas-tax-benefits.pdf" target="_blank" rel="noopener" class="btn btn-outline">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PDF
-          </a>
         </div>
       </div>
 
@@ -292,7 +307,7 @@ const faqs = [
   /* Stat bar */
   .stat-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0;
     padding: 1.75rem 1rem;
     background: var(--bg-secondary);
@@ -300,7 +315,7 @@ const faqs = [
     border-radius: var(--radius-lg);
   }
   .stat {
-    padding: 0 1rem;
+    padding: 0 1.25rem;
     border-right: 1px solid var(--border);
     text-align: center;
   }
@@ -315,20 +330,18 @@ const faqs = [
   .stat-label {
     font-size: 0.8125rem;
     color: var(--text-secondary);
-    line-height: 1.4;
+    line-height: 1.45;
   }
-  @media (max-width: 900px) {
+  @media (max-width: 700px) {
     .stat-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.25rem 0;
-      padding: 1.5rem 0.5rem;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      padding: 1.5rem 0.75rem;
     }
-    .stat { border-right: none; }
-    .stat:nth-child(odd) { border-right: 1px solid var(--border); }
-  }
-  @media (max-width: 500px) {
-    .stat-grid { grid-template-columns: 1fr; gap: 1.25rem; }
-    .stat { border-right: none !important; }
+    .stat {
+      border-right: none !important;
+      padding: 0 0.5rem;
+    }
   }
 
   /* Hook section */
@@ -436,25 +449,69 @@ const faqs = [
   .benefit-card[open] > summary > .benefit-chevron { transform: rotate(45deg); }
 
   .benefit-body {
-    padding: 0 1.5rem 1.5rem;
+    padding: 1.25rem 1.5rem 1.5rem;
     border-top: 1px dashed var(--border);
-    padding-top: 1rem;
     margin-top: 0.25rem;
     color: var(--text-secondary);
   }
-  .benefit-body p {
-    margin-bottom: 0.85rem;
-    line-height: 1.7;
+
+  /* Key points as a clean list with clear visual separation between items. */
+  .benefit-points {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
   }
-  .benefit-body p.tip {
+  .benefit-points li {
+    position: relative;
+    padding: 0.75rem 0 0.75rem 1.5rem;
+    line-height: 1.65;
+    border-bottom: 1px solid var(--border);
+  }
+  .benefit-points li:last-child {
+    border-bottom: none;
+  }
+  .benefit-points li:first-child {
+    padding-top: 0.25rem;
+  }
+  .benefit-points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.1rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .benefit-points li:first-child::before {
+    top: 0.6rem;
+  }
+  .benefit-points strong { color: var(--text-primary); font-weight: 500; }
+
+  /* Tip callout: distinct from the points list so it clearly reads as our commentary. */
+  .benefit-tip {
+    margin-top: 1.25rem;
+    padding: 1rem 1.15rem;
     background: var(--accent-subtle);
     border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--accent);
+  }
+  .benefit-tip-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .benefit-tip p {
+    margin: 0;
     color: var(--text-primary);
     font-size: 0.9375rem;
-    margin-top: 0.75rem;
+    line-height: 1.65;
   }
-  .benefit-body strong { color: var(--text-primary); font-weight: 500; }
+  .benefit-tip p strong { font-weight: 500; }
 
   /* FAQ */
   .faq-list {
