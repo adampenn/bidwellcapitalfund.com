@@ -1,56 +1,57 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-// Top-level "four benefits" — each is skimmable summary + expandable detail
+// Active-income treatment leads, because it is what makes oil & gas
+// different from most other tax-advantaged investments.
 const benefits = [
   {
-    id: 'idcs',
+    id: 'active',
     eyebrow: 'Benefit 1',
-    title: 'Intangible Drilling Costs (IDCs)',
-    tldr: '65–85% of your investment is typically deductible in year one.',
+    title: 'Active-Income Treatment',
+    tldr: 'Deductions offset W-2, business income, and short-term gains. Not just passive income.',
     detail: `
-      <p>Under <strong>IRC &sect;263(c)</strong>, operators and their investors can elect to expense — rather than capitalize — the intangible costs of drilling a well. In a typical onshore well, IDCs represent 65–85% of total cost.</p>
-      <p>IDCs include labor, drilling fluids, site preparation, fuel, hauling, and bit repair — anything that has no salvage value once the well is drilled.</p>
+      <p>This is the feature that separates oil and gas from most other tax-advantaged alternatives.</p>
+      <p>Under IRC &sect;469, losses from passive activities generally cannot offset wages or business income. That is the rule that blocks most real-estate paper losses from hitting W-2.</p>
+      <p><strong>IRC &sect;469(c)(3)</strong> carves out a working-interest exception: a working interest in oil or gas is not a passive activity, provided your liability for the obligations of the activity is not limited. If the deal is structured correctly, deductions flow straight against ordinary income.</p>
+      <p class="tip"><strong>How we preserve the exception.</strong> Investors in our funds enter as general partners during the drilling phase, which preserves the working-interest exception and year-one IDC treatment. After completion we convert to limited partners to cap ongoing liability.</p>
+    `,
+  },
+  {
+    id: 'idcs',
+    eyebrow: 'Benefit 2',
+    title: 'Intangible Drilling Costs (IDCs)',
+    tldr: '65 to 85% of your investment is typically deductible in year one.',
+    detail: `
+      <p>Under <strong>IRC &sect;263(c)</strong>, operators and their investors can elect to expense (rather than capitalize) the intangible costs of drilling a well. In a typical onshore well, IDCs represent 65 to 85% of total cost.</p>
+      <p>IDCs include labor, drilling fluids, site preparation, fuel, hauling, and bit repair. Anything that has no salvage value once the well is drilled.</p>
       <p class="tip"><strong>December close rule.</strong> IDCs paid or incurred by year-end for a well that begins drilling by March 31 of the following year are generally deductible in the earlier year (Treas. Reg. &sect;1.612-4). This is what drives the "December close, deduct this year" framing in energy partnerships.</p>
     `,
   },
   {
     id: 'tdcs',
-    eyebrow: 'Benefit 2',
+    eyebrow: 'Benefit 3',
     title: 'Tangible Drilling Costs (TDCs)',
-    tldr: 'The remaining 15–35% is depreciated — often with bonus depreciation in year one.',
+    tldr: 'The remaining 15 to 35% is depreciated, often with bonus depreciation in year one.',
     detail: `
-      <p>Tangible equipment — casing, tubing, wellhead, pumping units, tank batteries, flow lines — is capitalized and recovered through depreciation on a seven-year MACRS schedule under IRC &sect;168.</p>
-      <p>Bonus depreciation provisions have historically let investors write off a meaningful portion of TDCs in year one, though the bonus percentage has been phasing down under current law. Confirm the applicable rate with your CPA; it depends on when equipment is placed in service.</p>
+      <p>Tangible equipment (casing, tubing, wellhead, pumping units, tank batteries, flow lines) is capitalized and recovered through depreciation on a seven-year MACRS schedule under IRC &sect;168.</p>
+      <p>Bonus depreciation provisions have historically let investors write off a meaningful portion of TDCs in year one, though the bonus percentage has been phasing down under current law. Confirm the applicable rate with your CPA. It depends on when equipment is placed in service.</p>
     `,
   },
   {
     id: 'depletion',
-    eyebrow: 'Benefit 3',
+    eyebrow: 'Benefit 4',
     title: 'Depletion Allowance',
     tldr: '15% of gross production revenue, deductible every year the well produces.',
     detail: `
       <p>Oil and gas are exhaustible resources. The tax code recognizes that with a depletion deduction against production revenue. There are two methods; eligible taxpayers generally take the higher of the two each year.</p>
-      <p><strong>Percentage depletion (&sect;613A)</strong> — 15% of gross income from the property, available to independent producers and royalty owners. Not limited to basis; it can continue after you have fully recovered your original investment (capped at 100% of net income from the property and 65% of taxable income overall).</p>
-      <p><strong>Cost depletion (&sect;611–&sect;613)</strong> — allocates your adjusted basis across estimated reserves. Usually the smaller of the two.</p>
-      <p class="tip"><strong>Small producer cap.</strong> Percentage depletion is available so long as aggregate daily production does not exceed ~1,000 barrels of oil equivalent. Integrated majors are above the cap; virtually all private-placement investors are well below it.</p>
-    `,
-  },
-  {
-    id: 'active',
-    eyebrow: 'Benefit 4',
-    title: 'Active-Income Treatment',
-    tldr: 'Deductions offset W-2, business income, and short-term gains — not just passive income.',
-    detail: `
-      <p>This is the feature that separates oil and gas from most other tax-advantaged alternatives.</p>
-      <p>Under IRC &sect;469, losses from passive activities generally cannot offset wages or business income. That is the rule that blocks most real-estate paper losses from hitting W-2.</p>
-      <p><strong>IRC &sect;469(c)(3)</strong> carves out a working-interest exception: a working interest in oil or gas is <em>not</em> a passive activity, provided your liability for the obligations of the activity is not limited. If the deal is structured correctly, deductions flow straight against ordinary income.</p>
-      <p class="tip"><strong>Narrower than it looks.</strong> If you convert to a limited-partner interest or the entity structure changes mid-year to limit liability, the exception can be lost. This is why most drilling funds structure investors as general partners during drilling and convert to limited partners after completion.</p>
+      <p><strong>Percentage depletion (&sect;613A)</strong>. 15% of gross income from the property, available to independent producers and royalty owners. Not limited to basis; it can continue after you have fully recovered your original investment. Capped at 100% of net income from the property and 65% of taxable income overall.</p>
+      <p><strong>Cost depletion (&sect;611 to &sect;613)</strong>. Allocates your adjusted basis across estimated reserves. Usually the smaller of the two.</p>
+      <p class="tip"><strong>Enhanced recovery properties.</strong> Qualifying enhanced-recovery and marginal-production wells can carry a higher effective rate, sometimes into the 25 to 30% range. A number of our units fall in this category.</p>
+      <p class="tip"><strong>Small producer cap.</strong> Percentage depletion is available so long as aggregate daily production does not exceed about 1,000 barrels of oil equivalent. Integrated majors are above the cap; virtually all private-placement investors are well below it.</p>
     `,
   },
 ];
 
-// FAQ-style "fine print" — all collapsed by default
 const faqs = [
   {
     q: 'What about California?',
@@ -58,38 +59,38 @@ const faqs = [
   },
   {
     q: 'What about AMT?',
-    a: `<p>Historically, excess IDCs and percentage depletion were AMT preference items under IRC &sect;57 and could claw back part of the benefit. The Tax Cuts and Jobs Act raised AMT exemptions enough that AMT is rarely the controlling factor for individuals post-2018.</p><p>It still needs to be modeled case-by-case. For taxpayers with very large IDC deductions relative to regular taxable income, or with large SALT add-backs, AMT can still reduce the cash value of the first-year deduction.</p>`,
+    a: `<p>Historically, excess IDCs and percentage depletion were AMT preference items under IRC &sect;57 and could claw back part of the benefit. The Tax Cuts and Jobs Act raised AMT exemptions enough that AMT is rarely the controlling factor for individuals post-2018.</p><p>It still needs to be modeled case by case. For taxpayers with very large IDC deductions relative to regular taxable income, or with large SALT add-backs, AMT can still reduce the cash value of the first-year deduction.</p>`,
   },
   {
-    q: 'What happens when I exit? (Recapture)',
-    a: `<p>The deductions above reduce your basis in the working interest. When the interest is sold, that basis reduction creates ordinary-income recapture under IRC &sect;1254 to the extent of prior IDC deductions and depletion in excess of basis. Gain above the recapture amount is typically capital gain.</p><p>You are pulling deductions forward, not erasing them. The economic benefit is the time value of money and the rate arbitrage between ordinary income (deducted at your marginal rate today) and capital gain (recaptured at lower rates on exit).</p>`,
+    q: 'Is there recapture at the end?',
+    a: `<p>There can be. IDC deductions and depletion reduce your basis in the working interest, and on a sale, that basis reduction creates ordinary-income recapture under IRC &sect;1254 to the extent of prior deductions in excess of basis.</p><p><strong>In practice, we do not typically sell.</strong> Our model is to hold working interests and take distributions from ongoing production for the life of the well, not to flip the asset. If we never sell, there is no recapture event. If a particular deal does sell, the rate arbitrage (ordinary-rate deduction today against potentially capital-gain-rate treatment on the spread above basis) is still usually in the investor&rsquo;s favor.</p>`,
   },
   {
-    q: 'How are these deals structured?',
-    a: `<p>The tax benefits above only apply if the deal is structured as a direct working interest. In private-placement energy funds, that typically looks like:</p><ul><li><strong>General partnership converting to LP.</strong> Investors enter as GPs during drilling (preserving the working-interest exception and year-one IDC treatment), then convert to LPs after completion to cap ongoing liability.</li><li><strong>Multi-member LLC taxed as partnership</strong> where liability is not limited for the working interest itself. Less common.</li><li><strong>Direct fractional assignment</strong> of a working interest with a separate joint operating agreement. Rare at retail sizes.</li></ul><p>When reading a PPM, the tax section and operating agreement should describe exactly how the working-interest exception and IDC election are preserved. If they do not, ask.</p>`,
+    q: 'How do you structure the partnership?',
+    a: `<p>Every fund we run uses the same structure: <strong>general partnership converting to limited partnership</strong>. Investors enter as general partners during the drilling phase. That preserves the working-interest exception under &sect;469(c)(3) and the year-one IDC deduction. Once the wells are drilled and placed in production, the entity converts to a limited partnership to cap each investor&rsquo;s ongoing liability to their capital contribution.</p><p>This is the structure referenced throughout this page. The PPM and operating agreement describe the conversion mechanics in detail.</p>`,
   },
   {
     q: 'What should I ask my CPA?',
-    a: `<p>Almost every question that matters here — AMT exposure, state conformity, timing of the IDC deduction, interaction with other passive losses, the right entity to hold the interest in — depends on facts only your CPA can see. The worst outcome is investing for the tax benefits and then discovering at filing time that your CPA does not understand K-1 reporting from a working-interest partnership.</p><p>We publish a free <a href="/resources">CPA interview questions guide</a> that includes a dedicated oil &amp; gas section. We are also happy to connect prospective investors with CPAs who regularly handle working-interest K-1s.</p>`,
+    a: `<p>Almost every question that matters here (AMT exposure, state conformity, timing of the IDC deduction, interaction with other passive losses, the right entity to hold the interest in) depends on facts only your CPA can see. The worst outcome is investing for the tax benefits and then discovering at filing time that your CPA does not understand K-1 reporting from a working-interest partnership.</p><p>We publish a free <a href="/resources">CPA interview questions guide</a> that includes a dedicated oil &amp; gas section. We are also happy to connect prospective investors with CPAs who regularly handle working-interest K-1s.</p>`,
   },
 ];
 ---
 
 <Layout
   title="Oil & Gas Tax Benefits - Bidwell Capital"
-  description="A plain-English guide to the tax treatment of oil and gas working interests: IDCs, depletion, and how deductions can offset active income."
+  description="A plain-English guide to the tax treatment of oil and gas working interests: active-income deductions, IDCs, depletion, and the fine print."
 >
   <section class="hero-sm">
-    <div class="container">
+    <div class="container narrow">
       <span class="section-label fade-up fade-up-1">Guide</span>
       <h1 class="fade-up fade-up-2">Tax benefits of oil &amp; gas working interests</h1>
-      <p class="fade-up fade-up-3">One of the most tax-advantaged assets available to U.S. investors &mdash; in plain English, with the fine print where you can find it.</p>
+      <p class="fade-up fade-up-3">One of the most tax-advantaged assets available to U.S. investors. Plain English up top, fine print where you can find it.</p>
     </div>
   </section>
 
   <!-- Stat bar -->
   <section class="section section-tight">
-    <div class="container">
+    <div class="container narrow">
       <div class="stat-grid fade-up">
         <div class="stat">
           <div class="stat-num">65&ndash;85%</div>
@@ -115,7 +116,7 @@ const faqs = [
   <section class="section">
     <div class="container narrow">
       <span class="section-label">From our last fund</span>
-      <h2>$100,000 in, $99,000 deducted &mdash; before a single barrel came out of the ground.</h2>
+      <h2>$100,000 in, $99,000 deducted. Before a single barrel came out of the ground.</h2>
       <p class="lede">One investor in our most recent drilling fund committed $100,000 and was allocated approximately $99,000 in deductions against their 2025 ordinary income. This is the relevant line from their Schedule K-1:</p>
 
       <figure class="k1-figure">
@@ -161,18 +162,18 @@ const faqs = [
             <line x1="440" y1="200" x2="620" y2="200" stroke="#1a1915" />
           </g>
         </svg>
-        <figcaption>Schedule K-1, Item L &mdash; Partner&rsquo;s Capital Account Analysis.</figcaption>
+        <figcaption>Schedule K-1, Item L. Partner&rsquo;s Capital Account Analysis.</figcaption>
       </figure>
 
-      <p class="pull-quote">For an investor in the top federal bracket, that is roughly <strong>$37,000 in direct tax savings</strong> &mdash; <em>before a single barrel of oil came out of the ground.</em></p>
+      <p class="pull-quote">For an investor in the top federal bracket, that is roughly <strong>$37,000 in direct tax savings</strong>. <em>Before a single barrel of oil came out of the ground.</em></p>
 
-      <p>Unlike most tax-advantaged real estate, these deductions offset <strong>ordinary income</strong> &mdash; W-2 wages, business income, short-term gains &mdash; not just other passive income. They do not sit on the sidelines waiting for passive income to absorb them.</p>
+      <p>Unlike most tax-advantaged real estate, these deductions offset <strong>ordinary income</strong>: W-2 wages, business income, short-term gains. They do not sit on the sidelines waiting for passive income to absorb them.</p>
 
       <p class="kicker">The government wants domestic energy developed. The tax code is built to reward the capital that makes it happen.</p>
     </div>
   </section>
 
-  <!-- The four benefits — expandable -->
+  <!-- The four benefits, expandable -->
   <section class="section section-alt">
     <div class="container narrow">
       <span class="section-label">How it works</span>
@@ -202,7 +203,7 @@ const faqs = [
     <div class="container narrow">
       <span class="section-label">Questions investors ask</span>
       <h2>The fine print</h2>
-      <p class="section-intro">State conformity, AMT, exit treatment, deal structure. Expand what&rsquo;s relevant to you.</p>
+      <p class="section-intro">State conformity, AMT, exit treatment, deal structure. Expand what is relevant to you.</p>
 
       <div class="faq-list">
         {faqs.map((f) => (
@@ -218,13 +219,11 @@ const faqs = [
   <!-- CTA -->
   <section class="section section-cta">
     <div class="container narrow">
-      <div class="cta-row">
-        <div>
-          <h2>Talk through a current deal</h2>
-          <p>If you are evaluating oil and gas as part of a broader tax and cashflow strategy, we are happy to walk through our current offerings and how these mechanics apply to each one.</p>
-        </div>
+      <div class="cta-box">
+        <h2>Talk through a current deal</h2>
+        <p>If you are evaluating oil and gas as part of a broader tax and cashflow strategy, we are happy to walk through our current offerings and how these mechanics apply in each one.</p>
         <div class="cta-actions">
-          <a href="/contact" class="btn btn-primary">Schedule a call</a>
+          <a href="/contact#book" class="btn btn-primary">Schedule a call</a>
           <a href="/resources/oil-gas-tax-benefits.pdf" target="_blank" rel="noopener" class="btn btn-outline">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download PDF
@@ -246,8 +245,9 @@ const faqs = [
   .section-alt { background: var(--bg-secondary); }
   .section-cta { padding-top: 3rem; padding-bottom: 4rem; }
 
+  /* Consistent reading width across hero, stats, body, FAQ, CTA. */
   .container.narrow {
-    max-width: 44rem;
+    max-width: 52rem;
   }
 
   h2 {
@@ -256,7 +256,7 @@ const faqs = [
   .section-intro {
     color: var(--text-secondary);
     margin-bottom: 2rem;
-    max-width: 50ch;
+    max-width: 54ch;
   }
 
   /* Stat bar */
@@ -451,7 +451,7 @@ const faqs = [
     line-height: 1;
     flex-shrink: 0;
   }
-  .faq-item[open] > summary::after { content: '−'; }
+  .faq-item[open] > summary::after { content: '\2212'; }
   .faq-body {
     padding: 0 0 1.25rem;
     color: var(--text-secondary);
@@ -471,40 +471,31 @@ const faqs = [
   .faq-body a { color: var(--accent); }
 
   /* CTA */
-  .cta-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2rem;
-    align-items: center;
-    padding: 2rem;
+  .cta-box {
+    padding: 2.5rem 2rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     margin-bottom: 2rem;
+    text-align: center;
   }
-  .cta-row h2 {
-    font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+  .cta-box h2 {
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
     margin-bottom: 0.5rem;
   }
-  .cta-row p {
+  .cta-box p {
     color: var(--text-secondary);
-    margin: 0;
-    max-width: 48ch;
+    margin: 0 auto;
+    max-width: 52ch;
   }
   .cta-actions {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.75rem;
   }
   .cta-actions .btn { white-space: nowrap; }
-
-  @media (max-width: 700px) {
-    .cta-row {
-      grid-template-columns: 1fr;
-      padding: 1.5rem;
-    }
-    .cta-actions { flex-direction: row; flex-wrap: wrap; }
-  }
 
   .disclaimer {
     font-size: 0.8125rem;

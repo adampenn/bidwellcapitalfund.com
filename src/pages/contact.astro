@@ -74,43 +74,77 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- Calendly -->
+  <!-- Calendly. Direct iframe (no widget.js wrapper), only one theme rendered, eager-loaded. -->
   <section id="book" class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
       <span class="section-label">Schedule a Call</span>
       <h2>Book a consultation</h2>
       <p style="margin-bottom: 2rem; max-width: 55ch; margin-left: auto; margin-right: auto;">Pick a time that works for you. No commitment, no pressure. Just a conversation about your goals.</p>
       <div class="calendly-wrap">
-        <div id="calendly-dark" class="calendly-inline-widget" data-url="https://calendly.com/adampenn/bc-consultation?background_color=1a1816&text_color=e8e0d6&primary_color=c48a5a" style="min-width:320px;height:700px;"></div>
-        <div id="calendly-light" class="calendly-inline-widget" data-url="https://calendly.com/adampenn/bc-consultation?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a" style="min-width:320px;height:700px;"></div>
+        <div id="calendly-skeleton" class="calendly-skeleton" aria-hidden="true"></div>
+        <iframe
+          id="calendly-frame"
+          title="Schedule a consultation with Bidwell Capital"
+          src="https://calendly.com/adampenn/bc-consultation?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a&hide_gdpr_banner=1"
+          data-theme-loaded="light"
+          width="100%"
+          height="700"
+          frameborder="0"
+          loading="eager"
+          style="display:block; border:0; min-width:320px; background:transparent;"
+        ></iframe>
       </div>
     </div>
   </section>
 </Layout>
 
-<script is:inline src="https://assets.calendly.com/assets/external/widget.js" async></script>
 <script is:inline>
-  function updateCalendly() {
-    var theme = document.documentElement.getAttribute('data-theme');
-    var isDark = theme !== 'light';
-    var darkEl = document.getElementById('calendly-dark');
-    var lightEl = document.getElementById('calendly-light');
-    if (darkEl) darkEl.style.display = isDark ? 'block' : 'none';
-    if (lightEl) lightEl.style.display = isDark ? 'none' : 'block';
-  }
-  // Run on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', updateCalendly);
-  } else {
-    updateCalendly();
-  }
-  // Watch for theme changes
-  var observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(m) {
-      if (m.attributeName === 'data-theme') updateCalendly();
+  // Render only the theme-matching Calendly iframe. No widget.js wrapper, no second iframe.
+  (function() {
+    var BASE = 'https://calendly.com/adampenn/bc-consultation';
+    var PARAMS = {
+      dark:  '?background_color=1a1816&text_color=e8e0d6&primary_color=c48a5a&hide_gdpr_banner=1',
+      light: '?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a&hide_gdpr_banner=1'
+    };
+    var frame = document.getElementById('calendly-frame');
+    var skeleton = document.getElementById('calendly-skeleton');
+    if (!frame) return;
+    function apply() {
+      var theme = document.documentElement.getAttribute('data-theme');
+      var key = theme === 'light' ? 'light' : 'dark';
+      var url = BASE + PARAMS[key];
+      if (frame.getAttribute('data-theme-loaded') !== key) {
+        frame.src = url;
+        frame.setAttribute('data-theme-loaded', key);
+      }
+    }
+    frame.addEventListener('load', function() {
+      if (frame.src.indexOf('about:blank') !== -1) return;
+      if (skeleton) {
+        skeleton.style.opacity = '0';
+        setTimeout(function() { if (skeleton) skeleton.style.display = 'none'; }, 250);
+      }
     });
-  });
-  observer.observe(document.documentElement, { attributes: true });
+    apply();
+    new MutationObserver(function(ms) {
+      for (var i = 0; i < ms.length; i++) if (ms[i].attributeName === 'data-theme') { apply(); break; }
+    }).observe(document.documentElement, { attributes: true });
+  })();
+
+  // If the user lands with #book in the URL, smooth-scroll to the Calendly section after layout.
+  (function() {
+    if (window.location.hash !== '#book') return;
+    function scrollToBook() {
+      var el = document.getElementById('book');
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { setTimeout(scrollToBook, 50); });
+    } else {
+      setTimeout(scrollToBook, 50);
+    }
+  })();
 </script>
 
 <style>
@@ -182,9 +216,39 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .calendly-wrap {
+    position: relative;
     max-width: 900px;
     margin: 0 auto;
     border-radius: 12px;
     overflow: hidden;
+    min-height: 700px;
+    background: var(--bg);
+  }
+
+  /* Shimmer skeleton while the Calendly iframe contents paint */
+  .calendly-skeleton {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background:
+      linear-gradient(
+        90deg,
+        var(--bg) 0%,
+        var(--bg-elevated) 45%,
+        var(--bg) 100%
+      );
+    background-size: 200% 100%;
+    animation: calendly-shimmer 1.4s ease-in-out infinite;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  @keyframes calendly-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  #calendly-frame {
+    position: relative;
+    z-index: 2;
   }
 </style>

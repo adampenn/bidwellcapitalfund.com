@@ -34,6 +34,11 @@ Building an internal tool at `/rcr-timeline` for modeling Oklahoma oil well deve
 - Deploy to Render (build: `npm install && npm run build`, publish: `dist`)
 - Design: DM Serif Display + DM Sans fonts, copper accent (#c48a5a), dark bg (#0f0e0c)
 
+## Writing Style
+- **No em-dashes.** Do not use `—` or `&mdash;` in page copy, marketing text, or headings. It reads as AI-generated. Prefer commas, colons, periods, parentheses, or rewording. En-dashes (`–`) are fine for numeric ranges like `65–85%`.
+- Keep prose tight and operator-voiced. Short sentences. Avoid hedging clauses.
+- Disclaimers should be plain and direct, not padded with qualifiers.
+
 ## Key Files
 - `src/pages/rcr-timeline.astro` - The oil timeline tool (large single file)
 - `src/pages/index.astro` - Homepage
