@@ -388,12 +388,33 @@ def build():
         "rate today) and capital gain (recaptured at potentially lower rates on exit). For a long-term holder, "
         "that arbitrage is often substantial. For a short-term holder, it can approach zero.", body_style))
 
-    # --- Worked Example ---
-    story.append(Paragraph("Worked Example", h2_style))
+    # --- Real Example ---
+    story.append(Paragraph("A Real Example", h2_style))
     story.append(Paragraph(
-        "To make this concrete, assume a $100,000 investment in a direct working-interest drilling program. The "
-        "numbers below are illustrative only; actual allocations are determined by the specific well costs and "
-        "partnership terms, and every deal is different.", body_style))
+        "From our most recent drilling fund: one investor committed <b>$100,000</b> and was allocated approximately "
+        "<b>$99,000 in deductions</b> against their 2025 ordinary income. The relevant line from their Schedule K-1 "
+        "showed $100,000 contributed, ($98,671) current-year net income (loss), and an ending capital account of $1,329.",
+        body_style))
+
+    quote_style = ParagraphStyle(
+        "quote", fontName="Helvetica", fontSize=11, leading=15,
+        textColor=TEXT_PRIMARY, leftIndent=10, spaceBefore=4, spaceAfter=10,
+        borderColor=ACCENT, borderWidth=0, borderPadding=0,
+    )
+    story.append(Paragraph(
+        "For someone in the top federal bracket, that is roughly <b>$37,000 in direct tax savings</b> &mdash; "
+        "<i>before a single barrel of oil came out of the ground.</i>", quote_style))
+
+    story.append(Paragraph(
+        "Because a qualifying working interest is not a passive activity under &sect;469(c)(3), that loss offsets "
+        "ordinary income &mdash; W-2, business income, short-term gains &mdash; not just other passive income. "
+        "Unlike most real-estate depreciation, it does not sit on the sidelines waiting for passive income to absorb it.",
+        body_style))
+
+    story.append(Paragraph("How the numbers get there", h3_style))
+    story.append(Paragraph(
+        "The table below is the generic version of the mechanics. Actual allocations vary by well, partnership, and "
+        "year of equipment placed-in-service.", body_style))
 
     cell_h = ParagraphStyle("cellh", fontName="Helvetica-Bold", fontSize=8.5, leading=11, textColor=TEXT_TERTIARY, alignment=TA_LEFT)
     cell_b = ParagraphStyle("cellb", fontName="Helvetica", fontSize=10, leading=13, textColor=TEXT_PRIMARY)
