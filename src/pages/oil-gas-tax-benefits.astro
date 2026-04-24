@@ -65,26 +65,41 @@ const benefits = [
   },
 ];
 
+// FAQ bodies use the same bulleted structure as benefit cards for visual
+// consistency. Removed the "How do you structure the partnership?" entry
+// because it repeated Benefit 1's "How we preserve the exception" tip verbatim.
 const faqs = [
   {
     q: 'What about California?',
-    a: `<p>California does not fully conform to the federal IDC rules. CA generally requires IDCs to be <strong>amortized over 60 months</strong> rather than expensed in year one. That does not eliminate the deduction; it stretches it out. For California residents, your federal and state K-1s will show different numbers.</p><p>Texas has no personal income tax. New York, Massachusetts, and most other states follow federal treatment on IDCs. Your CPA should be modeling the federal and state returns together.</p>`,
+    points: [
+      'California does not fully conform to federal IDC rules. CA generally requires IDCs to be <strong>amortized over 60 months</strong> rather than expensed in year one. That does not eliminate the deduction; it stretches it out.',
+      'Your federal and state K-1s will show different numbers if you live in CA.',
+      'Texas has no personal income tax. New York, Massachusetts, and most other states follow federal treatment. Have your CPA model federal and state returns together.',
+    ],
   },
   {
     q: 'What about AMT?',
-    a: `<p>Historically, excess IDCs and percentage depletion were AMT preference items under IRC &sect;57 and could claw back part of the benefit. The Tax Cuts and Jobs Act raised AMT exemptions enough that AMT is rarely the controlling factor for individuals post-2018.</p><p>It still needs to be modeled case by case. For taxpayers with very large IDC deductions relative to regular taxable income, or with large SALT add-backs, AMT can still reduce the cash value of the first-year deduction.</p>`,
+    points: [
+      'Historically, excess IDCs and percentage depletion were AMT preference items under IRC &sect;57 and could claw back part of the benefit.',
+      'The Tax Cuts and Jobs Act raised AMT exemptions enough that AMT is rarely the controlling factor for individuals post-2018.',
+      'It still needs to be modeled case by case for taxpayers with very large deductions relative to regular taxable income, or with large SALT add-backs.',
+    ],
   },
   {
     q: 'Is there recapture at the end?',
-    a: `<p>There can be. IDC deductions and depletion reduce your basis in the working interest, and on a sale, that basis reduction creates ordinary-income recapture under IRC &sect;1254 to the extent of prior deductions in excess of basis.</p><p><strong>In practice, we do not typically sell.</strong> Our model is to hold working interests and take distributions from ongoing production for the life of the well, not to flip the asset. If we never sell, there is no recapture event. If a particular deal does sell, the rate arbitrage (ordinary-rate deduction today against potentially capital-gain-rate treatment on the spread above basis) is still usually in the investor&rsquo;s favor.</p>`,
-  },
-  {
-    q: 'How do you structure the partnership?',
-    a: `<p>Every fund we run uses the same structure: <strong>general partnership converting to limited partnership</strong>. Investors enter as general partners during the drilling phase. That preserves the working-interest exception under &sect;469(c)(3) and the year-one IDC deduction. Once the wells are drilled and placed in production, the entity converts to a limited partnership to cap each investor&rsquo;s ongoing liability to their capital contribution.</p><p>This is the structure referenced throughout this page. The PPM and operating agreement describe the conversion mechanics in detail.</p>`,
+    points: [
+      'Technically yes. Prior deductions reduce your basis, and on a sale, that creates ordinary-income recapture under IRC &sect;1254 to the extent of prior deductions in excess of basis.',
+      '<strong>In practice, we do not typically sell.</strong> Our model is to hold working interests and take distributions from ongoing production for the life of the well.',
+      'No sale, no recapture event. If a deal ever does sell, the rate arbitrage (ordinary-rate deduction today against capital-gain treatment on any spread above basis) is usually still in the investor&rsquo;s favor.',
+    ],
   },
   {
     q: 'What should I ask my CPA?',
-    a: `<p>Almost every question that matters here (AMT exposure, state conformity, timing of the IDC deduction, interaction with other passive losses, the right entity to hold the interest in) depends on facts only your CPA can see. The worst outcome is investing for the tax benefits and then discovering at filing time that your CPA does not understand K-1 reporting from a working-interest partnership.</p><p>We publish a free <a href="/resources">CPA interview questions guide</a> that includes a dedicated oil &amp; gas section. We are also happy to connect prospective investors with CPAs who regularly handle working-interest K-1s.</p>`,
+    points: [
+      'Almost every question that matters (AMT exposure, state conformity, timing of the deduction, interaction with other passive losses, the right entity) depends on facts only your CPA can see.',
+      'The worst outcome is investing for the tax benefits and then discovering at filing time that your CPA does not understand K-1 reporting from a working-interest partnership.',
+      'We publish a free <a href="/resources">CPA interview questions guide</a> with a dedicated oil and gas section. We can also connect you with CPAs who regularly handle these K-1s.',
+    ],
   },
 ];
 ---
@@ -223,14 +238,18 @@ const faqs = [
   <section class="section">
     <div class="container narrow">
       <span class="section-label">Questions investors ask</span>
-      <h2>The fine print</h2>
-      <p class="section-intro">State conformity, AMT, exit treatment, deal structure. Expand what is relevant to you.</p>
 
       <div class="faq-list">
         {faqs.map((f) => (
           <details class="faq-item">
             <summary>{f.q}</summary>
-            <div class="faq-body" set:html={f.a}></div>
+            <div class="faq-body">
+              <ul class="benefit-points">
+                {f.points.map((p) => (
+                  <li set:html={p}></li>
+                ))}
+              </ul>
+            </div>
           </details>
         ))}
       </div>
@@ -544,16 +563,18 @@ const faqs = [
     padding: 0 0 1.25rem;
     color: var(--text-secondary);
   }
-  .faq-body p {
-    margin-bottom: 0.75rem;
-    line-height: 1.7;
+  .faq-body .benefit-points {
+    margin: 0;
   }
-  .faq-body ul {
-    margin: 0 0 0.75rem 1.25rem;
+  .faq-body .benefit-points li {
+    border-bottom-color: rgba(0, 0, 0, 0);
+    padding: 0.65rem 0 0.65rem 1.5rem;
   }
-  .faq-body li {
-    margin-bottom: 0.5rem;
-    line-height: 1.7;
+  .faq-body .benefit-points li:first-child {
+    padding-top: 0;
+  }
+  .faq-body .benefit-points li:first-child::before {
+    top: 0.5rem;
   }
   .faq-body strong { color: var(--text-primary); font-weight: 500; }
   .faq-body a { color: var(--accent); }
