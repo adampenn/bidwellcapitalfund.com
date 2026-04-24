@@ -145,55 +145,13 @@ const faqs = [
       <p class="lede">One investor in our most recent drilling fund committed $100,000 and was allocated approximately $99,000 in deductions against their 2025 ordinary income. This is the relevant line from their Schedule K-1:</p>
 
       <figure class="k1-figure">
-        {/* If the real K-1 PNG exists at /resources/k1-capital-account.png, use it; otherwise fall back to the SVG recreation below. Swap to <img> once the file is uploaded. */}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" role="img" aria-label="Schedule K-1 Partner's Capital Account Analysis showing $100,000 capital contributed, negative $98,671 current year net income, ending capital account of $1,329.">
-          <!-- Paper and heavy outer border to match the real form cell -->
-          <rect x="0" y="0" width="640" height="200" fill="#ffffff" />
-          <rect x="4" y="4" width="632" height="192" fill="none" stroke="#1a1915" stroke-width="2" />
-          <!-- Small tick marks on the right edge mirroring form guides -->
-          <line x1="632" y1="52" x2="640" y2="52" stroke="#1a1915" stroke-width="1.5" />
-          <line x1="632" y1="148" x2="640" y2="148" stroke="#1a1915" stroke-width="1.5" />
-
-          <!-- 'L' label and analysis title -->
-          <text x="18" y="24" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1a1915">L</text>
-          <text x="320" y="24" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1a1915">Partner's Capital Account Analysis</text>
-
-          <g font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#1a1915">
-            <text x="18" y="52" font-weight="700">Beginning capital account</text>
-            <text x="250" y="52" fill="#4a4a4a" letter-spacing="2">. . . . . . . . . . . . . . . . . . .</text>
-            <text x="420" y="52">$</text>
-            <line x1="440" y1="54" x2="622" y2="54" stroke="#1a1915" stroke-width="1" />
-
-            <text x="18" y="76">Capital contributed during the year</text>
-            <text x="260" y="76" fill="#4a4a4a" letter-spacing="2">. . . . . . . . . . . . . .</text>
-            <text x="420" y="76">$</text>
-            <text x="618" y="76" text-anchor="end" font-weight="700">100,000</text>
-            <line x1="440" y1="78" x2="622" y2="78" stroke="#1a1915" stroke-width="1" />
-
-            <text x="18" y="100">Current year net income (loss)</text>
-            <text x="256" y="100" fill="#4a4a4a" letter-spacing="2">. . . . . . . . . . . . . . . .</text>
-            <text x="420" y="100">$</text>
-            <text x="618" y="100" text-anchor="end" font-weight="700">-98,671</text>
-            <line x1="440" y1="102" x2="622" y2="102" stroke="#1a1915" stroke-width="1" />
-
-            <text x="18" y="124">Other increase (decrease) (attach explanation)</text>
-            <text x="318" y="124" fill="#4a4a4a" letter-spacing="2">. . . . . . .</text>
-            <text x="420" y="124">$</text>
-            <line x1="440" y1="126" x2="622" y2="126" stroke="#1a1915" stroke-width="1" />
-
-            <text x="18" y="148">Withdrawals and distributions</text>
-            <text x="254" y="148" fill="#4a4a4a" letter-spacing="2">. . . . . . . . . . . . . . . . .</text>
-            <text x="420" y="148">$ (</text>
-            <text x="620" y="148" text-anchor="end">)</text>
-            <line x1="440" y1="150" x2="620" y2="150" stroke="#1a1915" stroke-width="1" />
-
-            <text x="18" y="172" font-weight="700">Ending capital account</text>
-            <text x="248" y="172" fill="#4a4a4a" letter-spacing="2">. . . . . . . . . . . . . . . . . . .</text>
-            <text x="420" y="172">$</text>
-            <text x="618" y="172" text-anchor="end" font-weight="700">1,329</text>
-            <line x1="440" y1="174" x2="622" y2="174" stroke="#1a1915" stroke-width="1" />
-          </g>
-        </svg>
+        <img
+          src="/resources/k1-capital-account.jpg"
+          alt="Schedule K-1, Item L: $100,000 capital contributed, -$98,671 current year net income, $1,329 ending capital account."
+          width="739"
+          height="226"
+          loading="lazy"
+        />
         <figcaption>Schedule K-1, Item L. Partner&rsquo;s Capital Account Analysis.</figcaption>
       </figure>
 
@@ -385,11 +343,13 @@ const faqs = [
     border-radius: var(--radius);
     max-width: 46rem;
   }
-  .k1-figure svg {
+  .k1-figure svg,
+  .k1-figure img {
     width: 100%;
     height: auto;
     display: block;
     border-radius: var(--radius-sm);
+    background: #ffffff;
   }
   .k1-figure figcaption {
     margin-top: 0.75rem;
