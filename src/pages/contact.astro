@@ -75,7 +75,7 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Calendly. Direct iframe (no widget.js wrapper), only one theme rendered, eager-loaded. -->
-  <section id="book" class="section" style="background: var(--bg-secondary);">
+  <section id="book" class="section section-book" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
       <span class="section-label">Schedule a Call</span>
       <h2>Book a consultation</h2>
@@ -88,7 +88,7 @@ import Layout from '../layouts/Layout.astro';
           src="https://calendly.com/adampenn/bc-consultation?background_color=f5f0eb&text_color=1a1816&primary_color=c48a5a&hide_gdpr_banner=1&embed_domain=bidwellcapitalfund.com&embed_type=Inline"
           data-theme-loaded="light"
           width="100%"
-          height="1100"
+          height="720"
           frameborder="0"
           loading="eager"
           scrolling="no"
@@ -142,20 +142,21 @@ import Layout from '../layouts/Layout.astro';
 
     function isMobile() { return window.innerWidth < 768; }
 
-    // Heights tuned for the Bidwell Capital Investor Consultation event type.
-    // Desktop shows calendar + times side by side; mobile stacks them vertically.
+    // Heights tuned for the Bidwell Capital Investor Consultation event type
+    // from live measurements. Desktop shows profile left, calendar right.
+    // Mobile stacks vertically and needs noticeably more height.
     function heightFor(event) {
       var mobile = isMobile();
       switch (event) {
         case 'calendly.profile_page_viewed':   // landing on the profile page
         case 'calendly.event_type_viewed':     // calendar view with date picker
-          return mobile ? 1250 : 1100;
-        case 'calendly.date_and_time_selected': // date picked, time slots shown
-          return mobile ? 1450 : 1150;
+          return mobile ? 1250 :  720;
+        case 'calendly.date_and_time_selected': // date picked, times shown to the right
+          return mobile ? 1400 :  900;
         case 'calendly.event_scheduled':       // form submitted, confirmation screen
-          return mobile ?  900 :  700;
+          return mobile ?  900 :  650;
         default:
-          return mobile ? 1250 : 1100;
+          return mobile ? 1250 :  720;
       }
     }
 
@@ -286,6 +287,13 @@ import Layout from '../layouts/Layout.astro';
 
   .step p {
     font-size: 0.875rem;
+  }
+
+  /* Tighter vertical rhythm around the Calendly section so the iframe is not
+     swimming in white space on top of whatever dead space Calendly leaves internally. */
+  .section-book {
+    padding-top: 3.5rem;
+    padding-bottom: 2rem;
   }
 
   .calendly-wrap {
