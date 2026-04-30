@@ -1212,23 +1212,62 @@ import Layout from '../layouts/Layout.astro';
 
   const fmtMoney = (n) => Number(n).toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
-  // Accepts either a string (e.g. "May 2024") or an Excel serial date number
-  // (days since 1899-12-30, the spreadsheet convention) and returns a "Mon YYYY" label.
+  // Accepts either a string (e.g. "May 2024"), a number, or a numeric string
+  // representing an Excel serial date (days since 1899-12-30). Returns "Mon YYYY".
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const fmtDate = (v) => {
     if (v === null || v === undefined || v === '') return '';
-    if (typeof v === 'number' && isFinite(v)) {
+    let n;
+    if (typeof v === 'number' && isFinite(v)) n = v;
+    else if (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v))) n = Number(v);
+    if (n !== undefined) {
       // Excel epoch is 1899-12-30 (accounting for the 1900 leap year bug).
-      const ms = Date.UTC(1899, 11, 30) + v * 86400000;
+      const ms = Date.UTC(1899, 11, 30) + n * 86400000;
       const d = new Date(ms);
       return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
     }
     return String(v);
   };
 
+  // Coerce string booleans like "true"/"false" (which spreadsheet exports emit)
+  // back to real booleans. Anything truthy that isn't the string "false" passes.
+  const toBool = (v) => {
+    if (typeof v === 'boolean') return v;
+    if (typeof v === 'string') return v.trim().toLowerCase() === 'true';
+    return Boolean(v);
+  };
+
   fetch('/pccf-data.json')
     .then(r => r.json())
-    .then(({ meta, deals }) => {
+    .then(payload => {
+      // Accept either { meta, deals } or a flat array of deals (spreadsheet exports
+      // are usually flat). If meta is missing, compute it from the active deals.
+      let meta, deals;
+      if (Array.isArray(payload)) {
+        deals = payload;
+        meta = null;
+      } else {
+        meta = payload.meta || null;
+        deals = Array.isArray(payload.deals) ? payload.deals : [];
+      }
+
+      // Normalize each deal: stringy paidOff -> boolean, stringy paidOffDate -> number.
+      deals = deals.map(d => ({ ...d, paidOff: toBool(d.paidOff) }));
+
+      // If meta wasn't provided, derive it from non-paid-off deals.
+      if (!meta) {
+        const active = deals.filter(d => !d.paidOff);
+        const totalAmt = active.reduce((a, d) => a + (Number(d.amt) || 0), 0);
+        const wAvg = (key) => totalAmt
+          ? active.reduce((a, d) => a + (Number(d.amt) || 0) * (Number(d[key]) || 0), 0) / totalAmt
+          : 0;
+        meta = {
+          portfolioSize: totalAmt,
+          grossYield: Number(wAvg('ytm').toFixed(1)),
+          ltv: Math.round(wAvg('ltv')),
+        };
+      }
+
       // KPIs
       document.getElementById('kpi-size').textContent = fmtMoney(meta.portfolioSize);
       document.getElementById('kpi-yield').textContent = meta.grossYield.toFixed(1) + '%';
