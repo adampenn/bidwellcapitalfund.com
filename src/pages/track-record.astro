@@ -1212,6 +1212,20 @@ import Layout from '../layouts/Layout.astro';
 
   const fmtMoney = (n) => Number(n).toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
+  // Accepts either a string (e.g. "May 2024") or an Excel serial date number
+  // (days since 1899-12-30, the spreadsheet convention) and returns a "Mon YYYY" label.
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDate = (v) => {
+    if (v === null || v === undefined || v === '') return '';
+    if (typeof v === 'number' && isFinite(v)) {
+      // Excel epoch is 1899-12-30 (accounting for the 1900 leap year bug).
+      const ms = Date.UTC(1899, 11, 30) + v * 86400000;
+      const d = new Date(ms);
+      return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+    }
+    return String(v);
+  };
+
   fetch('/pccf-data.json')
     .then(r => r.json())
     .then(({ meta, deals }) => {
@@ -1338,6 +1352,7 @@ import Layout from '../layouts/Layout.astro';
               <div class="deal-field"><span class="deal-field-label">Security</span>${d.security || ''}</div>
               <div class="deal-field"><span class="deal-field-label">Takeout Strategy</span>${d.takeout || ''}</div>
               <div class="deal-field"><span class="deal-field-label">Origination Date</span>${d.date || ''}</div>
+              ${d.paidOff && (d.paidOffDate || d.paidOffDate === 0) ? `<div class="deal-field"><span class="deal-field-label">Paid Off Date</span>${fmtDate(d.paidOffDate)}</div>` : ''}
             </div>
             ${cleanRates.length ? `
               <div class="deal-rates">
