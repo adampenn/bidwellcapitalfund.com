@@ -1186,8 +1186,12 @@ import Layout from '../layouts/Layout.astro';
   });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+<!-- is:inline keeps Astro from stripping the CDN script during build.
+     Without it, Astro tries to bundle the URL, fails silently, and the script
+     never lands in the rendered HTML, so window.Chart is undefined when the
+     chart-init script below runs. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script is:inline>
   const PREF_COLOR = '#c48a5a';
   const MEZZ_COLOR = '#7a9e7e';
   const PAID_COLOR = '#6b655a';
