@@ -1132,6 +1132,147 @@ import Layout from '../layouts/Layout.astro';
     letter-spacing: 0.03em;
     margin-bottom: 0.25rem;
   }
+
+  /* Header location subtitle when a deal name is present */
+  :global(.deal-header-loc) {
+    font-weight: 400;
+    opacity: 0.85;
+    font-size: 0.875em;
+  }
+  :global(.deal-tag-watch) {
+    background: #b08538;
+  }
+
+  /* Outcome callout (paid-off deals) */
+  :global(.deal-outcome) {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--accent-subtle);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+  }
+  :global(.deal-outcome-stats) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  :global(.deal-outcome-stats > div) {
+    display: flex;
+    flex-direction: column;
+  }
+  :global(.deal-outcome-num) {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+  :global(.deal-outcome-num-sm) {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+  :global(.deal-outcome-lbl) {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-top: 0.15rem;
+  }
+  :global(.deal-outcome-narrative) {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  /* Update / watch-list note blocks */
+  :global(.deal-update),
+  :global(.deal-watch-note) {
+    margin-top: 0.875rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--text-tertiary);
+  }
+  :global(.deal-watch-note) {
+    border-left-color: #b08538;
+  }
+  :global(.deal-update p),
+  :global(.deal-watch-note p) {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+  :global(.deal-update-label) {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.3rem;
+  }
+
+  /* Expandable narrative sections (thesis, capital protection) */
+  :global(.deal-narrative) {
+    margin-top: 0.875rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.75rem;
+  }
+  :global(.deal-narrative > summary) {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    user-select: none;
+  }
+  :global(.deal-narrative > summary::-webkit-details-marker) {
+    display: none;
+  }
+  :global(.deal-narrative-icon) {
+    color: var(--accent);
+    font-size: 1.05rem;
+    line-height: 0.9;
+    width: 0.9rem;
+    text-align: center;
+    transition: transform 0.2s ease;
+  }
+  :global(.deal-narrative[open] .deal-narrative-icon) {
+    transform: rotate(45deg);
+  }
+  :global(.deal-bullets) {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+  :global(.deal-bullets li) {
+    position: relative;
+    padding: 0.55rem 0 0.55rem 1.1rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    border-bottom: 1px solid var(--border);
+  }
+  :global(.deal-bullets li:last-child) {
+    border-bottom: none;
+  }
+  :global(.deal-bullets li::before) {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.95rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  :global(.deal-bullets strong) {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
 </style>
 
 <!-- Tab switching -->
@@ -1364,42 +1505,100 @@ import Layout from '../layouts/Layout.astro';
 
       // Deal Cards
       const cardsEl = document.getElementById('deal-cards');
+      const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      // Allow narrative bullets to contain inline markup like <strong>; we trust our own JSON.
+      // For paragraphs that came from user-editable notes, escapeHtml is used instead.
+      const renderBullet = item => `<li>${item}</li>`;
+
       deals.forEach(d => {
         let headerColor = /mezz/i.test(d.posType || '') ? MEZZ_COLOR : PREF_COLOR;
         if (d.paidOff) headerColor = PAID_COLOR;
+        if (d.watchList) headerColor = MEZZ_COLOR;
 
         const rates = Array.isArray(d.rate) ? d.rate : (typeof d.rate === 'string' ? d.rate.split(',') : []);
         const cleanRates = rates.map(s => String(s).replace(/^"+|"+$/g, '').trim()).filter(Boolean);
+
+        // Header title prefers a deal name when present, otherwise falls back to location
+        const headerTitle = d.name
+          ? `<strong>${d.num || ''}</strong> &mdash; ${escapeHtml(d.name)} <span class="deal-header-loc">(${escapeHtml(d.location || '')})</span>`
+          : `<strong>${d.num || ''}</strong> - ${escapeHtml(d.location || '')}`;
+
+        const tagsHtml = `
+          ${d.paidOff ? '<span class="deal-tag deal-tag-paid">Paid Off</span>' : ''}
+          ${d.watchList && !d.paidOff ? '<span class="deal-tag deal-tag-watch">Watch List</span>' : ''}
+          <span class="deal-tag">${escapeHtml(d.asset || '')}</span>
+        `;
+
+        // Outcome callout (paid-off deals only)
+        const outcomeHtml = (d.paidOff && d.outcome) ? `
+          <div class="deal-outcome">
+            <div class="deal-outcome-stats">
+              ${d.outcome.returnPct !== undefined ? `<div><span class="deal-outcome-num">${d.outcome.returnPct}%</span><span class="deal-outcome-lbl">Gross Return</span></div>` : ''}
+              ${d.outcome.holdMonths !== undefined ? `<div><span class="deal-outcome-num">${d.outcome.holdMonths} mo</span><span class="deal-outcome-lbl">Hold</span></div>` : ''}
+              ${d.outcome.exitVia ? `<div><span class="deal-outcome-num deal-outcome-num-sm">${escapeHtml(d.outcome.exitVia)}</span><span class="deal-outcome-lbl">Exit</span></div>` : ''}
+            </div>
+            ${d.outcome.narrative ? `<p class="deal-outcome-narrative">${escapeHtml(d.outcome.narrative)}</p>` : ''}
+          </div>
+        ` : '';
+
+        const thesisHtml = (Array.isArray(d.thesis) && d.thesis.length) ? `
+          <details class="deal-narrative">
+            <summary><span class="deal-narrative-icon" aria-hidden="true">+</span> Details</summary>
+            <ul class="deal-bullets">${d.thesis.map(renderBullet).join('')}</ul>
+          </details>
+        ` : '';
+
+        const protectHtml = (Array.isArray(d.capitalProtection) && d.capitalProtection.length) ? `
+          <details class="deal-narrative">
+            <summary><span class="deal-narrative-icon" aria-hidden="true">+</span> Capital protection</summary>
+            <ul class="deal-bullets">${d.capitalProtection.map(renderBullet).join('')}</ul>
+          </details>
+        ` : '';
+
+        const updateHtml = d.updateNote ? `
+          <div class="deal-update">
+            <div class="deal-update-label">Update</div>
+            <p>${escapeHtml(d.updateNote)}</p>
+          </div>
+        ` : '';
+
+        const watchHtml = (d.watchList && d.watchListNote) ? `
+          <div class="deal-watch-note">
+            <div class="deal-update-label">Watch list status</div>
+            <p>${escapeHtml(d.watchListNote)}</p>
+          </div>
+        ` : '';
 
         const card = document.createElement('article');
         card.className = 'deal-card';
         card.innerHTML = `
           <div class="deal-header" style="background:${headerColor};">
-            <div><strong>${d.num || ''}</strong> - ${d.location || ''}</div>
-            <div class="deal-tags">
-              ${d.paidOff ? '<span class="deal-tag deal-tag-paid">Paid Off</span>' : ''}
-              <span class="deal-tag">${d.asset || ''}</span>
-            </div>
+            <div>${headerTitle}</div>
+            <div class="deal-tags">${tagsHtml}</div>
           </div>
           <div class="deal-body">
-            <span class="badge">${d.posType || ''}</span>
+            <span class="badge">${escapeHtml(d.posType || '')}</span>
             <div class="deal-grid">
               <div class="deal-field"><span class="deal-field-label">Position Amount</span>${fmtMoney(d.amt || 0)}</div>
               <div class="deal-field"><span class="deal-field-label">Combined LTV/LTC</span>${d.ltv !== undefined ? d.ltv + '%' : ''}</div>
               <div class="deal-field"><span class="deal-field-label">Est. Gross YTM</span>${d.ytm !== undefined ? d.ytm + '%' : ''}</div>
-              <div class="deal-field"><span class="deal-field-label">Term</span>${d.term || ''}</div>
-              <div class="deal-field"><span class="deal-field-label">Security</span>${d.security || ''}</div>
-              <div class="deal-field"><span class="deal-field-label">Takeout Strategy</span>${d.takeout || ''}</div>
-              <div class="deal-field"><span class="deal-field-label">Origination Date</span>${d.date || ''}</div>
+              <div class="deal-field"><span class="deal-field-label">Term</span>${escapeHtml(d.term || '')}</div>
+              <div class="deal-field"><span class="deal-field-label">Security</span>${escapeHtml(d.security || '')}</div>
+              <div class="deal-field"><span class="deal-field-label">Takeout Strategy</span>${escapeHtml(d.takeout || '')}</div>
+              <div class="deal-field"><span class="deal-field-label">Origination Date</span>${escapeHtml(d.date || '')}</div>
               ${d.paidOff && (d.paidOffDate || d.paidOffDate === 0) ? `<div class="deal-field"><span class="deal-field-label">Paid Off Date</span>${fmtDate(d.paidOffDate)}</div>` : ''}
             </div>
+            ${outcomeHtml}
+            ${updateHtml}
+            ${watchHtml}
+            ${thesisHtml}
+            ${protectHtml}
             ${cleanRates.length ? `
-              <div class="deal-rates">
-                <div class="deal-rates-title">Rate Details</div>
-                ${cleanRates.map(r => '&bull; ' + r).join('<br/>')}
-              </div>
+              <details class="deal-narrative">
+                <summary><span class="deal-narrative-icon" aria-hidden="true">+</span> Rate details</summary>
+                <ul class="deal-bullets">${cleanRates.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul>
+              </details>
             ` : ''}
-            ${d.notes ? `<div class="deal-rates" style="border-top:none;padding-top:0.25rem;"><div class="deal-rates-title">Notes</div>${d.notes}</div>` : ''}
           </div>
         `;
         cardsEl.appendChild(card);
