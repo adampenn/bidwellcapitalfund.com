@@ -1275,18 +1275,52 @@ import Layout from '../layouts/Layout.astro';
   }
 </style>
 
-<!-- Tab switching -->
+<!-- Tab switching + deep-link support (#credit / #realestate / #energy and aliases) -->
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', function() {
-    var tabs = document.querySelectorAll('.strategy-tab');
-    tabs.forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        tabs.forEach(function(t) { t.classList.remove('active'); });
-        tab.classList.add('active');
-        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-        var panel = document.getElementById('panel-' + tab.getAttribute('data-tab'));
-        if (panel) panel.classList.add('active');
+  // Hash aliases map to data-tab IDs
+  var HASH_TO_TAB = {
+    'credit': 'credit', 'private-credit': 'credit', 'pccf': 'credit',
+    'realestate': 'realestate', 'real-estate': 'realestate', 'multifamily': 'realestate',
+    'energy': 'energy', 'oil-gas': 'energy', 'oil-and-gas': 'energy', 'oilandgas': 'energy'
+  };
+
+  function activateTab(tabId, scroll) {
+    var btn = document.querySelector('.strategy-tab[data-tab="' + tabId + '"]');
+    var panel = document.getElementById('panel-' + tabId);
+    if (!btn || !panel) return;
+    document.querySelectorAll('.strategy-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    panel.classList.add('active');
+    if (scroll) {
+      // Scroll the panel's first stat grid into view, leaving room for the
+      // 5rem sticky nav (~80px) plus a little breathing space.
+      requestAnimationFrame(function() {
+        var target = panel.querySelector('.grid-3') || panel;
+        var top = target.getBoundingClientRect().top + window.pageYOffset - 96;
+        window.scrollTo({ top: top, behavior: 'auto' });
       });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.strategy-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var tabId = tab.getAttribute('data-tab');
+        activateTab(tabId, false);
+        // Keep URL in sync without adding a history entry so back-button isn't polluted
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) {}
+      });
+    });
+
+    // Honor a deep-link hash on initial load
+    var hashKey = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+    if (HASH_TO_TAB[hashKey]) activateTab(HASH_TO_TAB[hashKey], true);
+
+    // Handle in-page hash navigation (e.g. clicking another #energy link on this page)
+    window.addEventListener('hashchange', function() {
+      var k = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+      if (HASH_TO_TAB[k]) activateTab(HASH_TO_TAB[k], true);
     });
   });
 
