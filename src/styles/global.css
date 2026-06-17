@@ -173,6 +173,10 @@ img {
   padding: 5rem 0;
 }
 
+.section-tint {
+  background: var(--bg-secondary);
+}
+
 .section-label {
   font-family: var(--font-body);
   font-size: 1em;
