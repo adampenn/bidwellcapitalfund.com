@@ -177,7 +177,7 @@ const OWNERS_DATA = {
 
   <div class="secnav-wrap">
     <nav class="secnav" id="secnav">
-      <a href="#snapshot">Snapshot</a>
+      <a href="#snapshot">Operations</a>
       <a href="#performance">Performance</a>
       <a href="#rentroll">Rent roll</a>
       <a href="#rehab">Rehab</a>
@@ -190,8 +190,8 @@ const OWNERS_DATA = {
   <div class="container">
 
     <section class="blk" id="snapshot">
-      <p class="eyebrow">Where the asset stands</p>
-      <h2 class="blk-title">Snapshot</h2>
+      <p class="eyebrow">Beyond the headline numbers</p>
+      <h2 class="blk-title">Operations</h2>
       <div class="kpis" id="kpis"></div>
     </section>
 
@@ -330,13 +330,16 @@ const OWNERS_DATA = {
     document.getElementById('mast-sum').textContent = d.summary || '';
     document.getElementById('mast-meta').textContent =
       d.city + ' · ' + d.units + ' units · ' + d.asOf + ' · operating month ' + d.operatingMonth;
-    var heroKpis = [d.kpis[0], d.kpis[1], d.kpis[5]].filter(Boolean);
+    var heroIdx = [0, 1, 5];
+    var heroKpis = heroIdx.map(function (i) { return d.kpis[i]; }).filter(Boolean);
     document.getElementById('mast-stats').innerHTML = heroKpis.map(function (k) {
       return '<div class="mast-stat"><div class="lb">' + k.label + '</div><div class="vl">' + k.value +
         '</div><div class="dl">' + (k.delta || '') + '</div></div>';
     }).join('');
 
-    document.getElementById('kpis').innerHTML = d.kpis.map(function (k) {
+    document.getElementById('kpis').innerHTML = d.kpis.filter(function (k, i) {
+      return heroIdx.indexOf(i) === -1;
+    }).map(function (k) {
       return '<div class="kpi"><div class="lb">' + k.label + '</div><div class="vl">' + k.value +
         '</div><div class="dl' + (k.good ? ' good' : '') + '">' + (k.delta || '&nbsp;') + '</div></div>';
     }).join('');
