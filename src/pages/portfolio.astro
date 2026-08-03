@@ -1,0 +1,485 @@
+---
+/**
+ * Asset Management Portal — private, access-code-gated page for property partners.
+ * Standalone page, does not use the site Layout component. Not linked in nav.
+ * URL: /portfolio
+ *
+ * Data flow: each property's Asset Mgmt Google Sheet is the source of truth.
+ * scripts/owners/update_cherry.py regenerates src/data/owners/<id>.json;
+ * <id>-updates.json holds the monthly investor-update archive. Commit + push
+ * to deploy (Render).
+ */
+import portfolio from '../data/owners/portfolio.json';
+import cherry from '../data/owners/946-cherry.json';
+import cherryUpdates from '../data/owners/946-cherry-updates.json';
+
+const OWNERS_DATA = {
+  portfolio,
+  details: { '946-cherry': cherry },
+  updates: { '946-cherry': cherryUpdates.updates },
+};
+---
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bidwell Capital — Asset Management Portal</title>
+<style is:global>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+
+  :root {
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --dark: #0f0e0c; --dark-2: #171614;
+    --dark-text: #f2efe8; --dark-text-2: #a09a8e;
+    --paper: #f8f7f4; --card: #ffffff;
+    --ink: #1a1915; --ink-2: #5c574d; --ink-3: #8a8479;
+    --line: rgba(26, 25, 21, 0.1); --line-strong: rgba(26, 25, 21, 0.18);
+    --copper: #a06b3a; --copper-bright: #c48a5a;
+    --copper-subtle: rgba(160, 107, 58, 0.1);
+    --good: #3f6212;
+    --blue: #2a78d6; --orange: #eb6834; --gray: #898781;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- Auth ---- */
+  #auth-screen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: var(--dark); }
+  .auth-container { text-align: center; width: 100%; max-width: 400px; padding: 2rem; }
+  .auth-brand { font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--copper-bright); margin-bottom: 20px; }
+  .auth-card { background: var(--dark-2); border: 1px solid rgba(242,239,232,0.08); border-radius: 12px; padding: 32px 28px; }
+  .auth-title { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 28px; color: var(--dark-text); }
+  .auth-sub { margin: 0 0 20px; color: var(--dark-text-2); font-size: 14px; }
+  .auth-card input {
+    width: 100%; padding: 12px 14px; font-size: 15px; font-family: var(--sans);
+    background: var(--dark); color: var(--dark-text);
+    border: 1px solid rgba(242,239,232,0.14); border-radius: 8px; margin-bottom: 10px;
+  }
+  .auth-card input::placeholder { color: var(--dark-text-2); }
+  .auth-error { color: #e08b7d; font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+  .auth-card button {
+    width: 100%; padding: 12px; font-size: 15px; font-weight: 600; font-family: var(--sans);
+    color: var(--dark); background: var(--copper-bright); border: 0; border-radius: 8px; cursor: pointer;
+  }
+  .auth-card button:hover { background: #d9a474; }
+  .auth-footer { font-size: 12px; color: var(--dark-text-2); margin-top: 16px; }
+
+  /* ---- Masthead ---- */
+  .masthead { background: var(--dark); color: var(--dark-text); padding: 56px 0 0; }
+  .mast-eyebrow { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--copper-bright); }
+  .mast-title { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 5vw, 56px); margin: 14px 0 12px; }
+  .mast-sum { max-width: 860px; color: var(--dark-text-2); font-size: 16px; line-height: 1.65; margin: 0 0 8px; }
+  .mast-meta { color: var(--dark-text-2); font-size: 13.5px; margin: 0 0 30px; }
+  .prop-tabs { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 28px; }
+  .prop-tab {
+    padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+    color: var(--dark-text-2); background: transparent;
+    border: 1px solid rgba(242,239,232,0.16); border-radius: 999px;
+  }
+  .prop-tab.active { color: var(--dark); background: var(--copper-bright); border-color: var(--copper-bright); }
+
+  /* ---- Section nav (sticky) ---- */
+  .secnav-wrap { position: sticky; top: 0; z-index: 100; background: rgba(248,247,244,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .secnav { display: flex; gap: 4px; overflow-x: auto; padding: 0 24px; max-width: 1200px; margin: 0 auto; }
+  .secnav a {
+    padding: 15px 14px; font-size: 14px; font-weight: 500; white-space: nowrap;
+    color: var(--ink-2); text-decoration: none; border-bottom: 2px solid transparent;
+  }
+  .secnav a.active { color: var(--copper); border-bottom-color: var(--copper); }
+  .secnav a:hover { color: var(--ink); }
+
+  /* ---- Sections ---- */
+  section.blk { padding: 36px 0 6px; scroll-margin-top: 56px; }
+  .eyebrow { font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--copper); margin: 0 0 6px; }
+  h2.blk-title { font-family: var(--serif); font-weight: 400; font-size: 26px; margin: 0 0 16px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .kpi .lb { font-size: 12px; color: var(--ink-3); }
+  .kpi .vl { font-family: var(--serif); font-size: 28px; margin-top: 4px; }
+  .kpi .dl { font-size: 12.5px; margin-top: 3px; color: var(--ink-2); }
+  .kpi .dl.good { color: var(--good); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 18px; font-size: 12.5px; color: var(--ink-2); margin-bottom: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .chart-note { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; }
+  ul.hl { margin: 0; padding-left: 20px; }
+  ul.hl li { margin: 8px 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+
+  details.update { border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  details.update summary {
+    padding: 14px 18px; cursor: pointer; font-size: 14.5px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; list-style: none;
+  }
+  details.update summary::-webkit-details-marker { display: none; }
+  details.update summary:hover { color: var(--copper); }
+  details.update summary .dt { font-weight: 400; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+  details.update[open] summary { border-bottom: 1px solid var(--line); }
+  details.update .body { padding: 4px 18px 16px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
+  details.update .body p { margin: 10px 0; }
+  details.update .body strong { color: var(--ink); }
+  details.update .body ul { padding-left: 20px; }
+
+  .rehab-stats { font-size: 14px; font-weight: 600; color: var(--copper); margin: 0 0 6px; }
+  .rehab-blurb { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); max-width: 640px; margin: 0 0 16px; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .gallery figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .gallery img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .gallery figcaption { padding: 9px 12px; font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
+  .gallery .phase { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--copper-subtle); color: var(--copper); white-space: nowrap; }
+
+  footer.pg { margin: 48px 0 0; padding: 22px 0 40px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
+  @media (max-width: 640px) { .kpi .vl { font-size: 24px; } }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-container">
+    <div class="auth-brand">Bidwell Capital</div>
+    <div class="auth-card">
+      <h2 class="auth-title">Asset Management Portal</h2>
+      <p class="auth-sub">Enter the access code to continue.</p>
+      <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
+      <div id="auth-error" class="auth-error"></div>
+      <button id="auth-btn">Unlock</button>
+    </div>
+    <p class="auth-footer">For property partners only.</p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+
+  <div class="masthead">
+    <div class="container">
+      <div class="mast-eyebrow">Bidwell Capital · Asset Management Portal</div>
+      <h1 class="mast-title" id="mast-title"></h1>
+      <p class="mast-sum" id="mast-sum"></p>
+      <p class="mast-meta" id="mast-meta"></p>
+      <div class="prop-tabs" id="tabs"></div>
+    </div>
+  </div>
+
+  <div class="secnav-wrap">
+    <nav class="secnav" id="secnav">
+      <a href="#snapshot">Operations</a>
+      <a href="#performance">Performance</a>
+      <a href="#rentroll">Rent roll</a>
+      <a href="#rehab">Rehab</a>
+      <a href="#equity">Value &amp; equity</a>
+      <a href="#month">This month</a>
+      <a href="#updates-sec">Update archive</a>
+    </nav>
+  </div>
+
+  <div class="container">
+
+    <section class="blk" id="snapshot">
+      <p class="eyebrow">Where the asset stands</p>
+      <h2 class="blk-title">Operations</h2>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="blk" id="performance">
+      <p class="eyebrow">Actuals vs the acquisition underwriting</p>
+      <h2 class="blk-title">Monthly NOI vs pro forma</h2>
+      <div class="card">
+        <div class="legend" id="noi-legend"></div>
+        <div style="position:relative;height:280px;"><canvas id="noiChart"></canvas></div>
+        <div class="chart-note" id="noi-note"></div>
+      </div>
+    </section>
+
+    <section class="blk" id="rentroll">
+      <p class="eyebrow">The value-add engine, unit by unit</p>
+      <h2 class="blk-title">Rent by unit: turns vs renewal bumps</h2>
+      <div class="card">
+        <div class="legend" id="rent-legend"></div>
+        <div style="position:relative;" id="rentWrap"><canvas id="rentChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="blk" id="rehab" hidden>
+      <p class="eyebrow">Value-add, up close</p>
+      <h2 class="blk-title" id="rehab-title"></h2>
+      <p class="rehab-stats" id="rehab-stats"></p>
+      <p class="rehab-blurb" id="rehab-blurb"></p>
+      <div class="gallery" id="rehab-gallery"></div>
+    </section>
+
+    <section class="blk" id="equity">
+      <p class="eyebrow">Where today's value sits</p>
+      <h2 class="blk-title">Value &amp; equity</h2>
+      <div class="card">
+        <div class="legend" id="eq-legend"></div>
+        <div style="position:relative;height:110px;"><canvas id="eqChart"></canvas></div>
+        <div class="chart-note" id="eq-note"></div>
+      </div>
+    </section>
+
+    <section class="blk" id="month">
+      <p class="eyebrow">Operations</p>
+      <h2 class="blk-title">This month</h2>
+      <div class="card"><ul class="hl" id="highlights"></ul></div>
+    </section>
+
+    <section class="blk" id="updates-sec">
+      <p class="eyebrow">Every monthly letter since acquisition</p>
+      <h2 class="blk-title">Update archive</h2>
+      <div id="updates"></div>
+    </section>
+
+    <footer class="pg">Prepared by Bidwell Capital. Figures from property accounting records; pro forma refers to the acquisition underwriting baseline.</footer>
+  </div>
+</div>
+
+<script type="application/json" id="owners-data" set:html={JSON.stringify(OWNERS_DATA)}></script>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script is:inline>
+(function () {
+  var ACCESS_CODE = 'bidwell2026';
+  var authScreen = document.getElementById('auth-screen');
+  var authInput = document.getElementById('auth-input');
+  var authError = document.getElementById('auth-error');
+  var app = document.getElementById('app');
+
+  function unlock() {
+    if (authInput.value.trim() === ACCESS_CODE) {
+      try { sessionStorage.setItem('owners_auth', '1'); } catch (e) {}
+      authScreen.style.display = 'none';
+      app.style.display = '';
+      boot();
+    } else {
+      authError.textContent = 'Incorrect access code. Please try again.';
+      authInput.value = '';
+      authInput.focus();
+    }
+  }
+  document.getElementById('auth-btn').addEventListener('click', unlock);
+  authInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') unlock(); });
+  try {
+    if (sessionStorage.getItem('owners_auth') === '1') {
+      authScreen.style.display = 'none';
+      app.style.display = '';
+      window.addEventListener('DOMContentLoaded', boot);
+      if (document.readyState !== 'loading') boot();
+    } else {
+      authInput.focus();
+    }
+  } catch (e) { authInput.focus(); }
+
+  var DATA = JSON.parse(document.getElementById('owners-data').textContent);
+  var C = { blue: '#2a78d6', orange: '#eb6834', gray: '#898781', grid: '#e7e4dc', ink2: '#5c574d' };
+  var charts = [];
+  var booted = false;
+
+  function arrowSvg(c) {
+    return '<svg width="22" height="10" aria-hidden="true"><line x1="0" y1="5" x2="14" y2="5" stroke="' + c + '" stroke-width="2.5"/><path d="M14 1 L21 5 L14 9 Z" fill="' + c + '"/></svg>';
+  }
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    var pf = DATA.portfolio;
+    var tabs = document.getElementById('tabs');
+    pf.properties.forEach(function (p, i) {
+      var b = document.createElement('button');
+      b.className = 'prop-tab'; b.id = 'tab-' + p.id;
+      b.textContent = p.name + ' · ' + p.units + ' units';
+      b.onclick = function () { select(p.id); };
+      tabs.appendChild(b);
+      if (i === 0) select(p.id);
+    });
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.secnav a'));
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          links.forEach(function (l) {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('section.blk').forEach(function (s) { obs.observe(s); });
+  }
+
+  function select(id) {
+    document.querySelectorAll('.prop-tab').forEach(function (el) { el.classList.remove('active'); });
+    document.getElementById('tab-' + id).classList.add('active');
+    var d = DATA.details[id];
+    charts.forEach(function (c) { c.destroy(); });
+    charts = [];
+
+    document.getElementById('mast-title').textContent = d.name;
+    document.getElementById('mast-sum').textContent = d.summary || '';
+    document.getElementById('mast-meta').textContent =
+      d.city + ' · ' + d.units + ' units · ' + d.asOf + ' · operating month ' + d.operatingMonth;
+
+    document.getElementById('kpis').innerHTML = d.kpis.map(function (k) {
+      return '<div class="kpi"><div class="lb">' + k.label + '</div><div class="vl">' + k.value +
+        '</div><div class="dl' + (k.good ? ' good' : '') + '">' + (k.delta || '&nbsp;') + '</div></div>';
+    }).join('');
+
+    document.getElementById('noi-legend').innerHTML =
+      '<span><span style="width:10px;height:10px;border-radius:2px;background:' + C.blue + ';display:inline-block;"></span>Actual NOI</span>' +
+      '<span><span style="width:14px;border-top:2px dashed ' + C.gray + ';display:inline-block;"></span>Pro forma $' +
+      d.noi.proFormaMonthly.toLocaleString() + '/mo</span>';
+    document.getElementById('noi-note').textContent = d.noi.note || '';
+
+    charts.push(new Chart(document.getElementById('noiChart'), {
+      type: 'line',
+      data: { labels: d.noi.labels, datasets: [
+        { data: d.noi.actual, borderColor: C.blue, backgroundColor: C.blue, borderWidth: 2,
+          pointRadius: 4, pointBorderColor: '#fff', pointBorderWidth: 2, tension: 0.25 },
+        { data: d.noi.labels.map(function () { return d.noi.proFormaMonthly; }), borderColor: C.gray,
+          borderDash: [6, 4], borderWidth: 2, pointRadius: 0 }
+      ]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          label: function (c) { return (c.datasetIndex === 0 ? 'Actual: ' : 'Pro forma: ') + '$' + Math.round(c.parsed.y).toLocaleString(); } } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: C.gray } },
+          y: { suggestedMin: Math.min.apply(null, d.noi.actual.concat([d.noi.proFormaMonthly])) - 2000,
+            grid: { color: C.grid }, border: { display: false },
+            ticks: { color: C.gray, callback: function (v) { return '$' + Math.round(v / 1000) + 'K'; } } }
+        }
+      }
+    }));
+
+    var rr = d.rentRoll, units = rr.units;
+    var counts = { turned: 0, bump: 0, pending: 0 };
+    units.forEach(function (u) { counts[u.type]++; });
+    document.getElementById('rent-legend').innerHTML =
+      '<span>' + arrowSvg(C.blue) + 'Turned: new tenant at market (' + counts.turned + ')</span>' +
+      '<span>' + arrowSvg(C.orange) + 'Renewal bump: same tenant (' + counts.bump + ')</span>' +
+      '<span><span style="width:9px;height:9px;border-radius:50%;background:' + C.gray + ';display:inline-block;"></span>Not yet turned (' + counts.pending + ')</span>' +
+      '<span><span style="width:14px;border-top:1.5px dashed ' + C.gray + ';display:inline-block;"></span>Market rent ($' + rr.marketRent + ')</span>' +
+      '<span style="color:' + C.ink2 + ';">Building average $' + rr.avgFrom + ' → $' + rr.avgTo + '</span>';
+
+    document.getElementById('rentWrap').style.height = (units.length * 28 + 60) + 'px';
+    var lo = Math.floor((Math.min.apply(null, units.map(function (u) { return u.from; })) - 40) / 50) * 50;
+    var hi = Math.ceil((Math.max.apply(null, units.map(function (u) { return u.to; }).concat([rr.marketRent])) + 60) / 50) * 50;
+
+    var draw = { id: 'draw', afterDatasetsDraw: function (chart) {
+      var ctx = chart.ctx, x = chart.scales.x, y = chart.scales.y, area = chart.chartArea;
+      ctx.save();
+      var mx = x.getPixelForValue(rr.marketRent);
+      ctx.strokeStyle = C.gray; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(mx, area.top); ctx.lineTo(mx, area.bottom); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = '11px DM Sans, system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = C.gray;
+      ctx.fillText('market $' + rr.marketRent, mx, area.top - 8);
+      ctx.textBaseline = 'middle';
+      units.forEach(function (u, i) {
+        var py = y.getPixelForValue(i), delta = u.to - u.from;
+        if (u.type === 'pending') {
+          ctx.fillStyle = C.gray;
+          ctx.beginPath(); ctx.arc(x.getPixelForValue(u.from), py, 4.5, 0, 7); ctx.fill();
+          ctx.textAlign = 'left';
+          ctx.fillText('$' + u.from + ' · not yet turned', x.getPixelForValue(u.from) + 12, py);
+        } else {
+          var c = u.type === 'turned' ? C.blue : C.orange;
+          var x1 = x.getPixelForValue(u.from), x2 = x.getPixelForValue(u.to);
+          ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(x1, py); ctx.lineTo(x2 - 7, py); ctx.stroke();
+          ctx.fillStyle = c;
+          ctx.beginPath(); ctx.moveTo(x2, py); ctx.lineTo(x2 - 8, py - 4.5);
+          ctx.lineTo(x2 - 8, py + 4.5); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = C.ink2; ctx.textAlign = 'left';
+          ctx.fillText('+$' + delta + (u.tag ? ' · ' + u.tag : ''), x2 + 8, py);
+        }
+      });
+      ctx.restore();
+    }};
+
+    charts.push(new Chart(document.getElementById('rentChart'), {
+      type: 'line',
+      data: { labels: units.map(function (u) { return u.unit; }),
+        datasets: [{ data: units.map(function (u) { return u.to; }), showLine: false, pointRadius: 0, pointHitRadius: 0 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 20, right: 95 } },
+        interaction: { mode: 'nearest', axis: 'y', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          title: function (items) { return units[items[0].dataIndex].unit; },
+          label: function (c) {
+            var u = units[c.dataIndex], delta = u.to - u.from;
+            if (u.type === 'pending') return '$' + u.from + ', unchanged since acquisition';
+            var kind = u.type === 'turned' ? 'turned to new tenant' : 'renewal bump, same tenant';
+            return '$' + u.from + ' → $' + u.to.toLocaleString() + ' (+' + Math.round(delta / u.from * 100) + '%), ' + kind;
+          } } } },
+        scales: {
+          x: { min: lo, max: hi, grid: { color: C.grid }, border: { display: false },
+            ticks: { color: C.gray, callback: function (v) { return '$' + v; } } },
+          y: { grid: { display: false }, ticks: { color: C.ink2, autoSkip: false, font: { size: 11 } } }
+        }
+      },
+      plugins: [draw]
+    }));
+
+    var rehabSec = document.getElementById('rehab');
+    if (d.rehab) {
+      rehabSec.hidden = false;
+      document.getElementById('rehab-title').textContent = d.rehab.title;
+      document.getElementById('rehab-stats').textContent = d.rehab.stats;
+      document.getElementById('rehab-blurb').textContent = d.rehab.blurb || '';
+      document.getElementById('rehab-gallery').innerHTML = d.rehab.photos.map(function (p) {
+        return '<figure><img src="' + p.src + '" alt="' + p.caption + '" loading="lazy">' +
+          '<figcaption><span class="phase">' + p.phase + '</span>' + p.caption + '</figcaption></figure>';
+      }).join('');
+    } else {
+      rehabSec.hidden = true;
+    }
+
+    if (d.equity) {
+      var SEG = { gray: '#898781', blue: '#2a78d6', aqua: '#1baf7a', orange: '#eb6834' };
+      var fmtK = function (v) { return '$' + (v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : Math.round(v / 1000) + 'K'); };
+      document.getElementById('eq-legend').innerHTML = d.equity.segments.map(function (s) {
+        return '<span><span style="width:10px;height:10px;border-radius:2px;background:' + SEG[s.color] +
+          ';display:inline-block;"></span>' + s.label + ' · ' + fmtK(s.value) + '</span>';
+      }).join('') +
+      '<span style="color:' + C.ink2 + ';font-weight:600;">Implied value ' + fmtK(d.equity.impliedValue) + '</span>';
+      document.getElementById('eq-note').textContent = d.equity.note || '';
+      charts.push(new Chart(document.getElementById('eqChart'), {
+        type: 'bar',
+        data: { labels: [''], datasets: d.equity.segments.map(function (s) {
+          return { label: s.label, data: [s.value], backgroundColor: SEG[s.color],
+            barThickness: 34, borderColor: '#ffffff', borderWidth: 1 };
+        }) },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: {
+            label: function (c) {
+              var v = c.parsed.x, pct = Math.round(v / d.equity.impliedValue * 100);
+              return c.dataset.label + ': $' + v.toLocaleString() + ' (' + pct + '% of value)';
+            } } } },
+          scales: {
+            x: { stacked: true, max: d.equity.impliedValue, grid: { color: C.grid }, border: { display: false },
+              ticks: { color: C.gray, callback: function (v) { return '$' + (v / 1e6).toFixed(1) + 'M'; } } },
+            y: { stacked: true, grid: { display: false }, ticks: { display: false } }
+          }
+        }
+      }));
+    }
+
+    document.getElementById('highlights').innerHTML =
+      (d.highlights || []).map(function (h) { return '<li>' + h + '</li>'; }).join('');
+
+    var updates = DATA.updates[id] || [];
+    document.getElementById('updates').innerHTML = updates.length
+      ? updates.map(function (u, i) {
+          return '<details class="update"' + (i === 0 ? ' open' : '') + '><summary>' + u.title +
+            '<span class="dt">' + u.sentDate + '</span></summary><div class="body">' + u.html + '</div></details>';
+        }).join('')
+      : '<div class="card" style="color:var(--ink-3);font-size:14px;">No updates archived yet.</div>';
+  }
+})();
+</script>
+</body>
+</html>
