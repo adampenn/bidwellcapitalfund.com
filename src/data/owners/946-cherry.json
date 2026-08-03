@@ -20,6 +20,21 @@
     "proFormaMonthly": 8072,
     "note": "December includes a one-time management-fee credit."
   },
+  "rehab": {
+    "title": "Unit 10 rehab",
+    "stats": "Full gut renovation, in-house crew · ~$18K all-in · rent $700 → $1,250 (+79%) · roughly 37% annual return on cost",
+    "blurb": "Gutted to the studs in December, re-plumbed, re-wired, new layout, tiled shower, mini-split, and full kitchen — leased eight days after listing.",
+    "photos": [
+      { "src": "/portfolio/unit10/during-plumbing.jpg", "phase": "During", "caption": "Re-plumbed supply and drains" },
+      { "src": "/portfolio/unit10/during-kitchen.jpg", "phase": "During", "caption": "Kitchen going in" },
+      { "src": "/portfolio/unit10/after-main.jpg", "phase": "After", "caption": "Main room and kitchen" },
+      { "src": "/portfolio/unit10/after-kitchen.jpg", "phase": "After", "caption": "New kitchen" },
+      { "src": "/portfolio/unit10/after-range.jpg", "phase": "After", "caption": "Range, quartz counters, copper sink" },
+      { "src": "/portfolio/unit10/after-bath.jpg", "phase": "After", "caption": "New bathroom" },
+      { "src": "/portfolio/unit10/after-shower.jpg", "phase": "After", "caption": "Tiled shower" },
+      { "src": "/portfolio/unit10/after-living.jpg", "phase": "After", "caption": "Living area" }
+    ]
+  },
   "equity": {
     "impliedValue": 2134929,
     "segments": [
