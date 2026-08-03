@@ -45,3 +45,10 @@ Building an internal tool at `/rcr-timeline` for modeling Oklahoma oil well deve
 - `src/layouts/Layout.astro` - Site layout
 - `src/styles/global.css` - Global styles
 - `bidwell-rebuild-prompt.md` - Full design system reference
+
+## Owner Portal (/owners)
+- Access-code-gated standalone page (same pattern as /rcr-timeline), not linked in nav.
+- `src/pages/owners.astro` — tabs per property, KPI tiles, NOI vs pro forma chart, rent-by-unit arrow chart, monthly-update archive.
+- Data: `src/data/owners/portfolio.json` (property index), `<id>.json` (snapshot), `<id>-updates.json` (email archive). The property's Asset Mgmt Google Sheet is the source of truth — regenerate snapshots with `scripts/owners/update_cherry.py` (requires gog CLI), never edit numbers by hand.
+- Access code is a constant near the top of the inline script in owners.astro.
+- Monthly flow: update sheet → run script → edit `highlights` in the JSON → append new update email to `<id>-updates.json` → commit + push.

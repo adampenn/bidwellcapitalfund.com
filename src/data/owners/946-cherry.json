@@ -1,0 +1,56 @@
+{
+  "id": "946-cherry",
+  "name": "946 Cherry St",
+  "city": "Chico, CA",
+  "units": 20,
+  "asOf": "Jul 2026",
+  "operatingMonth": 12,
+  "kpis": [
+    { "label": "T-12 NOI (annualized)", "value": "$130.2K", "delta": "+34% vs pro forma", "good": true },
+    { "label": "Occupancy", "value": "99.5%", "delta": "0 vacant at month end", "good": true },
+    { "label": "Avg scheduled rent", "value": "$830", "delta": "+19% since acquisition", "good": true },
+    { "label": "Delinquency", "value": "$360", "delta": "1 unit on payment plan", "good": null },
+    { "label": "Cash reserves", "value": "$48.1K", "delta": "", "good": null },
+    { "label": "Implied value (7% cap)", "value": "$2.13M", "delta": "+46% vs $1.46M basis", "good": true }
+  ],
+  "noi": {
+    "labels": ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+    "actual": [11368, 8146, 10836, 13974, 11622, 10043, 12162, 12395, 12224, 12124, 13014],
+    "proFormaMonthly": 8072,
+    "note": "December includes a one-time management-fee credit."
+  },
+  "rentRoll": {
+    "marketRent": 900,
+    "avgFrom": 696,
+    "avgTo": 830,
+    "units": [
+      { "unit": "Unit 1", "from": 695, "to": 900, "type": "turned" },
+      { "unit": "Unit 2", "from": 700, "to": 900, "type": "turned" },
+      { "unit": "Unit 3", "from": 700, "to": 900, "type": "turned" },
+      { "unit": "Unit 4", "from": 700, "to": 757, "type": "bump" },
+      { "unit": "Unit 5", "from": 695, "to": 750, "type": "bump" },
+      { "unit": "Unit 6", "from": 695, "to": 850, "type": "turned" },
+      { "unit": "Unit 7", "from": 725, "to": 900, "type": "turned" },
+      { "unit": "Unit 8", "from": 725, "to": 725, "type": "pending" },
+      { "unit": "Unit 9", "from": 615, "to": 663, "type": "bump" },
+      { "unit": "Unit 10", "from": 700, "to": 1250, "type": "turned", "tag": "rehab" },
+      { "unit": "Unit 11", "from": 725, "to": 787, "type": "bump" },
+      { "unit": "Unit 12", "from": 695, "to": 900, "type": "turned" },
+      { "unit": "Unit 13", "from": 582, "to": 628, "type": "bump" },
+      { "unit": "Unit 14", "from": 725, "to": 781, "type": "bump" },
+      { "unit": "Unit 15", "from": 700, "to": 760, "type": "bump" },
+      { "unit": "Unit 16", "from": 725, "to": 900, "type": "turned" },
+      { "unit": "Unit 17", "from": 725, "to": 764, "type": "bump" },
+      { "unit": "Unit 18", "from": 725, "to": 850, "type": "turned" },
+      { "unit": "Unit 19", "from": 675, "to": 730, "type": "bump" },
+      { "unit": "Unit 20", "from": 695, "to": 900, "type": "turned" }
+    ]
+  },
+  "highlights": [
+    "Zero vacant units at month end; both August turns were pre-leased before vacancy.",
+    "Units 12 and 2 re-leased at $900 + $45 RUBS, up from $695 and $757.",
+    "Found and fixed three units billing electricity to the property; meters transferred to residents.",
+    "Building-wide fiber installed; $30/mo internet plan now attaches to every new lease and renewal.",
+    "August begins Operating Year 2; annual insurance renewal (~$14.9K) is the largest cash item of the year."
+  ]
+}
