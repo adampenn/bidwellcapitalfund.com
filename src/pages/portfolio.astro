@@ -1,8 +1,8 @@
 ---
 /**
- * Owner Portal — private, access-code-gated page for property partners.
+ * Asset Management Portal — private, access-code-gated page for property partners.
  * Standalone page, does not use the site Layout component. Not linked in nav.
- * URL: /owners
+ * URL: /portfolio
  *
  * Data flow: each property's Asset Mgmt Google Sheet is the source of truth.
  * scripts/owners/update_cherry.py regenerates src/data/owners/<id>.json;
@@ -24,7 +24,7 @@ const OWNERS_DATA = {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Bidwell Capital — Owner Portal</title>
+<title>Bidwell Capital — Asset Management Portal</title>
 <style is:global>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
 
@@ -134,7 +134,7 @@ const OWNERS_DATA = {
   <div class="auth-container">
     <div class="auth-brand">Bidwell Capital</div>
     <div class="auth-card">
-      <h2 class="auth-title">Owner Portal</h2>
+      <h2 class="auth-title">Asset Management Portal</h2>
       <p class="auth-sub">Enter the access code to continue.</p>
       <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
       <div id="auth-error" class="auth-error"></div>
@@ -148,7 +148,7 @@ const OWNERS_DATA = {
 
   <div class="masthead">
     <div class="container">
-      <div class="mast-eyebrow">Bidwell Capital · Owner Portal</div>
+      <div class="mast-eyebrow">Bidwell Capital · Asset Management Portal</div>
       <h1 class="mast-title" id="mast-title"></h1>
       <p class="mast-sum" id="mast-sum"></p>
       <p class="mast-meta" id="mast-meta"></p>
@@ -161,6 +161,7 @@ const OWNERS_DATA = {
       <a href="#snapshot">Snapshot</a>
       <a href="#performance">Performance</a>
       <a href="#rentroll">Rent roll</a>
+      <a href="#equity">Value &amp; equity</a>
       <a href="#month">This month</a>
       <a href="#updates-sec">Update archive</a>
     </nav>
@@ -190,6 +191,16 @@ const OWNERS_DATA = {
       <div class="card">
         <div class="legend" id="rent-legend"></div>
         <div style="position:relative;" id="rentWrap"><canvas id="rentChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="blk" id="equity">
+      <p class="eyebrow">Where today's value sits</p>
+      <h2 class="blk-title">Value &amp; equity</h2>
+      <div class="card">
+        <div class="legend" id="eq-legend"></div>
+        <div style="position:relative;height:110px;"><canvas id="eqChart"></canvas></div>
+        <div class="chart-note" id="eq-note"></div>
       </div>
     </section>
 
@@ -394,6 +405,37 @@ const OWNERS_DATA = {
       },
       plugins: [draw]
     }));
+
+    if (d.equity) {
+      var SEG = { gray: '#898781', blue: '#2a78d6', aqua: '#1baf7a', orange: '#eb6834' };
+      var fmtK = function (v) { return '$' + (v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : Math.round(v / 1000) + 'K'); };
+      document.getElementById('eq-legend').innerHTML = d.equity.segments.map(function (s) {
+        return '<span><span style="width:10px;height:10px;border-radius:2px;background:' + SEG[s.color] +
+          ';display:inline-block;"></span>' + s.label + ' · ' + fmtK(s.value) + '</span>';
+      }).join('') +
+      '<span style="color:' + C.ink2 + ';font-weight:600;">Implied value ' + fmtK(d.equity.impliedValue) + '</span>';
+      document.getElementById('eq-note').textContent = d.equity.note || '';
+      charts.push(new Chart(document.getElementById('eqChart'), {
+        type: 'bar',
+        data: { labels: [''], datasets: d.equity.segments.map(function (s) {
+          return { label: s.label, data: [s.value], backgroundColor: SEG[s.color],
+            barThickness: 34, borderColor: '#ffffff', borderWidth: 1 };
+        }) },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: {
+            label: function (c) {
+              var v = c.parsed.x, pct = Math.round(v / d.equity.impliedValue * 100);
+              return c.dataset.label + ': $' + v.toLocaleString() + ' (' + pct + '% of value)';
+            } } } },
+          scales: {
+            x: { stacked: true, max: d.equity.impliedValue, grid: { color: C.grid }, border: { display: false },
+              ticks: { color: C.gray, callback: function (v) { return '$' + (v / 1e6).toFixed(1) + 'M'; } } },
+            y: { stacked: true, grid: { display: false }, ticks: { display: false } }
+          }
+        }
+      }));
+    }
 
     document.getElementById('highlights').innerHTML =
       (d.highlights || []).map(function (h) { return '<li>' + h + '</li>'; }).join('');

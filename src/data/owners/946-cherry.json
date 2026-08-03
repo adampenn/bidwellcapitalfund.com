@@ -20,6 +20,16 @@
     "proFormaMonthly": 8072,
     "note": "December includes a one-time management-fee credit."
   },
+  "equity": {
+    "impliedValue": 2134929,
+    "segments": [
+      { "label": "Loan payoff", "value": 1020568, "color": "gray" },
+      { "label": "LP capital returned", "value": 485000, "color": "blue" },
+      { "label": "LP profit share (80%)", "value": 503489, "color": "aqua" },
+      { "label": "GP promote (20%)", "value": 125872, "color": "orange" }
+    ],
+    "note": "Implied value at a 7% cap on trailing-3-month NOI, before transaction costs. Sale waterfall: loan payoff, LP capital returned in full, then remaining profit split 80% LP / 20% GP."
+  },
   "rentRoll": {
     "marketRent": 900,
     "avgFrom": 696,
