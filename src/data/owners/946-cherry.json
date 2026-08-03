@@ -5,6 +5,7 @@
   "units": 20,
   "asOf": "Jul 2026",
   "operatingMonth": 12,
+  "summary": "Year 1 closed with NOI running 34% ahead of pro forma, zero vacant units at month end, and an implied value 46% above basis.",
   "kpis": [
     { "label": "T-12 NOI (annualized)", "value": "$130.2K", "delta": "+34% vs pro forma", "good": true },
     { "label": "Occupancy", "value": "99.5%", "delta": "0 vacant at month end", "good": true },

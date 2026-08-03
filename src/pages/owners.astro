@@ -26,77 +26,106 @@ const OWNERS_DATA = {
 <meta name="robots" content="noindex, nofollow">
 <title>Bidwell Capital — Owner Portal</title>
 <style is:global>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+
   :root {
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --dark: #0f0e0c; --dark-2: #171614;
+    --dark-text: #f2efe8; --dark-text-2: #a09a8e;
+    --paper: #f8f7f4; --card: #ffffff;
+    --ink: #1a1915; --ink-2: #5c574d; --ink-3: #8a8479;
+    --line: rgba(26, 25, 21, 0.1); --line-strong: rgba(26, 25, 21, 0.18);
+    --copper: #a06b3a; --copper-bright: #c48a5a;
+    --copper-subtle: rgba(160, 107, 58, 0.1);
+    --good: #3f6212;
     --blue: #2a78d6; --orange: #eb6834; --gray: #898781;
-    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #898781;
-    --bg: #f9f9f7; --card: #ffffff; --line: #e1e0d9; --good: #006300;
-    --copper: #c48a5a;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap { max-width: 1020px; margin: 0 auto; padding: 24px 20px 60px; }
-  header.pg h1 { font-size: 22px; font-weight: 600; margin: 0; }
-  header.pg p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1020px; margin: 0 auto; padding: 0 20px; }
 
-  #auth-screen {
-    position: fixed; inset: 0; z-index: 1000;
-    display: flex; align-items: center; justify-content: center; background: var(--bg);
-  }
-  .auth-container { text-align: center; width: 100%; max-width: 380px; padding: 2rem; }
-  .auth-brand { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--copper); margin-bottom: 16px; }
-  .auth-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 28px 24px; }
-  .auth-title { margin: 0 0 4px; font-size: 18px; }
-  .auth-sub { margin: 0 0 16px; color: var(--ink-2); font-size: 14px; }
+  /* ---- Auth ---- */
+  #auth-screen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: var(--dark); }
+  .auth-container { text-align: center; width: 100%; max-width: 400px; padding: 2rem; }
+  .auth-brand { font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--copper-bright); margin-bottom: 20px; }
+  .auth-card { background: var(--dark-2); border: 1px solid rgba(242,239,232,0.08); border-radius: 12px; padding: 32px 28px; }
+  .auth-title { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 28px; color: var(--dark-text); }
+  .auth-sub { margin: 0 0 20px; color: var(--dark-text-2); font-size: 14px; }
   .auth-card input {
-    width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid var(--line);
-    border-radius: 8px; margin-bottom: 10px;
+    width: 100%; padding: 12px 14px; font-size: 15px; font-family: var(--sans);
+    background: var(--dark); color: var(--dark-text);
+    border: 1px solid rgba(242,239,232,0.14); border-radius: 8px; margin-bottom: 10px;
   }
-  .auth-error { color: #b3261e; font-size: 13px; min-height: 18px; margin-bottom: 6px; }
+  .auth-card input::placeholder { color: var(--dark-text-2); }
+  .auth-error { color: #e08b7d; font-size: 13px; min-height: 18px; margin-bottom: 8px; }
   .auth-card button {
-    width: 100%; padding: 10px; font-size: 15px; font-weight: 600; color: #fff;
-    background: var(--ink); border: 0; border-radius: 8px; cursor: pointer;
+    width: 100%; padding: 12px; font-size: 15px; font-weight: 600; font-family: var(--sans);
+    color: var(--dark); background: var(--copper-bright); border: 0; border-radius: 8px; cursor: pointer;
   }
-  .auth-footer { font-size: 12px; color: var(--ink-3); margin-top: 14px; }
+  .auth-card button:hover { background: #d9a474; }
+  .auth-footer { font-size: 12px; color: var(--dark-text-2); margin-top: 16px; }
 
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 20px 0 0; flex-wrap: wrap; }
-  .tab {
-    padding: 9px 16px; font: inherit; font-size: 14px; font-weight: 500; color: var(--ink-2);
-    background: none; border: 0; border-bottom: 2px solid transparent; cursor: pointer;
+  /* ---- Masthead ---- */
+  .masthead { background: var(--dark); color: var(--dark-text); padding: 34px 0 0; }
+  .mast-eyebrow { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--copper-bright); }
+  .mast-title { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 5vw, 44px); margin: 10px 0 8px; }
+  .mast-sum { max-width: 640px; color: var(--dark-text-2); font-size: 15px; line-height: 1.6; margin: 0 0 6px; }
+  .mast-meta { color: var(--dark-text-2); font-size: 13px; margin: 0 0 22px; }
+  .prop-tabs { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 18px; }
+  .prop-tab {
+    padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+    color: var(--dark-text-2); background: transparent;
+    border: 1px solid rgba(242,239,232,0.16); border-radius: 999px;
   }
-  .tab.active { color: var(--ink); border-bottom-color: var(--blue); }
-  .tab .sub { font-weight: 400; color: var(--ink-3); }
+  .prop-tab.active { color: var(--dark); background: var(--copper-bright); border-color: var(--copper-bright); }
 
-  h2 { font-size: 17px; font-weight: 600; margin: 28px 0 12px; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; }
-  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  /* ---- Section nav (sticky) ---- */
+  .secnav-wrap { position: sticky; top: 0; z-index: 100; background: rgba(248,247,244,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .secnav { display: flex; gap: 4px; overflow-x: auto; padding: 0 20px; max-width: 1020px; margin: 0 auto; }
+  .secnav a {
+    padding: 13px 12px; font-size: 13.5px; font-weight: 500; white-space: nowrap;
+    color: var(--ink-2); text-decoration: none; border-bottom: 2px solid transparent;
+  }
+  .secnav a.active { color: var(--copper); border-bottom-color: var(--copper); }
+  .secnav a:hover { color: var(--ink); }
+
+  /* ---- Sections ---- */
+  section.blk { padding: 36px 0 6px; scroll-margin-top: 56px; }
+  .eyebrow { font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--copper); margin: 0 0 6px; }
+  h2.blk-title { font-family: var(--serif); font-weight: 400; font-size: 26px; margin: 0 0 16px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
   .kpi .lb { font-size: 12px; color: var(--ink-3); }
-  .kpi .vl { font-size: 22px; font-weight: 600; margin-top: 4px; }
-  .kpi .dl { font-size: 12px; margin-top: 2px; color: var(--ink-2); }
+  .kpi .vl { font-family: var(--serif); font-size: 28px; margin-top: 4px; }
+  .kpi .dl { font-size: 12.5px; margin-top: 3px; color: var(--ink-2); }
   .kpi .dl.good { color: var(--good); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 14px 18px; font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
-  .legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .chart-note { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
-  ul.hl { margin: 0; padding-left: 20px; }
-  ul.hl li { margin: 6px 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 
-  details.update { border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 18px; font-size: 12.5px; color: var(--ink-2); margin-bottom: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .chart-note { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; }
+  ul.hl { margin: 0; padding-left: 20px; }
+  ul.hl li { margin: 8px 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+
+  details.update { border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
   details.update summary {
-    padding: 13px 16px; cursor: pointer; font-size: 14px; font-weight: 600;
-    display: flex; justify-content: space-between; gap: 12px; list-style: none;
+    padding: 14px 18px; cursor: pointer; font-size: 14.5px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; list-style: none;
   }
   details.update summary::-webkit-details-marker { display: none; }
-  details.update summary .dt { font-weight: 400; color: var(--ink-3); white-space: nowrap; }
-  details.update .body { padding: 0 16px 14px; font-size: 14px; line-height: 1.6; color: var(--ink-2); }
-  details.update .body p { margin: 8px 0; }
+  details.update summary:hover { color: var(--copper); }
+  details.update summary .dt { font-weight: 400; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+  details.update[open] summary { border-bottom: 1px solid var(--line); }
+  details.update .body { padding: 4px 18px 16px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
+  details.update .body p { margin: 10px 0; }
   details.update .body strong { color: var(--ink); }
+  details.update .body ul { padding-left: 20px; }
 
-  footer.pg { margin-top: 40px; font-size: 12px; color: var(--ink-3); }
-  @media (max-width: 640px) { .kpi .vl { font-size: 19px; } }
+  footer.pg { margin: 48px 0 0; padding: 22px 0 40px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
+  @media (max-width: 640px) { .kpi .vl { font-size: 24px; } }
 </style>
 </head>
 <body>
@@ -115,39 +144,69 @@ const OWNERS_DATA = {
   </div>
 </div>
 
-<div class="wrap" id="app" style="display:none;">
-  <header class="pg">
-    <h1>Bidwell Capital — Owner Portal</h1>
-    <p id="asof"></p>
-  </header>
+<div id="app" style="display:none;">
 
-  <div class="tabs" id="tabs"></div>
-
-  <div id="detail">
-    <h2 id="p-name"></h2>
-    <div class="kpis" id="kpis"></div>
-
-    <h2>Monthly NOI vs pro forma</h2>
-    <div class="card">
-      <div class="legend" id="noi-legend"></div>
-      <div style="position:relative;height:260px;"><canvas id="noiChart"></canvas></div>
-      <div class="chart-note" id="noi-note"></div>
+  <div class="masthead">
+    <div class="container">
+      <div class="mast-eyebrow">Bidwell Capital · Owner Portal</div>
+      <h1 class="mast-title" id="mast-title"></h1>
+      <p class="mast-sum" id="mast-sum"></p>
+      <p class="mast-meta" id="mast-meta"></p>
+      <div class="prop-tabs" id="tabs"></div>
     </div>
-
-    <h2>Rent by unit — turns vs renewal bumps</h2>
-    <div class="card">
-      <div class="legend" id="rent-legend"></div>
-      <div style="position:relative;" id="rentWrap"><canvas id="rentChart"></canvas></div>
-    </div>
-
-    <h2>This month</h2>
-    <div class="card"><ul class="hl" id="highlights"></ul></div>
-
-    <h2>Monthly updates</h2>
-    <div id="updates"></div>
   </div>
 
-  <footer class="pg">Prepared by Bidwell Capital. Figures from property accounting records; pro forma refers to the acquisition underwriting baseline.</footer>
+  <div class="secnav-wrap">
+    <nav class="secnav" id="secnav">
+      <a href="#snapshot">Snapshot</a>
+      <a href="#performance">Performance</a>
+      <a href="#rentroll">Rent roll</a>
+      <a href="#month">This month</a>
+      <a href="#updates-sec">Update archive</a>
+    </nav>
+  </div>
+
+  <div class="container">
+
+    <section class="blk" id="snapshot">
+      <p class="eyebrow">Where the asset stands</p>
+      <h2 class="blk-title">Snapshot</h2>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="blk" id="performance">
+      <p class="eyebrow">Actuals vs the acquisition underwriting</p>
+      <h2 class="blk-title">Monthly NOI vs pro forma</h2>
+      <div class="card">
+        <div class="legend" id="noi-legend"></div>
+        <div style="position:relative;height:280px;"><canvas id="noiChart"></canvas></div>
+        <div class="chart-note" id="noi-note"></div>
+      </div>
+    </section>
+
+    <section class="blk" id="rentroll">
+      <p class="eyebrow">The value-add engine, unit by unit</p>
+      <h2 class="blk-title">Rent by unit — turns vs renewal bumps</h2>
+      <div class="card">
+        <div class="legend" id="rent-legend"></div>
+        <div style="position:relative;" id="rentWrap"><canvas id="rentChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="blk" id="month">
+      <p class="eyebrow">Operations</p>
+      <h2 class="blk-title">This month</h2>
+      <div class="card"><ul class="hl" id="highlights"></ul></div>
+    </section>
+
+    <section class="blk" id="updates-sec">
+      <p class="eyebrow">Every monthly letter since acquisition</p>
+      <h2 class="blk-title">Update archive</h2>
+      <div id="updates"></div>
+    </section>
+
+    <footer class="pg">Prepared by Bidwell Capital. Figures from property accounting records; pro forma refers to the acquisition underwriting baseline.</footer>
+  </div>
 </div>
 
 <script type="application/json" id="owners-data" set:html={JSON.stringify(OWNERS_DATA)}></script>
@@ -186,7 +245,7 @@ const OWNERS_DATA = {
   } catch (e) { authInput.focus(); }
 
   var DATA = JSON.parse(document.getElementById('owners-data').textContent);
-  var C = { blue: '#2a78d6', orange: '#eb6834', gray: '#898781', grid: '#e1e0d9', ink2: '#52514e' };
+  var C = { blue: '#2a78d6', orange: '#eb6834', gray: '#898781', grid: '#e7e4dc', ink2: '#5c574d' };
   var charts = [];
   var booted = false;
 
@@ -198,28 +257,40 @@ const OWNERS_DATA = {
     if (booted) return;
     booted = true;
     var pf = DATA.portfolio;
-    document.getElementById('asof').textContent =
-      pf.properties.length + (pf.properties.length === 1 ? ' property' : ' properties') +
-      ' · updated ' + pf.asOf;
     var tabs = document.getElementById('tabs');
     pf.properties.forEach(function (p, i) {
       var b = document.createElement('button');
-      b.className = 'tab'; b.id = 'tab-' + p.id;
-      b.innerHTML = p.name + ' <span class="sub">· ' + p.units + ' units</span>';
+      b.className = 'prop-tab'; b.id = 'tab-' + p.id;
+      b.textContent = p.name + ' · ' + p.units + ' units';
       b.onclick = function () { select(p.id); };
       tabs.appendChild(b);
       if (i === 0) select(p.id);
     });
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.secnav a'));
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          links.forEach(function (l) {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('section.blk').forEach(function (s) { obs.observe(s); });
   }
 
   function select(id) {
-    document.querySelectorAll('.tab').forEach(function (el) { el.classList.remove('active'); });
+    document.querySelectorAll('.prop-tab').forEach(function (el) { el.classList.remove('active'); });
     document.getElementById('tab-' + id).classList.add('active');
     var d = DATA.details[id];
     charts.forEach(function (c) { c.destroy(); });
     charts = [];
-    document.getElementById('p-name').textContent =
-      d.name + ' — ' + d.asOf + ' (operating month ' + d.operatingMonth + ')';
+
+    document.getElementById('mast-title').textContent = d.name;
+    document.getElementById('mast-sum').textContent = d.summary || '';
+    document.getElementById('mast-meta').textContent =
+      d.city + ' · ' + d.units + ' units · ' + d.asOf + ' · operating month ' + d.operatingMonth;
 
     document.getElementById('kpis').innerHTML = d.kpis.map(function (k) {
       return '<div class="kpi"><div class="lb">' + k.label + '</div><div class="vl">' + k.value +
@@ -274,7 +345,7 @@ const OWNERS_DATA = {
       ctx.strokeStyle = C.gray; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
       ctx.beginPath(); ctx.moveTo(mx, area.top); ctx.lineTo(mx, area.bottom); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = C.gray;
+      ctx.font = '11px DM Sans, system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = C.gray;
       ctx.fillText('market $' + rr.marketRent, mx, area.top - 8);
       ctx.textBaseline = 'middle';
       units.forEach(function (u, i) {
