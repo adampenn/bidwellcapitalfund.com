@@ -1,0 +1,204 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Investment Philosophy - Bidwell Capital" description="Our investment philosophy: cash flow, taxes, relationships, operations, and stewardship over the long term.">
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">Investment Philosophy</span>
+      <h1 class="fade-up fade-up-2">Cash flow, discipline, and long-term stewardship.</h1>
+      <p class="fade-up fade-up-3">We prefer assets that can produce income today while supporting long-term wealth creation. Our philosophy is the short list of things we keep returning to when we evaluate an asset, an operator, or a structure.</p>
+    </div>
+  </section>
+
+  <!-- Principles list -->
+  <section class="section">
+    <div class="container narrow">
+      <ol class="principles">
+        <li class="principle">
+          <span class="principle-num">01</span>
+          <div class="principle-body">
+            <h2>Cash flow matters.</h2>
+            <p>Income today is the foundation. We prefer assets that pay along the way, not just at exit. Cash flow is the clearest test of whether an asset is doing real work.</p>
+          </div>
+        </li>
+        <li class="principle">
+          <span class="principle-num">02</span>
+          <div class="principle-body">
+            <h2>Taxes matter.</h2>
+            <p>After-tax returns are the only returns that count. We pay close attention to how investments are structured for tax efficiency. Outcomes depend on each investor's circumstances and are never guaranteed.</p>
+          </div>
+        </li>
+        <li class="principle">
+          <span class="principle-num">03</span>
+          <div class="principle-body">
+            <h2>Relationships matter.</h2>
+            <p>The operator is the deal. We invest behind people we know and have worked with over time. Trust earned over years is the foundation of access to the work that matters.</p>
+          </div>
+        </li>
+        <li class="principle">
+          <span class="principle-num">04</span>
+          <div class="principle-body">
+            <h2>Operations matter.</h2>
+            <p>Real returns come from real work. We pay attention to how an asset is actually run: the team, the systems, the day-to-day execution. A clean spreadsheet is not a substitute for clean operations.</p>
+          </div>
+        </li>
+        <li class="principle">
+          <span class="principle-num">05</span>
+          <div class="principle-body">
+            <h2>Stewardship matters.</h2>
+            <p>Investor capital is a long-term responsibility, not a one-time transaction. Communication, reporting, and decision-making all flow from that posture.</p>
+          </div>
+        </li>
+        <li class="principle">
+          <span class="principle-num">06</span>
+          <div class="principle-body">
+            <h2>Patience matters.</h2>
+            <p>Durable wealth is built over decades. We are willing to wait for the right opportunities, with the right partners, at the right structure. We do not chase market cycles.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- How this shows up in practice -->
+  <section class="section section-tint">
+    <div class="container">
+      <span class="section-label">In practice</span>
+      <h2>How this shapes our work.</h2>
+      <p class="section-intro">A few of the practical commitments these principles produce.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Narrow focus</h3>
+          <p>We invest in three verticals where we have direct experience or long-standing relationships. We say no to most of what we see.</p>
+        </div>
+        <div class="card">
+          <h3>Underwrite the downside</h3>
+          <p>We start with how a thesis can fail and work backward. Conservative assumptions, stress-tested cases, and a clear-eyed view of the risk being taken.</p>
+        </div>
+        <div class="card">
+          <h3>Operator trust, not OPM</h3>
+          <p>We do not raise capital for operators we do not know personally. Access comes from relationships built over years, not from broker introductions.</p>
+        </div>
+        <div class="card">
+          <h3>Tax-aware structuring</h3>
+          <p>We consider tax efficiency alongside the return profile. Outcomes vary by investor and are never guaranteed.</p>
+        </div>
+        <div class="card">
+          <h3>Plain reporting</h3>
+          <p>Investors get clear updates on what is working and what is not. No spreadsheet theater. No marketing-speak.</p>
+        </div>
+        <div class="card">
+          <h3>Aligned commitments</h3>
+          <p>We invest alongside our partners and structure deals so the operator is rewarded for performance, not for raising.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Disclaimers -->
+  <section class="section">
+    <div class="container narrow">
+      <p class="disclaimer">All investments involve risk, including the possible loss of principal. Past performance is not indicative of future results. Statements about returns, tax outcomes, distributions, or hold periods are targets, intentions, or design goals, not guarantees. Nothing on this page constitutes an offer to sell or a solicitation of an offer to buy any securities. Any such offer will only be made through a Private Placement Memorandum or other appropriate offering document. Bidwell Capital offerings are available only to accredited investors as defined by SEC regulations.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section section-tint">
+    <div class="container cta-wrap">
+      <span class="section-label">Connect</span>
+      <h2>Interested in learning more?</h2>
+      <p class="cta-sub">If our philosophy resonates, we would like to learn about your goals and where you are headed.</p>
+      <div style="margin-top: 1.75rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="/contact" class="btn btn-primary">Connect With Us</a>
+        <a href="/what-we-invest-in" class="btn btn-outline">What We Invest In</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero-sm {
+    padding: 5rem 0 2rem;
+  }
+
+  .hero-sm h1 {
+    margin: 0.5rem 0 1rem;
+    max-width: 22ch;
+  }
+
+  .hero-sm p {
+    font-size: 1.125rem;
+    max-width: 62ch;
+  }
+
+  .narrow {
+    max-width: 56rem;
+  }
+
+  .section-intro {
+    max-width: 62ch;
+    margin-bottom: 2.5rem;
+  }
+
+  .principles {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    padding: 0;
+    margin: 0;
+  }
+
+  .principle {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    gap: 1.25rem;
+    align-items: start;
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+  }
+
+  .principle:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .principle-num {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .principle-body h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    margin: 0 0 0.5rem;
+  }
+
+  .principle-body p {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+  }
+
+  @media (max-width: 600px) {
+    .principle {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+
+  .cta-wrap {
+    max-width: 48rem;
+  }
+
+  .cta-wrap h2 {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+  }
+
+  .cta-sub {
+    margin-top: 1rem;
+    font-size: 1.0625rem;
+    max-width: 52ch;
+  }
+</style>
