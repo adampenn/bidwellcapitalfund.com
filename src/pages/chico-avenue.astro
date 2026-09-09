@@ -397,21 +397,27 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
           <a href={PORTAL_URL} target="_blank" rel="noopener" class="btn btn-primary">Open the investor portal ↗</a>
         </div>
         <div class="card doc-card">
-          <h3>Investor presentation</h3>
+          <h3>Presentation and underwriting file</h3>
           <p>The September 2026 webinar deck: the opportunity, the playbook, each building, the numbers and the terms. 28 slides. Summary presentation; where it differs from the PPM and Supplement No. 1, those control.</p>
           <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
-        </div>
-        <div class="card doc-card">
-          <h3>Underwriting file</h3>
-          <p>The per-building pro formas behind this page, the June 2026 Royal Arms appraisal, the inspection reports and the seller credit packages are available on request.</p>
-          <p class="contact">Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> or text Adam at <a href="sms:+15305207331">(530) 520-7331</a> with "Chico Avenue underwriting file".</p>
+          <p>The per-building pro formas behind this page, the June 2026 Royal Arms appraisal, the inspection reports and the seller credit packages are available on request. Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> with "Chico Avenue underwriting file".</p>
           <button type="button" class="btn btn-outline" id="btn-copy-email" data-email="team@bidwellcapitalfund.com">Copy email address</button>
         </div>
-        <div class="card doc-card doc-contact">
-          <h3>Talk with Adam</h3>
-          <p>A call to walk the model, the buildings and the escrow status, and to answer anything this page does not.</p>
-          <p class="contact"><a href="tel:+15305207331">(530) 520-7331</a><br /><a href="mailto:team@bidwellcapitalfund.com">team@bidwellcapitalfund.com</a></p>
-        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ CTA -->
+  <section class="cta">
+    <div class="wrap cta-inner">
+      <div>
+        <span class="section-label">Next step</span>
+        <h2>Talk with Adam</h2>
+        <p>A call to walk the model, the buildings and the escrow status, and to answer anything this page does not.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="tel:+15305207331" class="btn btn-primary">Call (530) 520-7331</a>
+        <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio" class="btn btn-outline">team@bidwellcapitalfund.com</a>
       </div>
     </div>
   </section>
@@ -1061,9 +1067,15 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   .doclist { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.5rem; }
   .doclist li { font-size: 0.88rem; color: var(--text-primary); padding-left: 1.4rem; position: relative; }
   .doclist li::before { content: ''; position: absolute; left: 0; top: 0.35em; width: 12px; height: 14px; border: 1.5px solid var(--accent); border-radius: 2px; }
-  .contact { font-size: 1.05rem; line-height: 1.7; }
-  .contact a { color: var(--text-primary); font-weight: 500; }
-  .contact a:hover { color: var(--accent); }
+
+  /* ---------- cta ---------- */
+  .cta { background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 4rem 0; }
+  .cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+  .cta h2 { margin-bottom: 0.5rem; }
+  .cta p { max-width: 560px; font-size: 1rem; }
+  .cta-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .cta .btn { font-size: 1rem; padding: 0.85rem 1.6rem; }
+  @media (max-width: 700px) { .cta { padding: 3rem 0; } .cta-actions { width: 100%; } .cta-actions .btn { flex: 1; } }
 
   /* ---------- footer ---------- */
   .foot { padding: 3rem 0; border-top: 1px solid var(--border); }
