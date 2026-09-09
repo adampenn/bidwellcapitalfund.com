@@ -579,10 +579,8 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     html += kpi('Your share of the sale, year ' + N, money(saleOnInv), 'on top of ' + money(refiOnInv) + ' from refinances and ' + money(cashOnInv) + ' of cash flow, at a ' + pct(A.capRate, 2) + ' cap less 4% cost of sale', deltaMoney(saleOnInv, base.saleProceedsLP * share), false);
     document.getElementById('kpis').innerHTML = html;
     document.getElementById('mini-kpis').innerHTML =
-      '<div><b>' + money(totalOnInv, { compact: true }) + '</b><span>back on ' + money(inv, { compact: true }) + '</span></div>' +
-      '<div><b>' + res.multiple.toFixed(2) + 'x</b><span>multiple</span></div>' +
-      '<div><b>' + pct(res.irr) + '</b><span>' + N + '-yr IRR</span></div>' +
-      '<div><b>' + pct(res.y1Coc) + '</b><span>yr 1 yield</span></div>';
+      '<div><b>' + money(totalOnInv) + '</b><span>back on ' + money(inv) + ' · ' + res.multiple.toFixed(2) + 'x</span></div>' +
+      '<div><b>' + pct(res.irr) + '</b><span>' + N + '-year IRR</span></div>';
 
     /* Events and warnings */
     var ev = [];
@@ -959,11 +957,12 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   .mini-kpis { display: none; }
   @media (max-width: 960px) {
     .results { display: contents; }
-    .model-grid { display: flex; flex-direction: column; gap: 1.25rem; }
-    .mini-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; position: sticky; top: 6.4rem; z-index: 40; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 0.6rem 0.75rem; box-shadow: 0 6px 20px var(--card-shadow); order: -2; }
+    .model-grid { display: flex; flex-direction: column; gap: 1.25rem; align-items: stretch; }
+    .mini-kpis { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: end; position: sticky; top: 6.4rem; z-index: 40; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 0.9rem 1.1rem; box-shadow: 0 6px 20px var(--card-shadow); order: -2; }
     .mini-kpis div { display: flex; flex-direction: column; min-width: 0; }
-    .mini-kpis b { font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; color: var(--text-primary); line-height: 1.1; white-space: nowrap; }
-    .mini-kpis span { font-size: 0.62rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-kpis div:last-child { text-align: right; }
+    .mini-kpis b { font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; color: var(--text-primary); line-height: 1.1; white-space: nowrap; }
+    .mini-kpis span { font-size: 0.74rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.15rem; }
     .levers { order: -1; }
   }
   .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
