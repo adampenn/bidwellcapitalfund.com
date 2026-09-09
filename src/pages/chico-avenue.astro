@@ -150,7 +150,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
             <div class="lever">
               <div class="lever-label"><span id="lbl-stab">Years to reach target rents</span><output id="out-stab" for="inp-stab">2 years</output></div>
               <input type="range" id="inp-stab" min="2" max="5" step="1" value="2" aria-labelledby="lbl-stab" />
-              <div class="lever-hint">Underwriting reaches appraiser market rents in year 2 and our targets in year 3. A slower lease-up stretches that ramp.</div>
+              <div class="lever-hint">Underwriting steps rents up in year 2 and reaches our targets in year 3. A slower lease-up stretches that ramp.</div>
             </div>
             <div class="lever">
               <div class="lever-label"><span id="lbl-rentGrowth">Rent growth per year, after that</span><output id="out-rentGrowth" for="inp-rentGrowth">3.0%</output></div>
@@ -254,7 +254,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
           <div class="card">
             <h3>How this works, and what is left out</h3>
             <ul class="how">
-              <li>Rents step from today's rent roll to appraiser market rents in year 2, then to our target rents in year 3, then grow at the rate you set. Both properties are underwritten at 4% vacancy plus 3% credit loss every year.</li>
+              <li>Rents step from today's rent roll to an interim level in year 2 (the Royal Arms appraisal's market rents; a conservative step for 1017), then to our target rents in year 3, then grow at the rate you set. Both properties are underwritten at 4% vacancy plus 3% credit loss every year.</li>
               <li>Cash flow splits 80% to investors and 20% to the Manager every quarter. Refinance and sale proceeds return investor capital in full before the 80/20 split.</li>
               <li>Refinances are sized on the prior year's income at the cap rate above, at the lesser of the loan-to-value you set and a 1.25x coverage test, with a 1% refinance and guaranty fee to the Manager and 1% closing costs. A refinance is skipped when its fees exceed the cash it produces.</li>
               <li>Fees included: 2% acquisition fee on the contract price ($84,200), 5.5% of collections for property management, 1% of revenues for asset management, and the 1% refinance and guaranty fee. No disposition fee.</li>
@@ -292,7 +292,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
             <li><b>Little new supply.</b> We have not seen new small-multifamily construction downtown in years, and none is proposed near these blocks.</li>
             <li><b>Below replacement cost.</b> About $111,000 per door sits well below what it would cost to build an apartment in Chico today.</li>
             <li><b>Turnover drives rents.</b> Long-held buildings sit below market and rents reset at turnover. Units are largely in original condition.</li>
-            <li><b>The spread.</b> Stabilized NOI is underwritten at 8.2% of net price, renovation and fees. Stabilized buildings have been trading at 6.0% to 6.5% cap rates; the appraisals are in the underwriting file. <span id="exit-cap-note"></span></li>
+            <li><b>The spread.</b> Stabilized NOI is underwritten at 8.2% of net price, renovation and fees. Stabilized buildings have been trading at 6.0% to 6.5% cap rates; the Royal Arms appraisal is in the underwriting file. <span id="exit-cap-note"></span></li>
           </ul>
         </div>
         <div class="card">
@@ -365,7 +365,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
           <li><b>Execution.</b> The return is manufactured through turns and operations. Slow lease-up or renovation overruns push the timeline right. Use the "years to reach target rents" and renovation levers above to see the effect.</li>
           <li><b>Financing.</b> Neither loan is committed. Worse terms, or no loan for Royal Arms, would lower returns or prevent that acquisition. Both loans carry interest-only periods and then reset or mature in year 5, and the plan depends on refinancing.</li>
           <li><b>Concentration and structure.</b> Royal Arms is roughly two-thirds of the equity: one property, one roof, one reposition plan. Investors' interest in Royal Arms sits behind its lender through a subsidiary.</li>
-          <li><b>Rents.</b> Year 1 uses today's rent roll. Years 2 and 3 assume rents reach appraiser market and then our targets as units turn, about +20% at 1017 and +26% at Royal Arms. Chico rents have softened from their 2024 peak; if that continues, those steps take longer or do not happen.</li>
+          <li><b>Rents.</b> Year 1 uses today's rent roll. Years 2 and 3 assume rents step up and then reach our targets as units turn, about +20% at 1017 and +26% at Royal Arms. Chico rents have softened from their 2024 peak; if that continues, those steps take longer or do not happen.</li>
           <li><b>Expenses.</b> Property taxes roughly double on reassessment at purchase and are modeled that way. City sewer rates step up sharply from late 2026, to be recovered through utility billing where leases and California law allow.</li>
           <li><b>Roof and capital items.</b> The Royal Arms roof certification comes from the seller's contractor, is conditioned on minor repairs, and defers rather than eliminates replacement. Renovation costs may exceed budget.</li>
           <li><b>Bridge financing.</b> If subscriptions lag closing, the Company may borrow short term from Wesley Hill at about 1.1% a month, which is not in the model.</li>
@@ -401,7 +401,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
         </div>
         <div class="card doc-card">
           <h3>Underwriting file</h3>
-          <p>The per-building pro formas behind this page, the third-party appraisals commissioned in June 2026, the inspection reports and the seller credit packages are available on request.</p>
+          <p>The per-building pro formas behind this page, the June 2026 Royal Arms appraisal, the inspection reports and the seller credit packages are available on request.</p>
           <p class="contact">Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> or text Adam at <a href="sms:+15305207331">(530) 520-7331</a> with "Chico Avenue underwriting file".</p>
           <button type="button" class="btn btn-outline" id="btn-copy-email" data-email="team@bidwellcapitalfund.com">Copy email address</button>
         </div>
@@ -682,7 +682,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
       return P.name + ' ' + money(avg);
     }).join(', ');
     var today = res.properties.map(function (p) { var P = M.PROPERTIES[p.id]; return P.name + ' ' + money(P.rentCurrent / P.units / 12); }).join(', ');
-    document.getElementById('hint-rentAdj').textContent = 'Average target rent: ' + hint + '. Today: ' + today + '. Targets sit about 9% to 10% above the June 2026 appraisals.';
+    document.getElementById('hint-rentAdj').textContent = 'Average target rent: ' + hint + '. Today: ' + today + '. Royal Arms targets sit about 8.5% above its June 2026 appraisal; 1017 was not appraised and its target is at the roughly $1,400 comparable market rent.';
   }
 
   function renderStatic() {
@@ -705,7 +705,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
       var blurb = id === 'p1017'
         ? 'Twelve units, mostly two-bed two-baths, built 1973, with the cleanest inspection file in the estate. Contract price $1,450,000 with a $75,000 seller credit at closing. Year-1 pro forma NOI about ' + money(y1, { compact: true }) + ', about ' + money(y3, { compact: true }) + ' by year 3.'
         : 'Twenty-four units around a pool courtyard, built 1962, one block from 1017. Contract price $2,760,000 with a $154,000 seller credit negotiated against the roof; the seller\'s contractor issued a five-year roof certification, conditioned on minor repairs. Year-1 pro forma NOI about ' + money(y1, { compact: true }) + ', about ' + money(y3, { compact: true }) + ' by year 3. The on-site manager expense goes away day one.';
-      var mix = '<table class="mix"><thead><tr><th>Type</th><th>Units</th><th>In place</th><th>Market</th><th>Target</th></tr></thead><tbody>';
+      var mix = '<table class="mix"><thead><tr><th>Type</th><th>Units</th><th>In place</th><th>Year 2</th><th>Target</th></tr></thead><tbody>';
       P.mix.forEach(function (u) { mix += '<tr><td>' + u.type + '</td><td>' + u.n + '</td><td>' + money(u.current) + '</td><td>' + money(u.market) + '</td><td>' + money(u.target) + '</td></tr>'; });
       mix += '<tr class="sum"><td>Average</td><td>' + P.units + '</td><td>' + money(P.rentCurrent / P.units / 12) + '</td><td>' + money(P.rentMarket / P.units / 12) + '</td><td>' + money(P.rentTarget / P.units / 12) + '</td></tr></tbody></table>';
       html += '<article class="prop card">' +
@@ -719,7 +719,7 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
         '<div><b>' + money(r.equity, { compact: true }) + '</b><span>investor equity</span></div>' +
         '<div><b>' + pct(r.irr) + '</b><span>projected 10-yr IRR, base</span></div>' +
         '</div>' + mix +
-        '<p class="fine">Monthly rents per unit. In place: seller rent rolls, August 2026. Market: the underwriting models\' market rents, set from the June 2026 third-party appraisals and the September 2026 comp review. Target: September 2026 comp set, assumed reached in year 3.</p>' +
+        '<p class="fine">Monthly rents per unit. In place: seller rent rolls, August 2026. Year 2: the underwriting models\' interim rents. ' + (id === 'ra' ? 'Royal Arms year-2 rents are the June 2026 third-party appraisal\'s market rents. ' : '1017 was not appraised; comparable market rent for its two-bed two-baths is about $1,400, and the underwriting steps to $1,300 in year 2 as a conservative interim. ') + 'Target: September 2026 comp set, assumed reached in year 3.</p>' +
         '</div></article>';
     });
     document.getElementById('props').innerHTML = html;
