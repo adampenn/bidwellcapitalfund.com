@@ -15,6 +15,7 @@
  * To change the code: node -e "console.log(require('crypto').createHash('sha256').update('newcode').digest('hex'))"
  */
 const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
+const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
 ---
 
 <html lang="en">
@@ -397,7 +398,8 @@ const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
         </div>
         <div class="card doc-card">
           <h3>Investor presentation</h3>
-          <p>The September webinar deck is being updated to match Supplement No. 1. Until then, the replay and the current deck are available from Adam, and the numbers on this page are the ones to rely on.</p>
+          <p>The September 2026 webinar deck: the opportunity, the playbook, each building, the numbers and the terms. 28 slides. Summary presentation; where it differs from the PPM and Supplement No. 1, those control.</p>
+          <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
         </div>
         <div class="card doc-card">
           <h3>Underwriting file</h3>
