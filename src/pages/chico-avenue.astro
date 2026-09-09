@@ -115,7 +115,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
           <div class="lever-group">
             <div class="lever-row-head">
               <span class="lever-title">Scenario</span>
-              <button type="button" id="btn-reset" class="link-btn">Reset to underwriting</button>
+              <button type="button" id="btn-reset" class="link-btn">Reset</button>
             </div>
             <div class="seg" id="presets">
               <button type="button" data-preset="down">Stress</button>
@@ -123,94 +123,101 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
               <button type="button" data-preset="up">Upside</button>
               <button type="button" data-preset="custom" class="seg-custom" hidden>Custom</button>
             </div>
-            <p class="lever-note">Neither Stress nor Upside is a floor or a ceiling. Any scenario you build is your assumptions, not the Manager's projection. Losses, including total loss, are possible.</p>
-          </div>
-
-          <div class="lever-group">
-            <span class="lever-title">Portfolio</span>
-            <div class="seg" id="selection">
-              <button type="button" data-sel="both" class="active">Both</button>
-              <button type="button" data-sel="p1017">1017 only</button>
-              <button type="button" data-sel="ra">Royal Arms only</button>
-            </div>
-            <p class="lever-note">Each escrow stands alone. If a property does not close, the money allocated to it is refunded, and its returns leave with it.</p>
+            <p class="lever-note">Anything you change is your scenario, not the Manager's projection.</p>
           </div>
 
           <div class="lever-group">
             <label class="lever-title" for="inp-invest">Your investment</label>
             <div class="money-input"><span>$</span><input type="text" inputmode="numeric" id="inp-invest" value="100,000" /></div>
-            <p class="lever-note" id="invest-note">$100,000 minimum; the Manager may accept less. Everything below is scaled to this amount.</p>
+            <p class="lever-note" id="invest-note">$100,000 minimum; the Manager may accept less.</p>
           </div>
 
           <div class="lever-group">
-            <span class="lever-title">Operations</span>
+            <span class="lever-title">The levers that matter</span>
             <div class="lever">
-              <div class="lever-label"><span id="lbl-rentAdj">Stabilized rents vs. our target</span><output id="out-rentAdj" for="inp-rentAdj">0%</output></div>
+              <div class="lever-label"><span id="lbl-rentAdj">Rents vs. our target</span><output id="out-rentAdj" for="inp-rentAdj">0%</output></div>
               <input type="range" id="inp-rentAdj" min="-15" max="10" step="0.5" value="0" aria-labelledby="lbl-rentAdj" />
               <div class="lever-hint" id="hint-rentAdj"></div>
             </div>
             <div class="lever">
-              <div class="lever-label"><span id="lbl-stab">Years to reach target rents</span><output id="out-stab" for="inp-stab">2 years</output></div>
-              <input type="range" id="inp-stab" min="2" max="5" step="1" value="2" aria-labelledby="lbl-stab" />
-              <div class="lever-hint">Underwriting steps rents up in year 2 and reaches our targets in year 3. A slower lease-up stretches that ramp.</div>
-            </div>
-            <div class="lever">
-              <div class="lever-label"><span id="lbl-rentGrowth">Rent growth per year, after that</span><output id="out-rentGrowth" for="inp-rentGrowth">3.0%</output></div>
-              <input type="range" id="inp-rentGrowth" min="0" max="5" step="0.25" value="3" aria-labelledby="lbl-rentGrowth" />
-              <div class="lever-hint">Also grows laundry and utility income from year 2.</div>
-            </div>
-            <div class="lever">
-              <div class="lever-label"><span id="lbl-vacancy">Vacancy</span><output id="out-vacancy" for="inp-vacancy">4.0%</output></div>
-              <input type="range" id="inp-vacancy" min="2" max="10" step="0.5" value="4" aria-labelledby="lbl-vacancy" />
-              <div class="lever-hint">Another 3% of rent is lost every year to move-in specials, below-market leases and unpaid rent, regardless of this setting.</div>
-            </div>
-            <div class="lever">
-              <div class="lever-label"><span id="lbl-expGrowth">Expense growth per year</span><output id="out-expGrowth" for="inp-expGrowth">2.5%</output></div>
-              <input type="range" id="inp-expGrowth" min="1" max="5" step="0.25" value="2.5" aria-labelledby="lbl-expGrowth" />
-              <div class="lever-hint">Property taxes grow at the 2% Prop 13 cap regardless.</div>
-            </div>
-            <div class="lever">
-              <div class="lever-label"><span id="lbl-rehab">Renovation budget vs. plan</span><output id="out-rehab" for="inp-rehab">On plan</output></div>
-              <input type="range" id="inp-rehab" min="0" max="50" step="5" value="0" aria-labelledby="lbl-rehab" />
-              <div class="lever-hint">Plan is about $18,750 per unit at 1017 and $15,500 at Royal Arms. An overrun raises the total raise, so a fixed investment buys a smaller share.</div>
-            </div>
-          </div>
-
-          <div class="lever-group">
-            <span class="lever-title">Capital markets</span>
-            <div class="lever">
-              <div class="lever-label"><span id="lbl-capRate">Cap rate at refinance and sale</span><output id="out-capRate" for="inp-capRate">6.50%</output></div>
+              <div class="lever-label"><span id="lbl-capRate">Cap rate at sale</span><output id="out-capRate" for="inp-capRate">6.50%</output></div>
               <input type="range" id="inp-capRate" min="5.5" max="8.5" step="0.1" value="6.5" aria-labelledby="lbl-capRate" />
-              <div class="lever-hint">Lower cap rate means a higher building value. Underwriting uses 6.5% at both refinance and sale, the same as today.</div>
-            </div>
-            <div class="lever">
-              <div class="lever-label"><span id="lbl-rateDelta">Purchase loan rates</span><output id="out-rateDelta" for="inp-rateDelta"></output></div>
-              <input type="range" id="inp-rateDelta" min="-1" max="2" step="0.125" value="0" aria-labelledby="lbl-rateDelta" />
-              <div class="lever-hint">1017: Five Star Bank expression of interest at about 6.6%, 12 months interest-only, five-year fixed rate then reset. Royal Arms: 6.5% modeled with five years interest-only; no lender has issued a term sheet.</div>
-            </div>
-            <div class="lever lever-toggle">
-              <label class="toggle"><input type="checkbox" id="inp-refiOn" checked /><span class="toggle-track"></span><span>Include the refinances</span></label>
-              <div class="lever-hint">Royal Arms refinances at the start of year 4 and 1017 at year 5, sized at the loan-to-value below and capped at 1.25x coverage. Off means each loan runs to its own reset or maturity: 1017 resets its rate after year 5, and the Royal Arms loan matures after year 5 and is replaced at the refinance rate.</div>
-            </div>
-            <div class="lever lever-toggle" id="lever-refi2">
-              <label class="toggle"><input type="checkbox" id="inp-refi2On" checked /><span class="toggle-track"></span><span>Include the second refinances in year 9</span></label>
-              <div class="lever-hint">Underwriting refinances both buildings again in year 9. That returns most of the remaining capital before sale but costs fees, so it trims the projected IRR slightly.</div>
-            </div>
-            <div class="lever" id="lever-refiRate">
-              <div class="lever-label"><span id="lbl-refiRate">Refinance rate</span><output id="out-refiRate" for="inp-refiRate">6.50%</output></div>
-              <input type="range" id="inp-refiRate" min="5" max="9" step="0.125" value="6.5" aria-labelledby="lbl-refiRate" />
-            </div>
-            <div class="lever" id="lever-refiLTV">
-              <div class="lever-label"><span id="lbl-refiLTV">Refinance loan size, % of value</span><output id="out-refiLTV" for="inp-refiLTV">65%</output></div>
-              <input type="range" id="inp-refiLTV" min="50" max="70" step="5" value="65" aria-labelledby="lbl-refiLTV" />
-              <div class="lever-hint">A bigger loan returns more capital sooner and leaves less at sale. The coverage test can size the loan below this.</div>
+              <div class="lever-hint">Lower cap rate means a higher building value. Also used to size the refinances.</div>
             </div>
             <div class="lever">
               <div class="lever-label"><span id="lbl-hold">Sell after</span><output id="out-hold" for="inp-hold">10 years</output></div>
               <input type="range" id="inp-hold" min="3" max="10" step="1" value="10" aria-labelledby="lbl-hold" />
-              <div class="lever-hint">Sale at the end of the final year at the cap rate above, less 4% cost of sale. The plan is a 5 to 10 year hold at the Manager's discretion.</div>
+              <div class="lever-hint">The plan is a 5 to 10 year hold at the Manager's discretion.</div>
             </div>
           </div>
+
+          <details class="more" id="more-levers">
+            <summary>More levers</summary>
+
+            <div class="lever-group">
+              <span class="lever-title">Portfolio</span>
+              <div class="seg" id="selection">
+                <button type="button" data-sel="both" class="active">Both</button>
+                <button type="button" data-sel="p1017">1017 only</button>
+                <button type="button" data-sel="ra">Royal Arms only</button>
+              </div>
+              <p class="lever-note">Each escrow stands alone. If a property does not close, the money allocated to it is refunded.</p>
+            </div>
+
+            <div class="lever-group">
+              <span class="lever-title">Operations</span>
+              <div class="lever">
+                <div class="lever-label"><span id="lbl-stab">Years to reach target rents</span><output id="out-stab" for="inp-stab">2 years</output></div>
+                <input type="range" id="inp-stab" min="2" max="5" step="1" value="2" aria-labelledby="lbl-stab" />
+                <div class="lever-hint">Underwriting reaches our targets in year 3. A slower lease-up stretches that.</div>
+              </div>
+              <div class="lever">
+                <div class="lever-label"><span id="lbl-rentGrowth">Rent growth per year, after that</span><output id="out-rentGrowth" for="inp-rentGrowth">3.0%</output></div>
+                <input type="range" id="inp-rentGrowth" min="0" max="5" step="0.25" value="3" aria-labelledby="lbl-rentGrowth" />
+              </div>
+              <div class="lever">
+                <div class="lever-label"><span id="lbl-vacancy">Vacancy</span><output id="out-vacancy" for="inp-vacancy">4.0%</output></div>
+                <input type="range" id="inp-vacancy" min="2" max="10" step="0.5" value="4" aria-labelledby="lbl-vacancy" />
+                <div class="lever-hint">Plus 3% every year for move-in specials and unpaid rent.</div>
+              </div>
+              <div class="lever">
+                <div class="lever-label"><span id="lbl-expGrowth">Expense growth per year</span><output id="out-expGrowth" for="inp-expGrowth">2.5%</output></div>
+                <input type="range" id="inp-expGrowth" min="1" max="5" step="0.25" value="2.5" aria-labelledby="lbl-expGrowth" />
+                <div class="lever-hint">Property taxes grow at the 2% Prop 13 cap regardless.</div>
+              </div>
+              <div class="lever">
+                <div class="lever-label"><span id="lbl-rehab">Renovation budget vs. plan</span><output id="out-rehab" for="inp-rehab">On plan</output></div>
+                <input type="range" id="inp-rehab" min="0" max="50" step="5" value="0" aria-labelledby="lbl-rehab" />
+                <div class="lever-hint">Plan is about $18,750 per unit at 1017 and $15,500 at Royal Arms. An overrun raises the total raise.</div>
+              </div>
+            </div>
+
+            <div class="lever-group">
+              <span class="lever-title">Debt</span>
+              <div class="lever">
+                <div class="lever-label"><span id="lbl-rateDelta">Purchase loan rates</span><output id="out-rateDelta" for="inp-rateDelta"></output></div>
+                <input type="range" id="inp-rateDelta" min="-1" max="2" step="0.125" value="0" aria-labelledby="lbl-rateDelta" />
+                <div class="lever-hint">1017: Five Star Bank expression of interest, about 6.6%, 12 months interest-only, five-year fixed then reset. Royal Arms: 6.5% modeled, five years interest-only; no term sheet yet.</div>
+              </div>
+              <div class="lever lever-toggle">
+                <label class="toggle"><input type="checkbox" id="inp-refiOn" checked /><span class="toggle-track"></span><span>Include the refinances</span></label>
+                <div class="lever-hint">Royal Arms refinances at the start of year 4 and 1017 at year 5, sized at the loan-to-value below and capped at 1.25x coverage. Off means each loan runs to its own reset or maturity after year 5.</div>
+              </div>
+              <div class="lever lever-toggle" id="lever-refi2">
+                <label class="toggle"><input type="checkbox" id="inp-refi2On" checked /><span class="toggle-track"></span><span>Include the second refinances in year 9</span></label>
+                <div class="lever-hint">Returns most of the remaining capital before sale but costs fees, so it trims the IRR slightly.</div>
+              </div>
+              <div class="lever" id="lever-refiRate">
+                <div class="lever-label"><span id="lbl-refiRate">Refinance rate</span><output id="out-refiRate" for="inp-refiRate">6.50%</output></div>
+                <input type="range" id="inp-refiRate" min="5" max="9" step="0.125" value="6.5" aria-labelledby="lbl-refiRate" />
+              </div>
+              <div class="lever" id="lever-refiLTV">
+                <div class="lever-label"><span id="lbl-refiLTV">Refinance loan size, % of value</span><output id="out-refiLTV" for="inp-refiLTV">65%</output></div>
+                <input type="range" id="inp-refiLTV" min="50" max="70" step="5" value="65" aria-labelledby="lbl-refiLTV" />
+                <div class="lever-hint">A bigger loan returns more capital sooner and leaves less at sale.</div>
+              </div>
+            </div>
+          </details>
         </aside>
 
         <!-- RESULTS -->
@@ -562,7 +569,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     var note = document.getElementById('invest-note');
     if (requested > res.equity) note.textContent = 'The whole raise for this selection is ' + money(res.equity) + ', so figures are shown at that amount.';
     else if (requested < 100000) note.textContent = '$100,000 minimum; the Manager may accept less. Figures shown at ' + money(inv) + '.';
-    else note.textContent = 'Your share of the ' + money(res.equity) + ' raise: ' + pct(share, 2) + '. Everything below is scaled to this amount.';
+    else note.textContent = pct(share, 2) + ' of the ' + money(res.equity) + ' raise.';
 
     /* KPIs */
     var totalOnInv = res.totalDistributions * share;
@@ -691,7 +698,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
       return P.name + ' ' + money(avg);
     }).join(', ');
     var today = res.properties.map(function (p) { var P = M.PROPERTIES[p.id]; return P.name + ' ' + money(P.rentCurrent / P.units / 12); }).join(', ');
-    document.getElementById('hint-rentAdj').textContent = 'Average target rent: ' + hint + '. Today: ' + today + '. Royal Arms targets sit about 8.5% above its June 2026 appraisal; 1017 was not appraised and its target is at the roughly $1,400 comparable market rent.';
+    document.getElementById('hint-rentAdj').textContent = 'Year 3 average: ' + hint + '. Today: ' + today + '.';
   }
 
   function renderStatic() {
@@ -951,6 +958,12 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
   .toggle input:focus-visible + .toggle-track { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+  details.more { border-top: 1px solid var(--border); margin-top: -0.5rem; padding-top: 0.25rem; }
+  details.more > summary { cursor: pointer; list-style: none; font-size: 0.85rem; font-weight: 600; color: var(--accent); padding: 0.75rem 0; display: flex; align-items: center; gap: 0.5rem; }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary::before { content: ''; width: 7px; height: 7px; border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); transition: transform var(--transition); margin-left: 2px; }
+  details.more[open] > summary::before { transform: rotate(45deg); }
+  details.more[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
   .results { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
   .mini-kpis { display: none; }
   @media (max-width: 960px) {
