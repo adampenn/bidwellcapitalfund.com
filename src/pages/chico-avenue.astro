@@ -1,0 +1,892 @@
+---
+/**
+ * Chico Avenue Portfolio: investor page.
+ *
+ * Hidden, access-code-gated page for investors in the Chico Avenue Portfolio
+ * offering (Bidwell Chico Avenue Portfolio, LLC). Not linked in site nav, noindex.
+ * URL: /chico-avenue
+ *
+ * Three jobs: let an investor pull the underwriting levers and see what happens
+ * to their money, read the business plan, and get to the offering documents in
+ * the investor portal.
+ *
+ * Engine: /chico-avenue/model.js (a port of the two per-building pro formas).
+ * Access code: ACCESS_CODE constant at the top of the inline script.
+ */
+const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
+const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Chico Avenue Portfolio | Bidwell Capital</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script is:inline>
+    (function () {
+      var stored = null;
+      try { stored = localStorage.getItem('theme'); } catch (e) {}
+      document.documentElement.setAttribute('data-theme', stored || 'light');
+    })();
+  </script>
+</head>
+<body>
+
+<!-- ============================================================ AUTH -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <img src="/logo-black.svg" alt="Bidwell Capital" class="auth-logo logo-light" />
+    <img src="/logo-white.svg" alt="Bidwell Capital" class="auth-logo logo-dark" />
+    <div class="auth-card">
+      <span class="section-label">Confidential</span>
+      <h1 class="auth-title">Chico Avenue Portfolio</h1>
+      <p class="auth-sub">Enter the access code from your invitation.</p>
+      <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
+      <div id="auth-error" class="auth-error"></div>
+      <button id="auth-btn" class="btn btn-primary">Continue</button>
+    </div>
+    <p class="auth-foot">For invited investors only. Not an offer to sell securities.</p>
+  </div>
+</div>
+
+<!-- ============================================================ APP -->
+<div id="app" hidden>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="/" class="brand">
+        <img src="/logo-black.svg" alt="Bidwell Capital" class="brand-logo logo-light" />
+        <img src="/logo-white.svg" alt="Bidwell Capital" class="brand-logo logo-dark" />
+      </a>
+      <nav class="topnav">
+        <a href="#model">Model</a>
+        <a href="#plan">Business plan</a>
+        <a href="#properties">Properties</a>
+        <a href="#terms">Terms</a>
+        <a href="#documents">Documents</a>
+      </nav>
+      <a href={PORTAL_URL} target="_blank" rel="noopener" class="btn btn-outline btn-sm">Investor Portal ↗</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <img src="/chico-avenue/1017-esplanade.jpg" alt="1017 Esplanade, Chico" class="hero-img" />
+    <div class="hero-shade"></div>
+    <div class="wrap hero-inner">
+      <span class="section-label">Confidential offering · September 2026</span>
+      <h1>Chico Avenue Portfolio</h1>
+      <p class="hero-lede">36 apartment units across two properties on the Esplanade in downtown Chico, California. Bought from an estate at about $111,000 a door, net of credits, and run the way we run 946 Cherry ten blocks away.</p>
+      <div class="hero-stats">
+        <div><b>36</b><span>units, two buildings</span></div>
+        <div><b>~$111K</b><span>per door, net of credits</span></div>
+        <div><b>12.6%</b><span>base 10-year LP IRR, net of fees</span></div>
+        <div><b>2.3x</b><span>modeled equity multiple</span></div>
+      </div>
+      <div class="hero-actions">
+        <a href="#model" class="btn btn-primary">Pull the levers</a>
+        <a href="#plan" class="btn btn-outline">Read the plan</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ MODEL -->
+  <section id="model" class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="section-label">The model</span>
+        <h2>Our assumptions. Your levers.</h2>
+        <p>Everything below starts at our underwriting. Move any lever and the returns update on your investment. The engine is a line-for-line port of the per-building pro formas; at the underwriting settings it matches them to the dollar.</p>
+      </div>
+
+      <div class="model-grid">
+        <!-- LEVERS -->
+        <aside class="levers">
+          <div class="lever-group">
+            <div class="lever-row-head">
+              <span class="lever-title">Scenario</span>
+              <button type="button" id="btn-reset" class="link-btn">Reset to underwriting</button>
+            </div>
+            <div class="seg" id="presets">
+              <button type="button" data-preset="down">Downside</button>
+              <button type="button" data-preset="base" class="active">Underwriting</button>
+              <button type="button" data-preset="up">Upside</button>
+            </div>
+          </div>
+
+          <div class="lever-group">
+            <span class="lever-title">Portfolio</span>
+            <div class="seg" id="selection">
+              <button type="button" data-sel="both" class="active">Both</button>
+              <button type="button" data-sel="p1017">1017 only</button>
+              <button type="button" data-sel="ra">Royal Arms only</button>
+            </div>
+            <p class="lever-note">Each escrow stands alone. If one property is released, its equity and returns leave with it.</p>
+          </div>
+
+          <div class="lever-group">
+            <label class="lever-title" for="inp-invest">Your investment</label>
+            <div class="money-input"><span>$</span><input type="text" inputmode="numeric" id="inp-invest" value="100,000" /></div>
+            <p class="lever-note">$100,000 minimum. All figures below are scaled to this amount.</p>
+          </div>
+
+          <div class="lever-group">
+            <span class="lever-title">Operations</span>
+            <div class="lever">
+              <div class="lever-label"><span>Stabilized rents vs. underwriting</span><output id="out-rentAdj">0%</output></div>
+              <input type="range" id="inp-rentAdj" min="-15" max="10" step="0.5" value="0" />
+              <div class="lever-hint" id="hint-rentAdj"></div>
+            </div>
+            <div class="lever">
+              <div class="lever-label"><span>Annual rent growth, year 4 on</span><output id="out-rentGrowth">3.0%</output></div>
+              <input type="range" id="inp-rentGrowth" min="0" max="5" step="0.25" value="3" />
+            </div>
+            <div class="lever">
+              <div class="lever-label"><span>Vacancy</span><output id="out-vacancy">4.0%</output></div>
+              <input type="range" id="inp-vacancy" min="2" max="10" step="0.5" value="4" />
+              <div class="lever-hint">Plus 3% for concessions, loss to lease and bad debt, every year.</div>
+            </div>
+            <div class="lever">
+              <div class="lever-label"><span>Annual expense growth</span><output id="out-expGrowth">2.5%</output></div>
+              <input type="range" id="inp-expGrowth" min="1" max="5" step="0.25" value="2.5" />
+              <div class="lever-hint">Property taxes grow at the 2% Prop 13 cap regardless.</div>
+            </div>
+            <div class="lever">
+              <div class="lever-label"><span>Renovation budget vs. plan</span><output id="out-rehab">+0%</output></div>
+              <input type="range" id="inp-rehab" min="0" max="50" step="5" value="0" />
+              <div class="lever-hint">Plan is $15K to $17K per unit. An overrun raises the equity you put in.</div>
+            </div>
+          </div>
+
+          <div class="lever-group">
+            <span class="lever-title">Capital markets</span>
+            <div class="lever">
+              <div class="lever-label"><span>Cap rate, refinance sizing and exit</span><output id="out-capRate">6.50%</output></div>
+              <input type="range" id="inp-capRate" min="5.5" max="8.5" step="0.1" value="6.5" />
+            </div>
+            <div class="lever">
+              <div class="lever-label"><span>Acquisition loan rates</span><output id="out-rateDelta">6.60% / 6.50%</output></div>
+              <input type="range" id="inp-rateDelta" min="-1" max="2" step="0.125" value="0" />
+              <div class="lever-hint">1017 at 6.60% with 12 months interest-only. Royal Arms at 6.50% with five years interest-only, term sheet pending.</div>
+            </div>
+            <div class="lever lever-toggle">
+              <label class="toggle"><input type="checkbox" id="inp-refiOn" checked /><span class="toggle-track"></span><span>Model the refinances</span></label>
+              <div class="lever-hint">Royal Arms refinances at the start of year 4, 1017 at year 5, both again in year 9. Off means the original loans run the whole hold.</div>
+            </div>
+            <div class="lever" id="lever-refiRate">
+              <div class="lever-label"><span>Refinance rate</span><output id="out-refiRate">6.50%</output></div>
+              <input type="range" id="inp-refiRate" min="5" max="9" step="0.125" value="6.5" />
+            </div>
+            <div class="lever" id="lever-refiLTV">
+              <div class="lever-label"><span>Refinance loan-to-value</span><output id="out-refiLTV">65%</output></div>
+              <input type="range" id="inp-refiLTV" min="50" max="70" step="5" value="65" />
+            </div>
+            <div class="lever">
+              <div class="lever-label"><span>Hold period</span><output id="out-hold">10 years</output></div>
+              <input type="range" id="inp-hold" min="3" max="10" step="1" value="10" />
+              <div class="lever-hint">Sale at the end of the final year at the cap rate above, less 4% cost of sale.</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- RESULTS -->
+        <div class="results">
+          <div class="kpis" id="kpis"></div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>What comes back on your investment</h3>
+              <div class="legend">
+                <span><i style="background:var(--c-cash)"></i>Cash flow</span>
+                <span><i style="background:var(--c-refi)"></i>Capital returned by refinance</span>
+                <span><i style="background:var(--c-sale)"></i>Sale proceeds</span>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Year by year</h3><span class="muted" id="table-note"></span></div>
+            <div class="table-scroll">
+              <table class="pf" id="table-years"></table>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="card">
+              <h3>Sources and uses</h3>
+              <table class="su" id="table-su"></table>
+            </div>
+            <div class="card">
+              <h3>How this works</h3>
+              <ul class="how">
+                <li>Rents step from today's rent roll to appraiser market rents in year 2, then to our target rents in year 3, then grow at the rate you set.</li>
+                <li>All fees are in: 2% acquisition, 5.5% property management, 1% asset management, and 1% capital event fee on refinances. No disposition fee.</li>
+                <li>Cash flow splits 80/20 every quarter. Refinance and sale proceeds return investor capital in full before the 80/20 split.</li>
+                <li>Refinances are sized at the loan-to-value above on the prior year's income at the cap rate above, with 1% closing costs.</li>
+                <li>Cash yield is measured on your original investment, even after a refinance has returned part of it. Investor capital is returned in full before the sponsor shares in any capital event.</li>
+              </ul>
+            </div>
+          </div>
+          <p class="fine">Projections are illustrative and depend on the assumptions shown. They are not a guarantee of results. The Private Placement Memorandum, as supplemented, controls.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ PLAN -->
+  <section id="plan" class="block block-alt">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="section-label">Business plan</span>
+        <h2>Buy below retail. Reset operations. Turn units. Refinance.</h2>
+        <p>Combined, the two properties earn about $283K of net operating income today. The plan takes that to about $383K stabilized without betting on the market. Here is how.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step"><b>1</b><h3>Buy below retail</h3><p>Two buildings from an estate, each in its own escrow with a set walk-away price. $229,000 of seller repair credits already negotiated against the inspection findings, including the Royal Arms roof.</p></div>
+        <div class="step"><b>2</b><h3>Reset operations day one</h3><p>Insurance, landscaping and pest re-bid across the portfolio. Self-managed, no third-party markups. The Royal Arms on-site manager expense goes away at takeover. Utility billing standardized across all 36 units.</p></div>
+        <div class="step"><b>3</b><h3>Turn units to market</h3><p>In-house crews renovate at an estimated $15,000 to $17,000 per unit: LVP floors, counters, plumbing and electrical fixtures, cabinet doors. Rents reset at turnover. We prove the ceiling on a test group before spending the full budget.</p></div>
+        <div class="step"><b>4</b><h3>Refinance or move up</h3><p>The pro forma refinances Royal Arms in year 4 and 1017 in year 5 at 65% of stabilized value, returning roughly half of investor capital while both buildings are kept. The alternative is a 1031 exchange into a larger asset.</p></div>
+      </div>
+
+      <div class="plan-grid">
+        <div class="card">
+          <span class="section-label">Why downtown Chico</span>
+          <ul class="bullets">
+            <li><b>Supply is capped.</b> Almost no new small-multifamily construction downtown.</li>
+            <li><b>Below replacement cost.</b> About $111,000 per door sits well below what it costs to build an apartment today.</li>
+            <li><b>Turnover drives rents.</b> Long-held buildings sit below market and rents reset at turnover. Units are largely in original condition.</li>
+            <li><b>The spread.</b> Stabilized NOI is underwritten at 8.2% of total project cost. Stabilized buildings trade at 6.0% to 6.5% cap rates.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="section-label">Where the value comes from</span>
+          <ul class="bullets">
+            <li><b>Rents to market at turnover.</b> $1,053 to $1,171 in place against $1,250 to $1,650 targets. Turnover does most of the work before any renovation premium.</li>
+            <li><b>Utility recovery.</b> Most leases already pay a $50 utility fee. We standardize billing and redirect the $35 resident-benefit fee that now goes to a screening vendor.</li>
+            <li><b>Expense reset.</b> Insurance re-quoted off the seller's surplus-lines pricing, services re-bid, reassessed taxes already modeled.</li>
+            <li><b>Renovation premium.</b> Modeled rents stay below what we believe fully renovated units can achieve.</li>
+          </ul>
+        </div>
+        <div class="card card-wide">
+          <span class="section-label">The proof: 946 Cherry Street, year one</span>
+          <p>20 studio units bought August 2025 for $1.46M, about ten blocks away. Similar tenant base, same crews. Rents were pushed with almost no renovation. Operations did the work: utility billing from day one, in-house W-2 crews for maintenance and turns, and leases reset to market at every turnover.</p>
+          <div class="proof">
+            <div><b>99.2%</b><span>trailing-12 occupancy</span></div>
+            <div><b>+34%</b><span>full-year NOI vs. plan ($130,165 vs. $96,867)</span></div>
+            <div><b>+15.7%</b><span>average rent since acquisition</span></div>
+            <div><b>$360</b><span>total delinquency across 20 units</span></div>
+          </div>
+        </div>
+        <div class="card card-wide">
+          <span class="section-label">Timeline</span>
+          <div class="timeline">
+            <div><b>Oct 2026</b><span>Close. Both escrows, management rollover ready for day one.</span></div>
+            <div><b>2026</b><span>Reset. Billing, taxes, insurance and services re-bid before takeover.</span></div>
+            <div><b>2027 to 2028</b><span>Reposition. Interior turns in phases. A test group proves the ceiling first.</span></div>
+            <div><b>2029 to 2030</b><span>Stabilize. Full rent roll at market. Season the income for the refinance.</span></div>
+            <div><b>2030+</b><span>Refinance or move up. Cash flow on a reduced basis, or 1031 into a larger building.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ PROPERTIES -->
+  <section id="properties" class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="section-label">The properties</span>
+        <h2>Two buildings, one block apart, one operation.</h2>
+      </div>
+      <div class="props" id="props"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ TERMS -->
+  <section id="terms" class="block block-alt">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="section-label">Terms</span>
+        <h2>Straight 80/20. Quarterly distributions. Capital back first.</h2>
+        <p>Summary only. The operating agreement, PPM and subscription documents control.</p>
+      </div>
+      <div class="terms">
+        <div class="card"><span class="section-label">Split</span><p>80% of distributable cash flow to investors, 20% to the sponsor. No preferred return. Sponsor participation grows only as investor distributions grow.</p></div>
+        <div class="card"><span class="section-label">Capital first</span><p>On a sale or refinance, investor capital is returned in full before remaining proceeds are split 80/20.</p></div>
+        <div class="card"><span class="section-label">Fees</span><p>2% acquisition fee at closing. 5.5% property management on collections. 1% asset management on revenues. 1% refinance and guaranty fee on gross loan proceeds. No disposition fee. All are reflected in the returns shown.</p></div>
+        <div class="card"><span class="section-label">Distributions</span><p>Quarterly, beginning once operations support them. Year one runs about 3.7% while units turn, so this is not a current-income vehicle in its first year.</p></div>
+        <div class="card"><span class="section-label">Offering</span><p>Up to $4,000,000 of Class A interests under Rule 506(b). $100,000 minimum. Accredited investors and, at the Manager's discretion, a limited number of sophisticated non-accredited investors. Existing relationships only.</p></div>
+        <div class="card"><span class="section-label">Debt</span><p>1017 Esplanade: $975,000 per a Five Star Bank expression of interest, 6.6% fixed for five years, 12 months interest-only, 25-year amortization. Royal Arms: about $1.7M modeled at 6.5% with five years interest-only, term sheet pending.</p></div>
+        <div class="card"><span class="section-label">Structure</span><p>Bidwell Chico Avenue Portfolio, LLC holds 1017 Esplanade directly and Royal Arms through a wholly owned subsidiary so each property carries its own lender. Manager: Bidwell Capital Fund GP, LLC.</p></div>
+        <div class="card"><span class="section-label">Sponsor alignment</span><p>Adam Penn invests alongside investors and personally guarantees the loans where lenders require recourse. Bidwell is the operator, not just the sponsor.</p></div>
+      </div>
+
+      <div class="risks">
+        <span class="section-label">What can go wrong</span>
+        <ul class="bullets">
+          <li><b>Execution.</b> The return is manufactured through turns and operations. Slow lease-up or renovation overruns push the timeline right.</li>
+          <li><b>Financing.</b> The Royal Arms loan is not yet committed. Worse terms, or no loan, would lower returns or prevent that acquisition.</li>
+          <li><b>Concentration.</b> Royal Arms is roughly two-thirds of the equity: one property, one roof, one reposition plan.</li>
+          <li><b>Market.</b> Chico rents softened from their 2024 peak and the base case uses today's rents. City sewer rates step up sharply from late 2026, to be recovered through utility billing where leases allow.</li>
+          <li><b>Illiquidity.</b> Interests are not freely transferable and there is no redemption right. Plan on holding five years or more.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ DOCUMENTS -->
+  <section id="documents" class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="section-label">Documents</span>
+        <h2>Read the offering, then talk with Adam.</h2>
+      </div>
+      <div class="docs">
+        <div class="card doc-card">
+          <h3>Offering documents</h3>
+          <p>In the investor portal under the Chico Avenue Portfolio offering. Log in with the email you were invited with.</p>
+          <ul class="doclist">
+            <li>Private Placement Memorandum</li>
+            <li>Supplement No. 1 to the PPM (September 8, 2026)</li>
+            <li>Operating Agreement</li>
+            <li>Subscription Agreement</li>
+          </ul>
+          <a href={PORTAL_URL} target="_blank" rel="noopener" class="btn btn-primary">Open the investor portal ↗</a>
+        </div>
+        <div class="card doc-card">
+          <h3>Investor deck</h3>
+          <p>The September 2026 webinar deck: the opportunity, the playbook, each building, the numbers and the terms. 28 slides.</p>
+          <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
+        </div>
+        <div class="card doc-card">
+          <h3>Underwriting file</h3>
+          <p>The per-building pro formas behind this page, the appraisals, inspection reports and the seller credit packages are available on request.</p>
+          <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file" class="btn btn-outline">Request the file</a>
+        </div>
+        <div class="card doc-card doc-contact">
+          <h3>Talk with Adam</h3>
+          <p>A call to walk the model, the buildings and the escrow status. Rule 506(b) requires a pre-existing relationship, so this conversation comes first.</p>
+          <p class="contact"><a href="tel:+15305207331">(530) 520-7331</a><br /><a href="mailto:team@bidwellcapitalfund.com">team@bidwellcapitalfund.com</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p>Confidential. Prepared by Bidwell Capital for persons with a pre-existing relationship with the Manager. This page is not an offer to sell or a solicitation of an offer to buy securities. Any offer is made only through the Private Placement Memorandum, as supplemented, the Operating Agreement and the Subscription Agreement, which control. Projections are estimates based on the assumptions shown and are not guarantees. Investments involve risk, including loss of principal. Figures reflect September 2026 underwriting.</p>
+      <p class="foot-copy">&copy; {new Date().getFullYear()} Bidwell Capital. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
+
+<script is:inline src="/chico-avenue/model.js"></script>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script is:inline>
+(function () {
+  var ACCESS_CODE = 'esplanade';
+  var M = window.CAP_MODEL;
+
+  /* ---------- formatting ---------- */
+  function money(n, opts) {
+    opts = opts || {};
+    var neg = n < 0; n = Math.abs(n);
+    var s;
+    if (opts.compact && n >= 1000000) s = '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    else if (opts.compact && n >= 10000) s = '$' + Math.round(n / 1000) + 'K';
+    else s = '$' + Math.round(n).toLocaleString('en-US');
+    return (neg ? '−' : '') + s;
+  }
+  function pct(x, d) { if (x === null || x === undefined || isNaN(x)) return 'n/a'; return (x * 100).toFixed(d === undefined ? 1 : d) + '%'; }
+  function parseMoney(s) { var n = parseFloat(String(s).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; }
+
+  /* ---------- state ---------- */
+  var PRESETS = {
+    base: {},
+    down: { rentAdj: -0.075, rentGrowth: 0.02, vacancy: 0.06, expGrowth: 0.03, capRate: 0.07, rateDelta: 0.005, refiRate: 0.07, refiLTV: 0.60, rehabOverrun: 0.20 },
+    up:   { rentAdj: 0.05, rentGrowth: 0.035, vacancy: 0.03, expGrowth: 0.025, capRate: 0.06, rateDelta: -0.0025, refiRate: 0.06, refiLTV: 0.65, rehabOverrun: 0 }
+  };
+  var state = { selection: 'both', investment: 100000 };
+  var levers = ['rentAdj', 'rentGrowth', 'vacancy', 'expGrowth', 'rehabOverrun', 'capRate', 'rateDelta', 'refiRate', 'refiLTV', 'refiOn', 'hold'];
+  var inputs = {
+    rentAdj: { el: 'inp-rentAdj', out: 'out-rentAdj', scale: 100, fmt: function (v) { return (v > 0 ? '+' : '') + (v * 100).toFixed(1).replace(/\.0$/, '') + '%'; } },
+    rentGrowth: { el: 'inp-rentGrowth', out: 'out-rentGrowth', scale: 100, fmt: function (v) { return (v * 100).toFixed(2).replace(/0$/, '') + '%'; } },
+    vacancy: { el: 'inp-vacancy', out: 'out-vacancy', scale: 100, fmt: function (v) { return (v * 100).toFixed(1) + '%'; } },
+    expGrowth: { el: 'inp-expGrowth', out: 'out-expGrowth', scale: 100, fmt: function (v) { return (v * 100).toFixed(2).replace(/0$/, '') + '%'; } },
+    rehabOverrun: { el: 'inp-rehab', out: 'out-rehab', scale: 100, fmt: function (v) { return '+' + Math.round(v * 100) + '%'; } },
+    capRate: { el: 'inp-capRate', out: 'out-capRate', scale: 100, fmt: function (v) { return (v * 100).toFixed(2) + '%'; } },
+    rateDelta: { el: 'inp-rateDelta', out: 'out-rateDelta', scale: 100, fmt: function (v) { return ((0.066 + v) * 100).toFixed(2) + '% / ' + ((0.065 + v) * 100).toFixed(2) + '%'; } },
+    refiRate: { el: 'inp-refiRate', out: 'out-refiRate', scale: 100, fmt: function (v) { return (v * 100).toFixed(2) + '%'; } },
+    refiLTV: { el: 'inp-refiLTV', out: 'out-refiLTV', scale: 100, fmt: function (v) { return Math.round(v * 100) + '%'; } },
+    hold: { el: 'inp-hold', out: 'out-hold', scale: 1, fmt: function (v) { return v + ' years'; } }
+  };
+
+  function readLevers() {
+    var A = {};
+    for (var k in inputs) {
+      var cfg = inputs[k];
+      var raw = parseFloat(document.getElementById(cfg.el).value);
+      A[k] = cfg.scale === 1 ? Math.round(raw) : raw / cfg.scale;
+      document.getElementById(cfg.out).textContent = cfg.fmt(A[k]);
+    }
+    A.refiOn = document.getElementById('inp-refiOn').checked;
+    document.getElementById('lever-refiRate').classList.toggle('dim', !A.refiOn);
+    document.getElementById('lever-refiLTV').classList.toggle('dim', !A.refiOn);
+    return A;
+  }
+  function writeLevers(A) {
+    for (var k in inputs) {
+      if (A[k] === undefined) continue;
+      var cfg = inputs[k];
+      document.getElementById(cfg.el).value = cfg.scale === 1 ? A[k] : +(A[k] * cfg.scale).toFixed(4);
+    }
+    if (A.refiOn !== undefined) document.getElementById('inp-refiOn').checked = A.refiOn;
+  }
+  function applyPreset(name) {
+    var A = {};
+    for (var k in M.UNDERWRITING) A[k] = M.UNDERWRITING[k];
+    var p = PRESETS[name] || {};
+    for (var k2 in p) A[k2] = p[k2];
+    writeLevers(A);
+    markPreset(name);
+    update();
+  }
+  function markPreset(name) {
+    var btns = document.querySelectorAll('#presets button');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-preset') === name);
+  }
+
+  /* ---------- rendering ---------- */
+  var chart = null;
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  function kpi(label, value, sub, delta) {
+    var d = '';
+    if (delta) d = '<span class="kpi-delta ' + delta.cls + '">' + delta.text + '</span>';
+    return '<div class="kpi"><span class="kpi-label">' + label + '</span><b class="kpi-value">' + value + '</b><span class="kpi-sub">' + (sub || '') + d + '</span></div>';
+  }
+  function deltaPct(cur, base, d) {
+    if (cur === null || base === null) return null;
+    var diff = (cur - base) * 100;
+    if (Math.abs(diff) < 0.05) return { cls: 'flat', text: 'at underwriting' };
+    return { cls: diff > 0 ? 'up' : 'down', text: (diff > 0 ? '+' : '−') + Math.abs(diff).toFixed(d === undefined ? 1 : d) + ' pts vs. underwriting' };
+  }
+  function deltaX(cur, base) {
+    var diff = cur - base;
+    if (Math.abs(diff) < 0.005) return { cls: 'flat', text: 'at underwriting' };
+    return { cls: diff > 0 ? 'up' : 'down', text: (diff > 0 ? '+' : '−') + Math.abs(diff).toFixed(2) + 'x vs. underwriting' };
+  }
+  function deltaMoney(cur, base) {
+    var diff = cur - base;
+    if (Math.abs(diff) < 50) return { cls: 'flat', text: 'at underwriting' };
+    return { cls: diff > 0 ? 'up' : 'down', text: (diff > 0 ? '+' : '−') + money(Math.abs(diff)) + ' vs. underwriting' };
+  }
+
+  function update() {
+    var A = readLevers();
+    state.investment = Math.max(0, parseMoney(document.getElementById('inp-invest').value));
+    var res = M.runPortfolio(state.selection, A);
+    var base = M.runPortfolio(state.selection, {});
+    var share = res.equity > 0 ? Math.min(1, state.investment / res.equity) : 0;
+    var N = A.hold;
+    var inv = state.investment;
+
+    /* KPIs */
+    var totalOnInv = res.totalDistributions * share;
+    var html = '';
+    html += kpi(N + '-year LP IRR', pct(res.irr), 'net of all fees, sale in year ' + N, deltaPct(res.irr, base.irr));
+    html += kpi('Equity multiple', res.multiple.toFixed(2) + 'x', money(totalOnInv) + ' back on ' + money(inv), deltaX(res.multiple, base.multiple));
+    html += kpi('Year 1 cash-on-cash', pct(res.y1Coc), money(res.years[0].lpCash * share) + ' in year 1', deltaPct(res.y1Coc, base.y1Coc));
+    html += kpi('Average cash yield', pct(res.avgCoc), 'a year on your original investment, years 1 to ' + N, deltaPct(res.avgCoc, base.avgCoc));
+    html += kpi('Capital back by refinance', pct(res.refiRocPct, 0), money(res.refiRoc * share) + ' of your ' + money(inv), deltaPct(res.refiRocPct, base.refiRocPct, 0));
+    html += kpi('Sale proceeds, year ' + N, money(res.saleProceedsLP * share), 'at a ' + pct(A.capRate, 2) + ' cap, 4% cost of sale', deltaMoney(res.saleProceedsLP * share, base.saleProceedsLP * share));
+    document.getElementById('kpis').innerHTML = html;
+
+    /* Chart */
+    var labels = [], cash = [], roc = [], sale = [];
+    res.years.forEach(function (r) {
+      labels.push('Yr ' + r.year);
+      cash.push(Math.round(r.lpCash * share));
+      roc.push(Math.round(r.roc * share));
+      sale.push(Math.round(r.lpSale * share));
+    });
+    var ink = cssVar('--text-secondary'), grid = cssVar('--border');
+    var ds = [
+      { label: 'Cash flow', data: cash, backgroundColor: cssVar('--c-cash'), stack: 'a', borderRadius: 3 },
+      { label: 'Capital returned by refinance', data: roc, backgroundColor: cssVar('--c-refi'), stack: 'a', borderRadius: 3 },
+      { label: 'Sale proceeds', data: sale, backgroundColor: cssVar('--c-sale'), stack: 'a', borderRadius: 3 }
+    ];
+    if (!chart) {
+      chart = new Chart(document.getElementById('chart-dist'), {
+        type: 'bar',
+        data: { labels: labels, datasets: ds },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + money(c.parsed.y); },
+              footer: function (items) { var t = 0; items.forEach(function (i) { t += i.parsed.y; }); return 'Total: ' + money(t); } } }
+          },
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { color: ink, font: { family: 'DM Sans' } } },
+            y: { stacked: true, grid: { color: grid }, ticks: { color: ink, font: { family: 'DM Sans' }, callback: function (v) { return money(v, { compact: true }); } } }
+          }
+        }
+      });
+    } else {
+      chart.data.labels = labels;
+      chart.data.datasets = ds;
+      chart.update();
+    }
+
+    /* Table */
+    var t = '<thead><tr><th>Year</th><th>Portfolio NOI</th><th>Debt service</th><th>DSCR</th><th>Cash yield</th><th>Cash flow</th><th>Capital returned</th><th>Sale</th><th>Total</th></tr></thead><tbody>';
+    var sumCash = 0, sumRoc = 0;
+    res.years.forEach(function (r) {
+      var c = r.lpCash * share, rc = r.roc * share, s = r.lpSale * share;
+      sumCash += c; sumRoc += rc;
+      t += '<tr' + (r.year === N ? ' class="last"' : '') + '><td>' + r.year + '</td><td>' + money(r.noi) + '</td><td>' + money(r.debtService) + '</td><td>' + (r.dscr ? r.dscr.toFixed(2) + 'x' : 'n/a') + '</td><td>' + pct(r.cocOnEquity) + '</td><td>' + money(c) + '</td><td>' + (rc ? money(rc) : '–') + '</td><td>' + (s ? money(s) : '–') + '</td><td><b>' + money(c + rc + s) + '</b></td></tr>';
+    });
+    t += '</tbody><tfoot><tr><td colspan="5">Total on ' + money(inv) + '</td><td>' + money(sumCash) + '</td><td>' + money(sumRoc) + '</td><td>' + money(res.saleProceedsLP * share) + '</td><td><b>' + money(totalOnInv) + '</b></td></tr></tfoot>';
+    document.getElementById('table-years').innerHTML = t;
+    document.getElementById('table-note').textContent = 'NOI and debt service are for the ' + res.units + ' units. Distributions are your share (' + pct(share, 2) + ' of ' + money(res.equity) + ').';
+
+    /* Sources and uses */
+    var price = 0, credit = 0, rehab = 0, closing = 0, reserves = 0, fee = 0;
+    res.properties.forEach(function (p) { price += p.uses.price; credit += p.uses.sellerCredit; rehab += p.uses.rehab; closing += p.uses.closingCosts; reserves += p.uses.reserves; fee += p.uses.acqFee; });
+    var su = '<tr><th colspan="2">Uses</th></tr>';
+    su += '<tr><td>Purchase price, contract</td><td>' + money(price) + '</td></tr>';
+    su += '<tr><td>Seller repair credits</td><td>' + money(-credit) + '</td></tr>';
+    su += '<tr><td>Renovation' + (A.rehabOverrun ? ' (+' + Math.round(A.rehabOverrun * 100) + '%)' : '') + '</td><td>' + money(rehab) + '</td></tr>';
+    su += '<tr><td>Closing costs and reserves</td><td>' + money(closing + reserves) + '</td></tr>';
+    su += '<tr><td>Acquisition fee, 2%</td><td>' + money(fee) + '</td></tr>';
+    su += '<tr class="sum"><td>Total</td><td>' + money(res.totalCost) + '</td></tr>';
+    su += '<tr><th colspan="2">Sources</th></tr>';
+    su += '<tr><td>Acquisition loans</td><td>' + money(res.totalLoan) + '</td></tr>';
+    su += '<tr><td>Investor equity</td><td>' + money(res.equity) + '</td></tr>';
+    su += '<tr class="sum"><td>Basis per door, net</td><td>' + money((price - credit) / res.units) + '</td></tr>';
+    su += '<tr class="sum"><td>Stabilized yield on cost, year 3 NOI over net price, renovation and fee</td><td>' + pct(res.yieldOnCost) + '</td></tr>';
+    document.getElementById('table-su').innerHTML = su;
+
+    /* Rent hint */
+    var hint = res.properties.map(function (p) {
+      var P = M.PROPERTIES[p.id];
+      var avg = P.rentTarget * (1 + A.rentAdj) / P.units / 12;
+      return p.name + ' averages ' + money(avg) + '/mo';
+    }).join('. ');
+    document.getElementById('hint-rentAdj').textContent = 'Year 3 rents: ' + hint + '. In place today: 1017 $1,171, Royal Arms $1,053.';
+  }
+
+  function renderProperties() {
+    var photos = { p1017: '/chico-avenue/1017-esplanade.jpg', ra: '/chico-avenue/royal-arms.jpg' };
+    var blurbs = {
+      p1017: 'Twelve units, mostly two-bed two-baths, built 1973 with the cleanest inspection file in the estate. Contract price $1,450,000 with a $75,000 seller credit at closing. NOI about $104K today, $134K stabilized.',
+      ra: 'Twenty-four units around a pool courtyard, built 1962, one block from 1017. Contract price $2,760,000 with a $154,000 seller credit negotiated against the roof; a five-year roof certification is in hand. NOI about $179K today, $245K stabilized. The on-site manager expense goes away day one.'
+    };
+    var credits = { p1017: 'Photo: July 2026.', ra: 'Imagery: Google Maps, 2024. Current photography to follow.' };
+    var html = '';
+    ['p1017', 'ra'].forEach(function (id) {
+      var P = M.PROPERTIES[id];
+      var r = M.runProperty(P, M.UNDERWRITING);
+      var mix = '<table class="mix"><thead><tr><th>Type</th><th>Units</th><th>In place</th><th>Market</th><th>Target</th></tr></thead><tbody>';
+      P.mix.forEach(function (u) { mix += '<tr><td>' + u.type + '</td><td>' + u.n + '</td><td>' + money(u.current) + '</td><td>' + money(u.market) + '</td><td>' + money(u.target) + '</td></tr>'; });
+      mix += '<tr class="sum"><td>Average</td><td>' + P.units + '</td><td>' + money(P.rentCurrent / P.units / 12) + '</td><td>' + money(P.rentMarket / P.units / 12) + '</td><td>' + money(P.rentTarget / P.units / 12) + '</td></tr></tbody></table>';
+      html += '<article class="prop card">' +
+        '<div class="prop-photo"><img src="' + photos[id] + '" alt="' + P.name + '" loading="lazy" /><span class="photo-credit">' + credits[id] + '</span></div>' +
+        '<div class="prop-body">' +
+        '<span class="section-label">' + P.alias + '</span><h3>' + P.name + '</h3>' +
+        '<p>' + blurbs[id] + '</p>' +
+        '<div class="prop-stats">' +
+        '<div><b>' + P.units + '</b><span>units</span></div>' +
+        '<div><b>' + money((P.price - P.sellerCredit) / P.units, { compact: true }) + '</b><span>per door, net</span></div>' +
+        '<div><b>' + money(r.equity, { compact: true }) + '</b><span>investor equity</span></div>' +
+        '<div><b>' + pct(r.irr) + '</b><span>10-yr LP IRR, base</span></div>' +
+        '</div>' + mix +
+        '<p class="fine">Market rents: Integra Realty Resources appraisals, June 2026. Target rents: September 2026 comp set.</p>' +
+        '</div></article>';
+    });
+    document.getElementById('props').innerHTML = html;
+  }
+
+  /* ---------- boot ---------- */
+  function boot() {
+    document.documentElement.style.setProperty('--c-cash', cssVar('--accent'));
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    document.documentElement.style.setProperty('--c-refi', isDark ? '#7fa1c9' : '#4f78a8');
+    document.documentElement.style.setProperty('--c-sale', isDark ? '#8fb096' : '#5f8a68');
+
+    levers.forEach(function (k) {
+      var cfg = inputs[k];
+      var el = document.getElementById(cfg ? cfg.el : 'inp-refiOn');
+      el.addEventListener('input', function () { markPreset(null); update(); });
+      el.addEventListener('change', function () { markPreset(null); update(); });
+    });
+    var inv = document.getElementById('inp-invest');
+    inv.addEventListener('change', function () {
+      var n = Math.max(0, Math.round(parseMoney(inv.value) / 1000) * 1000);
+      inv.value = n.toLocaleString('en-US');
+      update();
+    });
+    inv.addEventListener('keydown', function (e) { if (e.key === 'Enter') inv.blur(); });
+    document.getElementById('btn-reset').addEventListener('click', function () { applyPreset('base'); });
+    var pb = document.querySelectorAll('#presets button');
+    for (var i = 0; i < pb.length; i++) pb[i].addEventListener('click', function () { applyPreset(this.getAttribute('data-preset')); });
+    var sb = document.querySelectorAll('#selection button');
+    for (var j = 0; j < sb.length; j++) sb[j].addEventListener('click', function () {
+      state.selection = this.getAttribute('data-sel');
+      for (var k = 0; k < sb.length; k++) sb[k].classList.toggle('active', sb[k] === this);
+      update();
+    });
+    renderProperties();
+    update();
+  }
+  /* ---------- auth ---------- */
+  var authScreen = document.getElementById('auth-screen');
+  var authInput = document.getElementById('auth-input');
+  var authError = document.getElementById('auth-error');
+  var app = document.getElementById('app');
+  var booted = false;
+
+  function unlock() {
+    if (authInput.value.trim().toLowerCase() === ACCESS_CODE) {
+      try { sessionStorage.setItem('chico_auth', '1'); } catch (e) {}
+      show();
+    } else {
+      authError.textContent = 'That code did not match. Try again or call Adam.';
+      authInput.value = '';
+      authInput.focus();
+    }
+  }
+  function show() {
+    authScreen.hidden = true;
+    app.hidden = false;
+    if (!booted) { booted = true; boot(); }
+  }
+  document.getElementById('auth-btn').addEventListener('click', unlock);
+  authInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') unlock(); });
+  var remembered = false;
+  try { remembered = sessionStorage.getItem('chico_auth') === '1'; } catch (e) {}
+  if (remembered) show(); else authInput.focus();
+
+})();
+</script>
+
+<style is:global>
+  @import '../styles/global.css';
+
+  /* ---------- theme helpers ---------- */
+  .logo-light { display: none; }
+  .logo-dark { display: block; }
+  [data-theme="light"] .logo-light { display: block; }
+  [data-theme="light"] .logo-dark { display: none; }
+
+  :root { --wrap: 1180px; }
+  .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 1.5rem; }
+  .muted { color: var(--text-tertiary); font-size: 0.85rem; }
+  .fine { font-size: 0.8rem; color: var(--text-tertiary); line-height: 1.5; margin-top: 1rem; }
+
+  /* ---------- buttons ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-family: var(--font-body); font-weight: 500; font-size: 0.9rem; letter-spacing: 0.02em; padding: 0.7rem 1.35rem; border-radius: 999px; border: 1px solid transparent; cursor: pointer; transition: all var(--transition); text-decoration: none; white-space: nowrap; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+  .btn-outline { border-color: var(--border-strong); color: var(--text-primary); background: transparent; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+  .link-btn { background: none; border: 0; color: var(--accent); font-family: var(--font-body); font-size: 0.78rem; cursor: pointer; padding: 0; }
+  .link-btn:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  /* ---------- auth ---------- */
+  [hidden] { display: none !important; }
+  #auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1.5rem; }
+  .auth-wrap { width: 100%; max-width: 420px; text-align: center; }
+  .auth-logo { height: 3rem; width: auto; margin: 0 auto 2rem; }
+  .auth-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem 2rem; text-align: left; box-shadow: 0 8px 30px var(--card-shadow); }
+  .auth-title { font-size: 1.9rem; margin: 0.25rem 0 0.5rem; }
+  .auth-sub { font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .auth-card input { width: 100%; font-family: var(--font-body); font-size: 1rem; padding: 0.8rem 1rem; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); color: var(--text-primary); margin-bottom: 0.75rem; }
+  .auth-card input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-subtle); }
+  .auth-card .btn { width: 100%; }
+  .auth-error { color: #c0392b; font-size: 0.85rem; min-height: 1.4rem; margin-bottom: 0.5rem; }
+  .auth-foot { margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-tertiary); }
+
+  /* ---------- topbar ---------- */
+  .topbar { position: sticky; top: 0; z-index: 50; background: var(--nav-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 4.25rem; }
+  .brand-logo { height: 2.6rem; width: auto; }
+  .topnav { display: flex; gap: 1.5rem; }
+  .topnav a { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.02em; }
+  .topnav a:hover { color: var(--accent); }
+  @media (max-width: 800px) { .topnav { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; overflow: hidden; color: #f2efe8; min-height: 560px; display: flex; align-items: flex-end; }
+  .hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+  .hero-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,14,12,0.25) 0%, rgba(15,14,12,0.55) 45%, rgba(15,14,12,0.9) 100%); }
+  .hero-inner { position: relative; padding: 5rem 1.5rem 3.5rem; }
+  .hero .section-label { color: #e0b58a; }
+  .hero h1 { color: #fff; font-size: clamp(2.5rem, 6vw, 4.25rem); margin-bottom: 1rem; }
+  .hero-lede { color: rgba(242,239,232,0.85); font-size: 1.1rem; max-width: 640px; margin-bottom: 2rem; }
+  .hero-stats { display: grid; grid-template-columns: repeat(4, auto); gap: 2.5rem; margin-bottom: 2rem; }
+  .hero-stats div { display: flex; flex-direction: column; }
+  .hero-stats b { font-family: var(--font-display); font-weight: 400; font-size: 2.1rem; color: #fff; line-height: 1.1; }
+  .hero-stats span { font-size: 0.8rem; color: rgba(242,239,232,0.7); letter-spacing: 0.02em; }
+  .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .hero .btn-outline { border-color: rgba(255,255,255,0.35); color: #fff; }
+  .hero .btn-outline:hover { border-color: #fff; }
+  @media (max-width: 700px) { .hero-stats { grid-template-columns: repeat(2, auto); gap: 1.25rem 2rem; } .hero { min-height: 520px; } }
+
+  /* ---------- blocks ---------- */
+  .block { padding: 5rem 0; }
+  .block-alt { background: var(--bg-secondary); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .block-head { max-width: 760px; margin-bottom: 2.5rem; }
+  .block-head h2 { margin-bottom: 0.75rem; }
+  .block-head p { font-size: 1.05rem; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 1px 2px var(--card-shadow); }
+  .card h3 { font-size: 1.2rem; margin-bottom: 0.75rem; }
+  .card .section-label { font-size: 0.72rem; margin-bottom: 0.5rem; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .card-head h3 { margin: 0; }
+
+  /* ---------- model ---------- */
+  .model-grid { display: grid; grid-template-columns: 340px 1fr; gap: 2rem; align-items: start; }
+  @media (max-width: 960px) { .model-grid { grid-template-columns: 1fr; } }
+  .levers { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 0.5rem; position: sticky; top: 5.25rem; max-height: calc(100vh - 6rem); overflow-y: auto; }
+  @media (max-width: 960px) { .levers { position: static; max-height: none; } }
+  .lever-group { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+  .lever-group:last-child { border-bottom: 0; }
+  .lever-row-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .lever-title { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.6rem; }
+  .lever-note, .lever-hint { font-size: 0.76rem; color: var(--text-tertiary); line-height: 1.45; margin-top: 0.4rem; }
+  .lever { margin-bottom: 1rem; }
+  .lever.dim { opacity: 0.4; pointer-events: none; }
+  .lever-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.88rem; margin-bottom: 0.3rem; }
+  .lever-label span { color: var(--text-secondary); }
+  .lever-label output { font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; white-space: nowrap; margin-left: 0.5rem; }
+  input[type=range] { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; background: var(--border-strong); border-radius: 2px; outline: none; margin: 0.35rem 0; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-card); box-shadow: 0 1px 4px rgba(0,0,0,0.25); cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-card); cursor: pointer; }
+  .seg { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
+  .seg button { flex: 1; border: 0; background: transparent; font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); padding: 0.45rem 0.4rem; border-radius: 999px; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .seg button.active { background: var(--accent); color: #fff; }
+  .seg button:not(.active):hover { color: var(--text-primary); }
+  .money-input { display: flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); padding: 0 0.85rem; }
+  .money-input span { color: var(--text-tertiary); font-weight: 500; }
+  .money-input input { flex: 1; border: 0; background: transparent; font-family: var(--font-body); font-size: 1.15rem; font-weight: 600; color: var(--text-primary); padding: 0.55rem 0.4rem; outline: none; min-width: 0; font-variant-numeric: tabular-nums; }
+  .toggle { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.88rem; color: var(--text-secondary); }
+  .toggle input { position: absolute; opacity: 0; }
+  .toggle-track { width: 38px; height: 22px; border-radius: 999px; background: var(--border-strong); position: relative; transition: background var(--transition); flex-shrink: 0; }
+  .toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform var(--transition); }
+  .toggle input:checked + .toggle-track { background: var(--accent); }
+  .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+  .results { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.15rem; }
+  .kpi-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); }
+  .kpi-value { font-family: var(--font-display); font-weight: 400; font-size: 2rem; color: var(--text-primary); line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .kpi-sub { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; display: flex; flex-direction: column; }
+  .kpi-delta { font-size: 0.72rem; font-weight: 500; }
+  .kpi-delta.up { color: #4e8a5b; } .kpi-delta.down { color: #b9463b; } .kpi-delta.flat { color: var(--text-tertiary); }
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.78rem; color: var(--text-secondary); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.4rem; vertical-align: -1px; }
+  .chart-wrap { height: 300px; position: relative; }
+  .table-scroll { overflow-x: auto; }
+  table.pf { width: 100%; border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.pf th { text-align: right; font-weight: 600; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border-strong); }
+  table.pf td { text-align: right; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+  table.pf th:first-child, table.pf td:first-child { text-align: left; }
+  table.pf td b { color: var(--text-primary); font-weight: 600; }
+  table.pf tr.last td { background: var(--accent-subtle); }
+  table.pf tfoot td { border-bottom: 0; border-top: 2px solid var(--border-strong); color: var(--text-primary); font-weight: 500; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+  table.su { width: 100%; border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+  table.su th { text-align: left; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); padding: 0.8rem 0 0.3rem; }
+  table.su td { padding: 0.3rem 0; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+  table.su td:last-child { text-align: right; color: var(--text-primary); }
+  table.su tr.sum td { font-weight: 600; color: var(--text-primary); }
+  .how { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .how li { font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; padding-left: 1rem; position: relative; }
+  .how li::before { content: ''; position: absolute; left: 0; top: 0.6em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+
+  /* ---------- plan ---------- */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+  @media (max-width: 960px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+  .step { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; }
+  .step b { display: inline-flex; width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent-subtle); color: var(--accent); font-family: var(--font-display); font-weight: 400; margin-bottom: 0.9rem; }
+  .step h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+  .step p { font-size: 0.9rem; line-height: 1.6; }
+  .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 760px) { .plan-grid { grid-template-columns: 1fr; } }
+  .card-wide { grid-column: 1 / -1; }
+  .bullets { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+  .bullets li { font-size: 0.93rem; color: var(--text-secondary); line-height: 1.6; padding-left: 1.1rem; position: relative; }
+  .bullets li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .bullets b { color: var(--text-primary); font-weight: 600; }
+  .proof { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-top: 1.25rem; }
+  @media (max-width: 640px) { .proof { grid-template-columns: repeat(2, 1fr); } }
+  .proof div { display: flex; flex-direction: column; }
+  .proof b { font-family: var(--font-display); font-weight: 400; font-size: 1.9rem; color: var(--text-primary); line-height: 1.1; }
+  .proof span { font-size: 0.8rem; color: var(--text-tertiary); }
+  .timeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+  @media (max-width: 860px) { .timeline { grid-template-columns: 1fr; } }
+  .timeline div { border-top: 2px solid var(--accent); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+  .timeline b { font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; color: var(--text-primary); }
+  .timeline span { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ---------- properties ---------- */
+  .props { display: flex; flex-direction: column; gap: 1.5rem; }
+  .prop { display: grid; grid-template-columns: 5fr 7fr; gap: 0; padding: 0; overflow: hidden; }
+  @media (max-width: 800px) { .prop { grid-template-columns: 1fr; } }
+  .prop-photo { position: relative; min-height: 300px; }
+  .prop-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-credit { position: absolute; left: 0.75rem; bottom: 0.6rem; font-size: 0.68rem; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.45); padding: 0.15rem 0.5rem; border-radius: 4px; }
+  .prop-body { padding: 1.75rem; }
+  .prop-body h3 { font-size: 1.6rem; margin-bottom: 0.6rem; }
+  .prop-body > p { font-size: 0.93rem; line-height: 1.6; }
+  .prop-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.25rem 0; }
+  @media (max-width: 560px) { .prop-stats { grid-template-columns: repeat(2, 1fr); } }
+  .prop-stats div { display: flex; flex-direction: column; }
+  .prop-stats b { font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; color: var(--text-primary); line-height: 1.1; }
+  .prop-stats span { font-size: 0.75rem; color: var(--text-tertiary); }
+  table.mix { width: 100%; border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+  table.mix th { text-align: right; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border-strong); font-weight: 600; }
+  table.mix td { text-align: right; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+  table.mix th:first-child, table.mix td:first-child { text-align: left; }
+  table.mix tr.sum td { font-weight: 600; color: var(--text-primary); border-bottom: 0; }
+
+  /* ---------- terms ---------- */
+  .terms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
+  @media (max-width: 1000px) { .terms { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .terms { grid-template-columns: 1fr; } }
+  .terms .card p { font-size: 0.88rem; line-height: 1.6; }
+  .risks { max-width: 820px; }
+
+  /* ---------- documents ---------- */
+  .docs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+  @media (max-width: 760px) { .docs { grid-template-columns: 1fr; } }
+  .doc-card { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .doc-card h3 { margin: 0; }
+  .doc-card p { font-size: 0.92rem; line-height: 1.6; }
+  .doclist { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.5rem; }
+  .doclist li { font-size: 0.88rem; color: var(--text-primary); padding-left: 1.4rem; position: relative; }
+  .doclist li::before { content: ''; position: absolute; left: 0; top: 0.35em; width: 12px; height: 14px; border: 1.5px solid var(--accent); border-radius: 2px; }
+  .contact { font-size: 1.05rem; line-height: 1.7; }
+  .contact a { color: var(--text-primary); font-weight: 500; }
+  .contact a:hover { color: var(--accent); }
+
+  /* ---------- footer ---------- */
+  .foot { padding: 3rem 0; border-top: 1px solid var(--border); }
+  .foot p { font-size: 0.78rem; color: var(--text-tertiary); line-height: 1.6; max-width: 900px; }
+  .foot-copy { margin-top: 1rem; }
+</style>
+</body>
+</html>

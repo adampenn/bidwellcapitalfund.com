@@ -52,3 +52,10 @@ Building an internal tool at `/rcr-timeline` for modeling Oklahoma oil well deve
 - Data: `src/data/owners/portfolio.json` (property index), `<id>.json` (snapshot), `<id>-updates.json` (email archive). The property's Asset Mgmt Google Sheet is the source of truth — regenerate snapshots with `scripts/owners/update_cherry.py` (requires gog CLI), never edit numbers by hand.
 - Access code is a constant near the top of the inline script in portfolio.astro.
 - Monthly flow: update sheet → run script → edit `highlights` in the JSON → append new update email to `<id>-updates.json` → commit + push.
+
+## Chico Avenue Portfolio investor page (/chico-avenue)
+- Access-code-gated standalone page (same pattern as /rcr-timeline and /portfolio), not linked in nav, noindex. Rule 506(b): never link it publicly or list it in the sitemap.
+- `src/pages/chico-avenue.astro`: lever panel + results (KPIs, distribution chart, year-by-year table, sources and uses), business plan, property cards, terms, documents. Access code is the `ACCESS_CODE` constant at the top of the inline script.
+- `public/chico-avenue/model.js`: the pro forma engine, a port of the two live per-building underwriting sheets (1017 Esplanade `1owZNekEJAvd6DCWbHcKJWqHsENhY_1t_TuTitNRPGYo`, Royal Arms `1Z8noS75eqEjsNks9dOA7ge_uyP07UPBFUYECOC9NILE`, "Pro Forma" tabs). At the underwriting assumptions it reproduces each sheet's 10-year LP IRR, distributions, refi proceeds and sale analysis to the dollar. Two sheet conventions matter: property taxes grow 2% (Prop 13), and amortizing payments are sized over amortization months minus interest-only months.
+- When the sheets change, re-pull the inputs into `PROPERTIES` in model.js and re-run the tie-out (`node` against the file; see the git history for the check script). Do not hand-edit numbers in the page copy without updating the engine.
+- Assets: `public/chico-avenue/` holds the two photos and the investor deck PDF. The deck is reachable by URL, so treat it like an unlisted Drive link.
