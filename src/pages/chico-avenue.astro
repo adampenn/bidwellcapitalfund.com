@@ -639,17 +639,17 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     }
 
     /* Table: investor columns first */
-    var t = '<thead><tr><th>Year</th><th>Cash flow</th><th>Refinance</th><th>Sale</th>' + (hasCall ? '<th>Capital call</th>' : '') + '<th>Total</th><th class="ycol">Cash yield</th><th class="pfcol">Portfolio NOI</th><th class="pfcol">Loan payments</th><th class="pfcol">Coverage</th></tr></thead><tbody>';
+    var t = '<thead><tr><th>Year</th><th>Cash flow</th><th>Refinance</th><th class="scol">Sale</th>' + (hasCall ? '<th>Capital call</th>' : '') + '<th>Total</th><th class="ycol">Cash yield</th><th class="pfcol">Portfolio NOI</th><th class="pfcol">Loan payments</th><th class="pfcol">Coverage</th></tr></thead><tbody>';
     res.years.forEach(function (r) {
       var c = r.lpCash * share, rf = r.lpRefi * share, s = r.lpSale * share, d = r.deficit * share;
       var cov = r.dscr === null ? 'n/a' : r.dscr.toFixed(2) + 'x';
-      t += '<tr' + (r.year === N ? ' class="last"' : '') + '><th scope="row">' + r.year + '</th><td>' + money(c) + '</td><td>' + (rf ? money(rf) : '–') + '</td><td>' + (s ? money(s) : '–') + '</td>' +
+      t += '<tr' + (r.year === N ? ' class="last"' : '') + '><th scope="row">' + r.year + '</th><td>' + money(c) + '</td><td>' + (rf ? money(rf) : '–') + '</td><td class="scol">' + (s ? money(s) : '–') + '</td>' +
         (hasCall ? '<td>' + (d ? money(-d) : '–') + '</td>' : '') +
         '<td><b>' + money(c + rf + s - d) + '</b></td><td class="ycol">' + pct(r.cocOnEquity) + '</td><td class="pfcol">' + money(r.noi) + '</td><td class="pfcol">' + money(r.debtService) + '</td><td class="pfcol' + (r.dscr !== null && r.dscr < 1.25 ? ' low' : '') + '">' + cov + '</td></tr>';
     });
-    t += '</tbody><tfoot><tr><th scope="row">Total</th><td>' + money(cashOnInv) + '</td><td>' + money(refiOnInv) + '</td><td>' + money(saleOnInv) + '</td>' + (hasCall ? '<td>' + money(-callOnInv) + '</td>' : '') + '<td><b>' + money(totalOnInv) + '</b></td><td class="ycol"></td><td class="pfcol" colspan="3"></td></tr></tfoot>';
+    t += '</tbody><tfoot><tr><th scope="row">Total</th><td>' + money(cashOnInv) + '</td><td>' + money(refiOnInv) + '</td><td class="scol">' + money(saleOnInv) + '</td>' + (hasCall ? '<td>' + money(-callOnInv) + '</td>' : '') + '<td><b>' + money(totalOnInv) + '</b></td><td class="ycol"></td><td class="pfcol" colspan="3"></td></tr></tfoot>';
     document.getElementById('table-years').innerHTML = t;
-    document.getElementById('table-note').innerHTML = 'Your share (' + pct(share, 2) + ' of the ' + money(res.equity) + ' raise).<span class="pfcol"> The last three columns are for all ' + res.units + ' units.</span><span class="mobile-only"> Cash yield, building NOI and loan coverage show on a larger screen.</span>';
+    document.getElementById('table-note').innerHTML = 'Your share (' + pct(share, 2) + ' of the ' + money(res.equity) + ' raise).<span class="pfcol"> The last three columns are for all ' + res.units + ' units.</span><span class="mobile-only"> Sale proceeds are inside the final year\'s total. Cash yield, building NOI and loan coverage show on a larger screen.</span>';
 
     /* Sources and uses */
     var price = 0, credit = 0, rehab = 0, closing = 0, reserves = 0, fee = 0;
@@ -991,11 +991,13 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   .table-note { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
   .mobile-only { display: none; }
   @media (max-width: 640px) {
-    .pfcol, table.pf .pfcol, table.pf .ycol { display: none; }
+    .pfcol, table.pf .pfcol, table.pf .ycol, table.pf .scol { display: none; }
     .mobile-only { display: inline; }
-    table.pf { font-size: 0.76rem; }
-    table.pf th, table.pf td { padding: 0.4rem 0.35rem; }
-    table.pf th { font-size: 0.62rem; letter-spacing: 0.04em; }
+    table.pf { font-size: 0.74rem; }
+    table.pf th, table.pf td { padding: 0.4rem 0.3rem; }
+    .results .card, .model-grid > .card { padding: 1.1rem 0.9rem; }
+    table.pf th { font-size: 0.6rem; letter-spacing: 0.02em; white-space: normal; line-height: 1.2; vertical-align: bottom; }
+    table.pf tbody th, table.pf tfoot th { font-size: 0.74rem; }
   }
   .model-grid, .model-grid > * { max-width: 100%; }
   .table-scroll { width: 100%; max-width: 100%; }
