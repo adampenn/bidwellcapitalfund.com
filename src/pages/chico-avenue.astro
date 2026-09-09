@@ -85,7 +85,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     <div class="wrap hero-inner">
       <span class="section-label">Confidential · September 2026 · Supplements the PPM, which controls</span>
       <h1>Chico Avenue Portfolio</h1>
-      <p class="hero-lede">36 apartment units across two properties on the Esplanade in downtown Chico, California. Under contract with an estate at about $111,000 a door, net of credits, to be run the way we run 946 Cherry ten blocks away.</p>
+      <p class="hero-lede">Two apartment buildings on the Esplanade in downtown Chico, 36 units total. We have them under contract from an estate at about $111,000 a door after seller credits. Same crews and same approach as 946 Cherry, ten blocks away.</p>
       <div class="hero-stats">
         <div><b>36</b><span>units, two buildings</span></div>
         <div><b>~$111K</b><span>per door, net of credits</span></div>
@@ -105,8 +105,8 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">The model</span>
-        <h2>Our assumptions, with the levers in your hands.</h2>
-        <p>Everything below starts at our underwriting. Move any lever and the results update on your investment. The engine reproduces our per-building underwriting sheets at their assumptions, and it is stricter than they are when you move away from them: refinances have to pass a lender's coverage test, loans mature on their own terms, and any operating shortfall shows up as a capital call instead of disappearing.</p>
+        <h2>The numbers behind the offering</h2>
+        <p>These start at our underwriting. Change anything and the returns update on whatever amount you put in. At our assumptions this matches the per-building sheets we sent the lender. If you move away from them, the model gets stricter than the sheets: a refinance has to pass a 1.25x coverage test, the loans reset or mature on their own schedule, and if a building runs short the shortfall shows up as a capital call.</p>
       </div>
 
       <div class="model-grid">
@@ -123,7 +123,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
               <button type="button" data-preset="up">Upside</button>
               <button type="button" data-preset="custom" class="seg-custom" hidden>Custom</button>
             </div>
-            <p class="lever-note">Anything you change is your scenario, not the Manager's projection.</p>
+            <p class="lever-note">Once you move a slider it is your scenario, not our projection.</p>
           </div>
 
           <div class="lever-group">
@@ -133,7 +133,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
           </div>
 
           <div class="lever-group">
-            <span class="lever-title">The levers that matter</span>
+            <span class="lever-title">Main levers</span>
             <div class="lever">
               <div class="lever-label"><span id="lbl-rentAdj">Rents vs. our target</span><output id="out-rentAdj" for="inp-rentAdj">0%</output></div>
               <input type="range" id="inp-rentAdj" min="-15" max="10" step="0.5" value="0" aria-labelledby="lbl-rentAdj" />
@@ -228,7 +228,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
 
           <div class="card">
             <div class="card-head">
-              <h3>What comes back on your investment, by year</h3>
+              <h3>Cash back to you, by year</h3>
               <div class="legend">
                 <span><i style="background:var(--c-cash)"></i>Cash flow</span>
                 <span><i style="background:var(--c-refi)"></i>Refinance proceeds</span>
@@ -254,25 +254,25 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
               <table class="su" id="table-su"></table>
             </div>
             <div class="card">
-              <h3>What Bidwell earns</h3>
-              <p class="card-lede">Every dollar below is already deducted from the returns shown. The Manager is Bidwell Capital Fund GP, LLC, an affiliate of Bidwell Capital; property management is paid to the Manager, not to a third party.</p>
+              <h3>What we get paid</h3>
+              <p class="card-lede">All of this is already taken out of the returns above. Property management is paid to us (Bidwell Capital Fund GP, LLC), not to a third party.</p>
               <table class="su" id="table-gp"></table>
             </div>
           </div>
 
           <div class="card">
-            <h3>How this works, and what is left out</h3>
+            <h3>How the model works, and what it leaves out</h3>
             <ul class="how">
-              <li>Rents step from today's rent roll to an interim level in year 2 (the Royal Arms appraisal's market rents; a conservative step for 1017), then to our target rents in year 3, then grow at the rate you set. Both properties are underwritten at 4% vacancy plus 3% credit loss every year.</li>
-              <li>Cash flow splits 80% to investors and 20% to the Manager every quarter. Refinance and sale proceeds return investor capital in full before the 80/20 split.</li>
-              <li>Refinances are sized on the prior year's income at the cap rate above, at the lesser of the loan-to-value you set and a 1.25x coverage test, with a 1% refinance and guaranty fee to the Manager and 1% closing costs. A refinance is skipped when its fees exceed the cash it produces.</li>
-              <li>Fees included: 2% acquisition fee on the contract price ($84,200), 5.5% of collections for property management, 1% of revenues for asset management, and the 1% refinance and guaranty fee. No disposition fee.</li>
-              <li>Not included: interest on the short-term bridge loan from Wesley Hill if subscriptions lag closing (Supplement No. 1, Section 4), the reimbursement of his $250,000 deposit, offering and organizational expenses, any prepayment premium if the 1017 loan is refinanced with a different lender within five years, and your income taxes.</li>
-              <li>Operating reserves of $148,851 are raised at closing and held. The model never draws them and never returns them, which is conservative. Any operating shortfall is shown as a capital call funded by investors.</li>
-              <li>Distributions are modeled once a year at year end; actual distributions are quarterly. The sale assumes the buyer pays the same cap rate the model uses for refinances.</li>
+              <li>Year 1 is today's rent roll. Year 2 steps up part way (the appraiser's market rents at Royal Arms, a conservative step at 1017). Year 3 is our target rent, and after that rents grow at whatever rate you set. We carry 4% vacancy plus 3% credit loss every year.</li>
+              <li>Cash flow is split 80% to you and 20% to us each quarter. When we refinance or sell, you get your capital back in full before anything is split.</li>
+              <li>A refinance is sized on the prior year's income at the cap rate you set, and the loan is the lower of the loan-to-value and what 1.25x coverage allows. We charge a 1% refinance and guaranty fee and assume 1% closing costs. If the fees would eat the cash-out, the model skips that refinance.</li>
+              <li>Our fees are in: 2% acquisition fee on the contract price ($84,200), 5.5% of collections for property management, 1% of revenues for asset management, and the 1% refinance and guaranty fee. There is no fee when we sell.</li>
+              <li>Not in the model: interest on a short-term bridge loan from Wes Hill if subscriptions come in after closing (Supplement No. 1, Section 4), paying him back the $250,000 deposit he put up, legal and offering costs, any prepayment penalty if we refinance 1017 with a different bank inside five years, and your taxes.</li>
+              <li>We raise $148,851 of operating reserves at closing and hold them. The model never spends them and never gives them back, which is conservative. If a building runs short, that shows up as a capital call.</li>
+              <li>The model pays out once a year at year end. Real distributions are quarterly. The sale assumes a buyer pays the same cap rate used for the refinances.</li>
             </ul>
           </div>
-          <p class="fine">Projections are illustrative, unaudited, and depend on the assumptions shown. They are not a guarantee of results. Scenarios you build are your assumptions, not the Manager's projections, and the Manager has not reviewed them. The Private Placement Memorandum, as supplemented, controls.</p>
+          <p class="fine">These are projections, unaudited, and depend on the assumptions shown. They are not a guarantee. Scenarios you build are yours, not ours, and we have not reviewed them. The Private Placement Memorandum, as supplemented, controls.</p>
         </div>
       </div>
     </div>
@@ -283,46 +283,38 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">Business plan</span>
-        <h2>Buy below retail, reset operations, turn units, refinance.</h2>
+        <h2>What we plan to do</h2>
         <p id="plan-lede">Combined, the two properties are underwritten at about $283K of year-1 net operating income (NOI, rent less operating costs). The plan takes that to about $383K by year 3 without betting on the market. Here is how.</p>
       </div>
 
       <div class="steps">
-        <div class="step"><b>1</b><h3>Buy below retail</h3><p>Two buildings from an estate, each in its own escrow with a set walk-away price. $229,000 of seller repair credits negotiated against the inspection findings, including the Royal Arms roof.</p></div>
-        <div class="step"><b>2</b><h3>Reset operations day one</h3><p>Insurance, landscaping and pest re-bid across the portfolio. Managed by Bidwell directly, with no third-party markup. The Royal Arms on-site manager expense goes away at takeover. Utility billing standardized across all 36 units where leases and California law permit.</p></div>
-        <div class="step"><b>3</b><h3>Turn units to market</h3><p>In-house crews renovate at an estimated $15,500 to $18,750 per unit: LVP floors, counters, plumbing and electrical fixtures, cabinet doors. Rents reset at turnover. We prove the ceiling on a test group before spending the full budget.</p></div>
-        <div class="step"><b>4</b><h3>Refinance or move up</h3><p>The pro forma refinances Royal Arms in year 4 and 1017 in year 5 at 65% of stabilized value, returning about half of investor capital while both buildings are kept, and models second refinances in year 9 that return most of the rest. The alternative is a 1031 exchange (a tax-deferred swap) into a larger asset.</p></div>
+        <div class="step"><b>1</b><h3>Buy them right</h3><p>Both buildings come from an estate, each in its own escrow, and we set a walk-away price on each before we started. We negotiated $229,000 of repair credits off the inspection reports, most of it for the Royal Arms roof.</p></div>
+        <div class="step"><b>2</b><h3>Cut the expenses</h3><p>We manage the buildings ourselves, so there is no third-party management markup. The on-site manager at Royal Arms goes away when we take over. Insurance, landscaping and pest control get re-bid, and we bill utilities back to residents on all 36 units where the leases and California law allow it.</p></div>
+        <div class="step"><b>3</b><h3>Turn the units</h3><p>As units turn, our crew renovates them for about $15,500 to $18,750 each: LVP floors, counters, plumbing and electrical fixtures, new cabinet doors. Then we lease at market. We do a handful first to see what rent they actually get before we spend the whole budget.</p></div>
+        <div class="step"><b>4</b><h3>Refinance</h3><p>The model refinances Royal Arms in year 4 and 1017 in year 5 at 65% of the new value, which gets about half of your money back while we keep both buildings. It refinances again in year 9 and returns most of the rest. The other option at that point is a 1031 exchange into a bigger building, which defers the tax.</p></div>
       </div>
 
       <div class="plan-grid">
         <div class="card">
           <span class="section-label">Why downtown Chico</span>
-          <ul class="bullets">
-            <li><b>Little new supply.</b> We have not seen new small-multifamily construction downtown in years, and none is proposed near these blocks.</li>
-            <li><b>Below replacement cost.</b> About $111,000 per door sits well below what it would cost to build an apartment in Chico today.</li>
-            <li><b>Turnover drives rents.</b> Long-held buildings sit below market and rents reset at turnover. Units are largely in original condition.</li>
-            <li><b>The spread.</b> Stabilized NOI is underwritten at 8.2% of net price, renovation and fees. Stabilized buildings have been trading at 6.0% to 6.5% cap rates; the Royal Arms appraisal is in the underwriting file. <span id="exit-cap-note"></span></li>
-          </ul>
+          <p class="plain">Nobody has built small apartment buildings downtown in years, and nothing is proposed near these blocks. At about $111,000 a door we are well under what it costs to build in Chico now. These buildings have been held a long time, the units are mostly original, and the rents are below market. Rents catch up when units turn.</p>
+          <p class="plain">Once stabilized, the buildings should earn about 8.2% on what we paid, renovated and spent in fees. Stabilized buildings around here have been selling at 6.0% to 6.5% cap rates. <span id="exit-cap-note"></span></p>
         </div>
         <div class="card">
           <span class="section-label">Where the value comes from</span>
-          <ul class="bullets">
-            <li><b>Rents to market at turnover.</b> $1,053 to $1,171 in place today against average targets of $1,329 to $1,404 by year 3, about +20% at 1017 and +26% at Royal Arms. Turnover does most of the work before any renovation premium.</li>
-            <li><b>Utility recovery.</b> Most leases already pay a $50 utility fee. We standardize billing and redirect the $35 resident-benefit fee that now goes to a screening vendor, where leases and California law permit.</li>
-            <li><b>Expense reset.</b> Insurance re-quoted off the seller's surplus-lines pricing, services re-bid, reassessed property taxes already in the model.</li>
-            <li><b>Renovation premium.</b> Modeled rents stay below what we believe fully renovated units can achieve.</li>
-          </ul>
+          <p class="plain">Rents today average $1,171 at 1017 and $1,053 at Royal Arms. We underwrite $1,404 and $1,329 by year 3, about 20% and 26% higher. Most of that comes from leases turning over, not from the renovations.</p>
+          <p class="plain">Most residents already pay a $50 utility fee. We bring every unit onto the same billing and keep the $35 resident-benefit fee that now goes to a screening vendor, where the leases and California law allow. Insurance was re-quoted off the seller's surplus-lines policy, services get re-bid, and the model already carries the higher property taxes after reassessment. The rents we model are below what I think fully renovated units will get.</p>
         </div>
         <div class="card card-wide">
-          <span class="section-label">Track record: 946 Cherry Street, year one (affiliate-owned, not part of this offering)</span>
-          <p>20 studio units bought August 2025 for $1.46M, about ten blocks away. Similar tenant base, same crews. Rents were pushed with almost no renovation. Operations did the work: utility billing from day one, in-house W-2 crews for maintenance and turns, and leases reset to market at every turnover.</p>
+          <span class="section-label">946 Cherry Street, year one (our building ten blocks away, not part of this offering)</span>
+          <p>We bought 946 Cherry in August 2025 for $1.46M. 20 studios, similar tenants, same crew. We barely renovated anything. Rents went up 15.7% because we billed utilities back from day one, did maintenance and turns with our own W-2 crew, and reset each lease to market when it turned.</p>
           <div class="proof">
             <div><b>99.2%</b><span>trailing-12 occupancy</span></div>
-            <div><b>+34%</b><span>full-year NOI vs. our acquisition plan ($130,165 vs. $96,867)</span></div>
+            <div><b>+34%</b><span>NOI vs. what we underwrote ($130,165 vs. $96,867)</span></div>
             <div><b>+15.7%</b><span>average rent since acquisition</span></div>
             <div><b>$360</b><span>total delinquency across 20 units</span></div>
           </div>
-          <p class="fine">Unaudited figures from the property's operating records through July 2026, compared with the Manager's own acquisition pro forma, which is available on request. 946 Cherry is owned by an affiliate of the Manager, is a different unit type (studios), and is not owned by the Company. Past performance of other properties does not predict this Company's results.</p>
+          <p class="fine">Unaudited, from the property's books through July 2026, compared with our own acquisition pro forma (available on request). 946 Cherry is owned by an affiliate of the Manager, is studios rather than one and two bedrooms, and is not part of this offering. How one building did does not predict how this one will.</p>
         </div>
         <div class="card card-wide">
           <span class="section-label">Timeline</span>
@@ -343,7 +335,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">The properties</span>
-        <h2>Two buildings, one block apart, one operation.</h2>
+        <h2>The two buildings</h2>
       </div>
       <div class="props" id="props"></div>
     </div>
@@ -354,33 +346,33 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">Terms</span>
-        <h2>Straight 80/20, quarterly distributions, capital back first.</h2>
-        <p>Summary only. The operating agreement, PPM, Supplement No. 1 and subscription documents control.</p>
+        <h2>Terms</h2>
+        <p>Short version. The operating agreement, PPM, Supplement No. 1 and subscription agreement control.</p>
       </div>
       <div class="terms">
-        <div class="card"><span class="section-label">Split</span><p>80% of distributable cash flow to investors, 20% to the Manager. No preferred return, so the Manager shares from the first dollar of cash flow.</p></div>
-        <div class="card"><span class="section-label">Capital first</span><p>On a sale or refinance, investor capital is returned in full before remaining proceeds are split 80/20.</p></div>
-        <div class="card"><span class="section-label">Fees</span><p>2% acquisition fee on the contract price ($84,200) at closing. 5.5% of collections for property management, paid to the Manager. 1% of revenues for asset management. 1% refinance and guaranty fee on gross refinance proceeds. No disposition fee. All are deducted in the returns shown; see "What Bidwell earns" above for the dollars.</p></div>
-        <div class="card"><span class="section-label">Distributions</span><p>Quarterly, beginning once operations support them. Year one is underwritten at about 3.7% on invested capital while units turn, so this is not a current-income vehicle in its first year.</p></div>
-        <div class="card"><span class="section-label">Offering</span><p>Up to $4,000,000 of Class A Units under Rule 506(b), rolling closes on identical terms. $100,000 minimum; the Manager may accept less. Subscriptions are held at Chase and returned without interest if $600,000 is not raised. Each subscription is allocated 32.46% to 1017 and 67.54% to Royal Arms; if a property does not close, that portion is refunded, not redeployed. The Manager expects to accept about $2.23M to $2.5M. Hold of 5 to 10 years at the Manager's discretion.</p></div>
-        <div class="card"><span class="section-label">Debt</span><p>1017 Esplanade: $975,000 per a Five Star Bank expression of interest, not a commitment: 5-year Treasury plus 2.25%, about 6.6% today, fixed five years then reset, 10-year term, 12 months interest-only then 25-year amortization, recourse with Adam Penn's personal guaranty, 1.25x coverage covenant, prepayment premium in years 1 to 5. Royal Arms: about $1.7M modeled at 6.5% with five years interest-only. No lender has issued a term sheet for Royal Arms.</p></div>
-        <div class="card"><span class="section-label">Structure</span><p>Bidwell Chico Avenue Portfolio, LLC holds 1017 Esplanade directly and Royal Arms through a wholly owned subsidiary so each property carries its own lender. Manager: Bidwell Capital Fund GP, LLC. The Manager will manage the buildings itself and does not hold a California real estate broker license; see the PPM risk factors.</p></div>
-        <div class="card"><span class="section-label">Sponsor alignment</span><p>The Manager intends to subscribe for at least $10,000 of Class A Units on the same terms as other investors; the amount is not fixed and may be funded from the acquisition fee. Adam Penn personally guarantees the 1017 loan and is paid the 1% guaranty fee above for doing so. Bidwell is the operator, not just the sponsor. See the PPM for the Manager's fees and conflicts of interest.</p></div>
+        <div class="card"><span class="section-label">Split</span><p>You get 80% of the cash flow, we get 20%. There is no preferred return, so we share from the first dollar.</p></div>
+        <div class="card"><span class="section-label">Capital first</span><p>When we refinance or sell, you get all of your capital back before anything is split 80/20.</p></div>
+        <div class="card"><span class="section-label">Fees</span><p>2% acquisition fee on the contract price, $84,200 at closing. 5.5% of collections for property management, paid to us. 1% of revenues for asset management. 1% refinance and guaranty fee on each refinance. No fee when we sell. All of it is already out of the returns shown; the dollars are in "What we get paid" above.</p></div>
+        <div class="card"><span class="section-label">Distributions</span><p>Quarterly, once the buildings are producing. Year one is about 3.7% on your money while units turn, so do not count on much income the first year.</p></div>
+        <div class="card"><span class="section-label">Offering</span><p>Up to $4,000,000 of Class A Units under Rule 506(b), same terms for everyone regardless of when you come in. $100,000 minimum, though we may accept less. Money sits at Chase and comes back without interest if we do not reach $600,000. Each subscription is split 32.46% to 1017 and 67.54% to Royal Arms, and if one building does not close, that piece is refunded rather than moved to the other. We expect to take about $2.23M to $2.5M. We plan to hold 5 to 10 years.</p></div>
+        <div class="card"><span class="section-label">Debt</span><p>1017: $975,000 from Five Star Bank per their expression of interest, which is not yet a commitment. 5-year Treasury plus 2.25%, about 6.6% today, fixed for five years then reset, 10-year term, 12 months interest-only then 25-year amortization. I personally guarantee it, there is a 1.25x coverage covenant, and a prepayment penalty in years 1 to 5. Royal Arms: about $1.7M modeled at 6.5% with five years interest-only. No bank has issued a term sheet on Royal Arms yet.</p></div>
+        <div class="card"><span class="section-label">Structure</span><p>Bidwell Chico Avenue Portfolio, LLC owns 1017 directly and owns Royal Arms through a subsidiary so each building can have its own lender. Bidwell Capital Fund GP, LLC is the manager. We manage the buildings ourselves and do not hold a California broker license; the PPM risk factors cover this.</p></div>
+        <div class="card"><span class="section-label">Sponsor alignment</span><p>We plan to put in at least $10,000 on the same terms as everyone else. The amount is not fixed and may come out of the acquisition fee. I personally guarantee the 1017 loan and get the 1% guaranty fee above for it. We run the buildings ourselves. The PPM lists our fees and conflicts.</p></div>
       </div>
 
       <div class="risks">
-        <span class="section-label">What can go wrong</span>
+        <span class="section-label">Risks</span>
         <ul class="bullets">
-          <li><b>Execution.</b> The return is manufactured through turns and operations. Slow lease-up or renovation overruns push the timeline right. Use the "years to reach target rents" and renovation levers above to see the effect.</li>
-          <li><b>Financing.</b> Neither loan is committed. Worse terms, or no loan for Royal Arms, would lower returns or prevent that acquisition. Both loans carry interest-only periods and then reset or mature in year 5, and the plan depends on refinancing.</li>
-          <li><b>Concentration and structure.</b> Royal Arms is roughly two-thirds of the equity: one property, one roof, one reposition plan. Investors' interest in Royal Arms sits behind its lender through a subsidiary.</li>
-          <li><b>Rents.</b> Year 1 uses today's rent roll. Years 2 and 3 assume rents step up and then reach our targets as units turn, about +20% at 1017 and +26% at Royal Arms. Chico rents have softened from their 2024 peak; if that continues, those steps take longer or do not happen.</li>
-          <li><b>Expenses.</b> Property taxes roughly double on reassessment at purchase and are modeled that way. City sewer rates step up sharply from late 2026, to be recovered through utility billing where leases and California law allow.</li>
-          <li><b>Roof and capital items.</b> The Royal Arms roof certification comes from the seller's contractor, is conditioned on minor repairs, and defers rather than eliminates replacement. Renovation costs may exceed budget.</li>
-          <li><b>Bridge financing.</b> If subscriptions lag closing, the Company may borrow short term from Wesley Hill at about 1.1% a month, which is not in the model.</li>
-          <li><b>Illiquidity.</b> Interests are restricted securities with no redemption right and no public market. Plan on holding five years or more.</li>
+          <li>The return comes from turning units and running the buildings well. If leasing is slow or the renovations run over, everything moves right. The "years to reach target rents" and renovation sliders show what that does.</li>
+          <li>Neither loan is committed yet. Worse terms, or no loan on Royal Arms, means lower returns or no Royal Arms. Both loans are interest-only for a stretch and then reset or come due in year 5, and the plan counts on being able to refinance.</li>
+          <li>Royal Arms is about two thirds of the money. One building, one roof, one plan. Your interest in it sits behind its lender through a subsidiary.</li>
+          <li>Year 1 is today's rents. We assume rents step up in year 2 and hit our targets in year 3 as units turn, about 20% higher at 1017 and 26% at Royal Arms. Chico rents have come down from their 2024 peak. If that keeps going, those steps take longer or do not happen.</li>
+          <li>Property taxes about double when the buildings are reassessed at sale, and that is in the model. City sewer rates jump in late 2026. We plan to bill that back where the leases and California law allow.</li>
+          <li>The Royal Arms roof certification is from the seller's roofer, depends on some minor repairs, and pushes replacement out rather than eliminating it. Renovations can cost more than budgeted.</li>
+          <li>If subscriptions come in after closing we may borrow short term from Wes Hill at about 1.1% a month. That is not in the model.</li>
+          <li>You cannot sell these units, there is no redemption, and there is no public market. Plan on five years or more.</li>
         </ul>
-        <p class="fine">Supplement No. 1 adds eight risk factors specific to the two-property portfolio. Read them.</p>
+        <p class="fine">Supplement No. 1 has eight more risk factors specific to these two buildings. Please read them.</p>
       </div>
     </div>
   </section>
@@ -390,12 +382,12 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">Documents</span>
-        <h2>Read the offering, then talk with Adam.</h2>
+        <h2>Documents</h2>
       </div>
       <div class="docs">
         <div class="card doc-card">
           <h3>Offering documents</h3>
-          <p>In the investor portal under the Chico Avenue Portfolio offering. Log in with the email you were invited with.</p>
+          <p>These are in the investor portal under the Chico Avenue Portfolio offering. Log in with the email we invited you with.</p>
           <ul class="doclist">
             <li>Private Placement Memorandum</li>
             <li>Supplement No. 1 to the PPM (September 8, 2026)</li>
@@ -406,9 +398,9 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
         </div>
         <div class="card doc-card">
           <h3>Presentation and underwriting file</h3>
-          <p>The September 2026 webinar deck: the opportunity, the playbook, each building, the numbers and the terms.</p>
+          <p>The deck from the September webinar.</p>
           <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
-          <p>The per-building pro formas behind this page, the June 2026 Royal Arms appraisal, the inspection reports and the seller credit packages are available on request. Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> with "Chico Avenue underwriting file".</p>
+          <p>If you want the full file, I will send it: the per-building pro formas behind this page, the Royal Arms appraisal, the inspection reports and the seller credit packages. Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> with "Chico Avenue underwriting file".</p>
           <button type="button" class="btn btn-outline" id="btn-copy-email" data-email="team@bidwellcapitalfund.com">Copy email address</button>
         </div>
       </div>
@@ -419,9 +411,8 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   <section class="cta">
     <div class="wrap cta-inner">
       <div>
-        <span class="section-label">Next step</span>
-        <h2>Talk with Adam</h2>
-        <p>A call to walk the model, the buildings and the escrow status, and to answer anything this page does not.</p>
+        <h2>Questions? Call me.</h2>
+        <p>Happy to walk the model, the buildings and where each escrow stands. Adam</p>
       </div>
       <div class="cta-actions">
         <a href="tel:+15305207331" class="btn btn-primary">Call (530) 520-7331</a>
@@ -578,7 +569,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     var saleOnInv = res.saleProceedsLP * share;
     var html = '';
     html += kpi('Total back on ' + money(inv), money(totalOnInv), res.multiple.toFixed(2) + 'x your investment over ' + N + ' years', deltaX(res.multiple, base.multiple), true);
-    html += kpi(N + '-year annual return (IRR)', pct(res.irr), 'after the Manager\'s fees and share, before your taxes', deltaPct(res.irr, base.irr), true);
+    html += kpi(N + '-year annual return (IRR)', pct(res.irr), 'after our fees and our 20%, before your taxes', deltaPct(res.irr, base.irr), true);
     html += kpi('Year 1 cash yield', pct(res.y1Coc), money(res.years[0].lpCash * share) + ' in year 1', deltaPct(res.y1Coc, base.y1Coc), false);
     html += kpi('Average cash yield', pct(res.avgCoc), 'a year on your original ' + money(inv) + ', years 1 to ' + N + ' (' + money(cashOnInv) + ' total)', deltaPct(res.avgCoc, base.avgCoc), false);
     var refiSub = money(refiOnInv) + ' of your ' + money(inv);
@@ -656,7 +647,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     });
     t += '</tbody><tfoot><tr><th scope="row">Total</th><td>' + money(cashOnInv) + '</td><td>' + money(refiOnInv) + '</td><td>' + money(saleOnInv) + '</td>' + (hasCall ? '<td>' + money(-callOnInv) + '</td>' : '') + '<td><b>' + money(totalOnInv) + '</b></td><td colspan="4"></td></tr></tfoot>';
     document.getElementById('table-years').innerHTML = t;
-    document.getElementById('table-note').textContent = 'Your share (' + pct(share, 2) + ' of the ' + money(res.equity) + ' raise) in the first columns. The last three columns are for all ' + res.units + ' units. Scroll sideways for more.';
+    document.getElementById('table-note').textContent = 'The first columns are your share (' + pct(share, 2) + ' of the ' + money(res.equity) + ' raise). The last three are for all ' + res.units + ' units. Scroll sideways to see them.';
 
     /* Sources and uses */
     var price = 0, credit = 0, rehab = 0, closing = 0, reserves = 0, fee = 0;
@@ -1032,6 +1023,8 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   .bullets li { font-size: 0.93rem; color: var(--text-secondary); line-height: 1.6; padding-left: 1.1rem; position: relative; }
   .bullets li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
   .bullets b { color: var(--text-primary); font-weight: 600; }
+  .plain { font-size: 0.93rem; line-height: 1.65; margin-bottom: 0.75rem; }
+  .risks .bullets li { list-style: none; }
   .proof { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-top: 1.25rem; }
   @media (max-width: 640px) { .proof { grid-template-columns: repeat(2, 1fr); } }
   .proof div { display: flex; flex-direction: column; }
