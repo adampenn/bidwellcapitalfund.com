@@ -1,13 +1,22 @@
 /*
  * Chico Avenue Portfolio: investor pro forma engine.
  *
- * A faithful port of the two live underwriting models (1017 Esplanade and
- * Royal Arms, "Pro Forma" tabs, September 2026). At the underwriting
- * assumptions it reproduces each model's 10-year LP IRR, distributions,
- * refinance proceeds and sale analysis to within rounding.
+ * A port of the two live underwriting models (1017 Esplanade and Royal Arms,
+ * "Pro Forma" tabs, September 2026). At the underwriting assumptions it
+ * reproduces each model's 10-year LP IRR, distributions, refinance proceeds
+ * and sale analysis to within rounding.
  *
- * Every dollar figure below comes straight from the models. Do not edit the
- * numbers by hand; re-pull them from the sheets and update here.
+ * Where the engine is stricter than the sheets, it says so below: refinances
+ * are lender-tested (lesser of LTV and a 1.25x DSCR), a refinance is not
+ * executed in the sale year or when its fees exceed the cash-out, loans reset
+ * or mature on their own terms when a cash-out refinance does not happen,
+ * operating deficits are carried as capital calls instead of being floored at
+ * zero, and refinance proceeds beyond the return of capital are reported as
+ * refinance proceeds, not operating cash flow. None of these bind at the
+ * underwriting assumptions, so the base case still ties to the sheets.
+ *
+ * Every dollar figure in PROPERTIES comes straight from the models. Do not edit
+ * the numbers by hand; re-pull them from the sheets and update here.
  */
 (function (root) {
   'use strict';
@@ -25,6 +34,8 @@
       rate: 0.066,
       ioMonths: 12,
       amortMonths: 300,
+      termMonths: 120,   // FSB expression of interest: 10-year term
+      fixedMonths: 60,   // rate fixed five years, then resets
       rentCurrent: 168600,
       rentMarket: 181200,
       rentTarget: 202200,
@@ -67,6 +78,8 @@
       rate: 0.065,
       ioMonths: 60,
       amortMonths: 360,
+      termMonths: 60,    // modeled loan matures at five years; no term sheet yet
+      fixedMonths: 60,
       rentCurrent: 303360,
       rentMarket: 350220,
       rentTarget: 382800,
@@ -101,25 +114,28 @@
 
   /* Underwriting (base case) assumptions, shared by both models. */
   var UNDERWRITING = {
-    rentAdj: 0,        // stabilized (year 3+) rent vs. underwriting, fraction
-    rentGrowth: 0.03,  // annual rent + other income growth from year 4
-    vacancy: 0.04,     // physical vacancy, share of gross potential rent
-    creditLoss: 0.03,  // concessions, loss to lease, bad debt (held constant)
-    expGrowth: 0.025,  // annual expense growth
-    taxGrowth: 0.02,   // Prop 13 cap on assessed-value growth
-    capRate: 0.065,    // valuation cap rate for refinance sizing and exit
-    rateDelta: 0,      // shift applied to both acquisition loan rates
-    refiRate: 0.065,   // rate on refinance loans
-    refiLTV: 0.65,     // refinance loan-to-value
-    refiOn: true,      // model the refinances at all
-    hold: 10,          // sale at end of this year
-    rehabOverrun: 0,   // renovation budget vs. plan, fraction
-    mgmtPct: 0.055,    // property management, share of EGI
-    amPct: 0.01,       // asset management, share of EGI
-    acqFeePct: 0.02,   // acquisition fee, share of contract price
-    refiFeePct: 0.01,  // capital event fee, share of new loan
-    refiCostPct: 0.01, // refinance closing costs, share of new loan
-    saleCostPct: 0.04, // cost of sale
+    rentAdj: 0,          // stabilized rent vs. underwriting target, fraction
+    stabilizeYears: 2,   // years of rent ramp: target reached in year stabilizeYears + 1
+    rentGrowth: 0.03,    // annual rent + other income growth after stabilization
+    vacancy: 0.04,       // physical vacancy, share of gross potential rent
+    creditLoss: 0.03,    // concessions, loss to lease, bad debt (held constant)
+    expGrowth: 0.025,    // annual expense growth
+    taxGrowth: 0.02,     // Prop 13 cap on assessed-value growth
+    capRate: 0.065,      // valuation cap rate for refinance sizing and exit
+    rateDelta: 0,        // shift applied to both acquisition loan rates
+    refiOn: true,        // model the cash-out refinances at all
+    refi2On: true,       // model the second refinances in year 9
+    refiRate: 0.065,     // rate on refinance and reset loans
+    refiLTV: 0.65,       // refinance loan-to-value
+    dscrMin: 1.25,       // lender coverage test on refinance sizing
+    hold: 10,            // sale at end of this year
+    rehabOverrun: 0,     // renovation budget vs. plan, fraction
+    mgmtPct: 0.055,      // property management, share of EGI
+    amPct: 0.01,         // asset management, share of EGI
+    acqFeePct: 0.02,     // acquisition fee, share of contract price
+    refiFeePct: 0.01,    // refinance and guaranty fee, share of new loan
+    refiCostPct: 0.01,   // refinance closing costs, share of new loan
+    saleCostPct: 0.04,   // cost of sale
     lpSplit: 0.8
   };
 
@@ -129,7 +145,7 @@
   }
 
   function irr(flows) {
-    // Newton with bisection fallback. Returns null if no sign change.
+    // Bisection on NPV. Returns null when there is no sign change or no root in range.
     var hasNeg = false, hasPos = false;
     for (var i = 0; i < flows.length; i++) { if (flows[i] < 0) hasNeg = true; if (flows[i] > 0) hasPos = true; }
     if (!hasNeg || !hasPos) return null;
@@ -137,10 +153,10 @@
     var lo = -0.99, hi = 10, mid;
     var fLo = npv(lo), fHi = npv(hi);
     if (fLo * fHi > 0) return null;
-    for (var k = 0; k < 200; k++) {
+    for (var k = 0; k < 120; k++) {
       mid = (lo + hi) / 2;
       var fm = npv(mid);
-      if (Math.abs(fm) < 1e-7) break;
+      if (Math.abs(fm) < 1e-6 || (hi - lo) < 1e-9) break;
       if (fLo * fm < 0) { hi = mid; fHi = fm; } else { lo = mid; fLo = fm; }
     }
     return mid;
@@ -149,10 +165,7 @@
   function runProperty(p, A) {
     var N = A.hold;
     var y, m;
-    var out = {
-      id: p.id, name: p.name, units: p.units,
-      years: [], equity: 0, sources: {}, uses: {}
-    };
+    var out = { id: p.id, name: p.name, units: p.units, years: [], equity: 0, sources: {}, uses: {} };
 
     /* Sources and uses */
     var rehab = p.rehab * (1 + A.rehabOverrun);
@@ -168,14 +181,17 @@
     out.sources = { loan: p.loan, equity: equity };
 
     /* Income and expenses by year (index 1..N) */
-    var gpr = [0], egi = [0], noi = [0], exp = [0];
+    var gpr = [0], egi = [0], noi = [0], exp = [0], pmFee = [0];
     var targetAdj = p.rentTarget * (1 + A.rentAdj);
+    var S = Math.max(2, Math.round(A.stabilizeYears));
     for (y = 1; y <= N; y++) {
       var g;
       if (y === 1) g = p.rentCurrent;
-      else if (y === 2) g = Math.min(p.rentMarket, targetAdj);
-      else if (y === 3) g = targetAdj;
-      else g = gpr[y - 1] * (1 + A.rentGrowth);
+      else if (y === 2) g = Math.min(p.rentMarket, targetAdj);   // sheets: year 2 = appraiser market
+      else if (y <= S + 1) {
+        // Ramp from market (year 2) to the adjusted target, reached in year S + 1.
+        g = gpr[2] + (targetAdj - gpr[2]) * (y - 2) / (S - 1);
+      } else g = gpr[y - 1] * (1 + A.rentGrowth);
       gpr[y] = g;
       var otherIncome = (p.laundry + p.rubs) * Math.pow(1 + A.rentGrowth, y - 1);
       var e = g * (1 - A.vacancy - A.creditLoss) + otherIncome;
@@ -184,44 +200,66 @@
       for (var i = 0; i < p.expenses.length; i++) {
         var line = p.expenses[i];
         if (line.key === 'Turnover' && p.turnoverYearOneOnly && y > 1) continue;
-        // Real estate taxes are capped at 2% a year under Prop 13; everything else follows the expense lever.
         var growth = line.key === 'Real estate taxes' ? A.taxGrowth : A.expGrowth;
         x += line.v * Math.pow(1 + growth, y - 1);
       }
-      x += A.mgmtPct * e;
+      pmFee[y] = A.mgmtPct * e;
+      x += pmFee[y];
       exp[y] = x;
       noi[y] = e - x;
     }
 
     /* Debt, refinances, distributions */
-    var loan = { bal: p.loan, rate: p.rate + A.rateDelta, ioLeft: p.ioMonths, pay: 0, label: 'Acquisition loan' };
-    // The models amortize over the amortization term less the interest-only months.
-    loan.pay = pmt(loan.rate / 12, p.amortMonths - p.ioMonths, p.loan);
+    var loan = {
+      bal: p.loan, rate: p.rate + A.rateDelta, ioLeft: p.ioMonths, original: true, reset: false,
+      pay: pmt((p.rate + A.rateDelta) / 12, p.amortMonths - p.ioMonths, p.loan), amortLeft: p.amortMonths - p.ioMonths
+    };
     var capBal = equity;
-    var totalLP = 0, totalRefiRoc = 0;
+    var totalLP = 0, totalRoc = 0;
+    var refiSchedule = p.refiYears.filter(function (yr, idx) { return idx === 0 ? A.refiOn : (A.refiOn && A.refi2On); });
 
     for (y = 1; y <= N; y++) {
-      var row = { year: y, gpr: gpr[y], egi: egi[y], expenses: exp[y], noi: noi[y] };
+      var row = { year: y, gpr: gpr[y], egi: egi[y], expenses: exp[y], noi: noi[y], pmFee: pmFee[y] };
       row.capBegin = capBal;
-      row.refiProceeds = 0; row.refiFees = 0; row.roc = 0; row.refiExcess = 0; row.refiLoan = 0;
+      row.refiLoan = 0; row.refiProceeds = 0; row.refiFees = 0; row.refiFeeGP = 0; row.roc = 0; row.refiExcess = 0;
+      row.refiConstraint = ''; row.event = '';
+      var monthsIn = (y - 1) * 12;
 
-      /* Refinance at the beginning of the year, sized on prior-year NOI */
-      if (A.refiOn && y > 1 && p.refiYears.indexOf(y) !== -1) {
+      /* Cash-out refinance at the beginning of the year, sized on prior-year NOI */
+      if (refiSchedule.indexOf(y) !== -1 && y > 1 && y < N) {
         var value = noi[y - 1] / A.capRate;
-        var newLoan = A.refiLTV * value;
-        if (newLoan > loan.bal) {
-          var cashOut = newLoan - loan.bal;
-          var fees = newLoan * (A.refiFeePct + A.refiCostPct);
+        var byLtv = A.refiLTV * value;
+        var constant = 12 * pmt(A.refiRate / 12, 360, 1);
+        var byDscr = noi[y - 1] / A.dscrMin / constant;
+        var newLoan = Math.min(byLtv, byDscr);
+        var cashOut = newLoan - loan.bal;
+        var fees = newLoan * (A.refiFeePct + A.refiCostPct);
+        if (cashOut > fees) {
           var net = cashOut - fees;
-          row.refiLoan = newLoan; row.refiProceeds = cashOut; row.refiFees = fees;
-          if (net > 0) {
-            var roc = Math.min(net, capBal);
-            row.roc = roc;
-            row.refiExcess = net - roc;
-            capBal -= roc;
-          }
-          loan = { bal: newLoan, rate: A.refiRate, ioLeft: 0, pay: pmt(A.refiRate / 12, 360, newLoan), label: 'Refinance ' + y };
+          row.refiLoan = newLoan; row.refiProceeds = cashOut; row.refiFees = fees; row.refiFeeGP = newLoan * A.refiFeePct;
+          row.refiConstraint = byDscr < byLtv ? 'DSCR' : 'LTV';
+          row.event = 'Refinance';
+          var roc = Math.min(net, capBal);
+          row.roc = roc;
+          row.refiExcess = net - roc;
+          capBal -= roc;
+          loan = { bal: newLoan, rate: A.refiRate, ioLeft: 0, original: false, pay: pmt(A.refiRate / 12, 360, newLoan), amortLeft: 360 };
+        } else {
+          row.event = 'Refinance skipped';
         }
+      }
+
+      /* Original loan: rate reset at the end of the fixed period, refinance at maturity */
+      row.maturityFees = 0;
+      if (loan.original && p.termMonths && monthsIn >= p.termMonths) {
+        row.event = row.event || 'Loan matured, rate-and-term refinance';
+        row.maturityFees = loan.bal * (A.refiFeePct + A.refiCostPct);
+        row.refiFeeGP += loan.bal * A.refiFeePct;
+        loan = { bal: loan.bal, rate: A.refiRate, ioLeft: 0, original: false, pay: pmt(A.refiRate / 12, 360, loan.bal), amortLeft: 360 };
+      } else if (loan.original && !loan.reset && p.fixedMonths && p.fixedMonths < p.termMonths && monthsIn >= p.fixedMonths) {
+        row.event = row.event || 'Rate reset';
+        loan.reset = true; loan.rate = A.refiRate;
+        loan.pay = pmt(loan.rate / 12, loan.amortLeft, loan.bal);
       }
 
       /* Twelve months of debt service */
@@ -230,7 +268,7 @@
         var iM = loan.bal * loan.rate / 12;
         interest += iM;
         if (loan.ioLeft > 0) { loan.ioLeft--; }
-        else { var pM = loan.pay - iM; principal += pM; loan.bal -= pM; }
+        else { var pM = loan.pay - iM; principal += pM; loan.bal -= pM; loan.amortLeft--; }
       }
       row.interest = interest; row.principal = principal; row.debtService = interest + principal;
       row.loanEnd = loan.bal;
@@ -240,9 +278,18 @@
       /* Cash flow waterfall */
       row.cashFlow = noi[y] - row.debtService;
       row.amFee = A.amPct * egi[y];
-      var splittable = row.cashFlow - row.amFee;
-      row.lpCash = Math.max(0, A.lpSplit * splittable) + A.lpSplit * row.refiExcess;
-      row.gpCash = Math.max(0, (1 - A.lpSplit) * splittable) + (1 - A.lpSplit) * row.refiExcess;
+      var splittable = row.cashFlow - row.amFee - row.maturityFees;
+      if (splittable >= 0) {
+        row.deficit = 0;
+        row.lpCash = A.lpSplit * splittable;
+        row.gpCash = (1 - A.lpSplit) * splittable;
+      } else {
+        // Operating shortfall: funded by investors as a capital call, not hidden.
+        row.deficit = -splittable;
+        row.lpCash = 0; row.gpCash = 0;
+      }
+      row.lpRefiExcess = A.lpSplit * row.refiExcess;
+      row.gpRefiExcess = (1 - A.lpSplit) * row.refiExcess;
       row.cocOnCapital = row.capBegin > 0 ? row.lpCash / row.capBegin : 0;
       row.capEnd = capBal;
 
@@ -255,9 +302,10 @@
       row.lpSale = lpRoc + A.lpSplit * splitSale;
       row.gpSale = (1 - A.lpSplit) * splitSale;
 
-      row.lpTotal = row.lpCash + row.roc;
+      row.lpRefi = row.roc + row.lpRefiExcess;
+      row.lpTotal = row.lpCash + row.lpRefi - row.deficit;
       totalLP += row.lpTotal;
-      totalRefiRoc += row.roc;
+      totalRoc += row.roc;
       out.years.push(row);
     }
 
@@ -268,8 +316,9 @@
     out.irr = irr(flows);
     out.totalDistributions = totalLP + last.lpSale;
     out.multiple = out.totalDistributions / equity;
-    out.refiRoc = totalRefiRoc;
+    out.refiRoc = totalRoc;
     out.saleProceedsLP = last.lpSale;
+    out.stabNoi = noi[Math.min(S + 1, N)];
     return out;
   }
 
@@ -282,38 +331,55 @@
     var N = A.hold;
     var res = { assumptions: A, properties: props, equity: 0, units: 0, years: [] };
     props.forEach(function (p) { res.equity += p.equity; res.units += p.units; });
+    var gp = { acqFee: 0, pmFee: 0, amFee: 0, refiFee: 0, promoteCash: 0, promoteSale: 0 };
     for (var y = 1; y <= N; y++) {
-      var row = { year: y, noi: 0, egi: 0, debtService: 0, cashFlow: 0, lpCash: 0, roc: 0, lpSale: 0, capBegin: 0, capEnd: 0, value: 0, loanEnd: 0, lpTotal: 0 };
+      var row = { year: y, noi: 0, egi: 0, debtService: 0, cashFlow: 0, lpCash: 0, roc: 0, lpRefiExcess: 0, lpRefi: 0, deficit: 0, lpSale: 0, capBegin: 0, capEnd: 0, value: 0, loanEnd: 0, lpTotal: 0, events: [], minDscr: null };
       props.forEach(function (p) {
         var r = p.years[y - 1];
         row.noi += r.noi; row.egi += r.egi; row.debtService += r.debtService; row.cashFlow += r.cashFlow;
-        row.lpCash += r.lpCash; row.roc += r.roc; row.capBegin += r.capBegin; row.capEnd += r.capEnd;
-        row.value += r.value; row.loanEnd += r.loanEnd; row.lpTotal += r.lpTotal;
+        row.lpCash += r.lpCash; row.roc += r.roc; row.lpRefiExcess += r.lpRefiExcess; row.lpRefi += r.lpRefi; row.deficit += r.deficit;
+        row.capBegin += r.capBegin; row.capEnd += r.capEnd; row.value += r.value; row.loanEnd += r.loanEnd; row.lpTotal += r.lpTotal;
         if (y === N) row.lpSale += r.lpSale;
+        if (r.event) row.events.push(p.name + ': ' + r.event + (r.refiConstraint === 'DSCR' ? ' (sized by coverage)' : ''));
+        if (r.dscr !== null && (row.minDscr === null || r.dscr < row.minDscr)) row.minDscr = r.dscr;
+        gp.pmFee += r.pmFee; gp.amFee += r.amFee; gp.refiFee += r.refiFeeGP; gp.promoteCash += r.gpCash + r.gpRefiExcess;
+        if (y === N) gp.promoteSale += r.gpSale;
       });
       row.dscr = row.debtService > 0 ? row.noi / row.debtService : null;
       row.cocOnEquity = row.lpCash / res.equity;
-      row.cocOnCapital = row.capBegin > 0 ? row.lpCash / row.capBegin : 0;
       res.years.push(row);
     }
+    props.forEach(function (p) { gp.acqFee += p.uses.acqFee; });
+    gp.total = gp.acqFee + gp.pmFee + gp.amFee + gp.refiFee + gp.promoteCash + gp.promoteSale;
+    res.gp = gp;
+
     var flows = [-res.equity];
-    var totalLP = 0, totalRoc = 0, sumCoc = 0;
-    res.years.forEach(function (r) { flows.push(r.lpTotal + r.lpSale); totalLP += r.lpTotal + r.lpSale; totalRoc += r.roc; sumCoc += r.cocOnEquity; });
+    var totalLP = 0, totalRoc = 0, sumCoc = 0, rocBy5 = 0, deficits = 0, minDscr = null;
+    res.years.forEach(function (r) {
+      flows.push(r.lpTotal + r.lpSale); totalLP += r.lpTotal + r.lpSale; totalRoc += r.roc; sumCoc += r.cocOnEquity;
+      if (r.year <= 5) rocBy5 += r.roc;
+      deficits += r.deficit;
+      if (r.minDscr !== null && (minDscr === null || r.minDscr < minDscr)) minDscr = r.minDscr;
+    });
     res.flows = flows;
     res.irr = irr(flows);
     res.totalDistributions = totalLP;
     res.multiple = totalLP / res.equity;
     res.y1Coc = res.years[0].cocOnEquity;
-    res.avgCoc = sumCoc / N; // average annual cash yield on original equity
+    res.avgCoc = sumCoc / N; // average annual operating cash yield on original equity
     res.refiRoc = totalRoc;
     res.refiRocPct = totalRoc / res.equity;
+    res.refiRocBy5Pct = rocBy5 / res.equity;
+    res.deficits = deficits;
+    res.minDscr = minDscr;
     res.saleProceedsLP = res.years[N - 1].lpSale;
     res.y1Noi = res.years[0].noi;
-    res.stabNoi = res.years[Math.min(2, N - 1)].noi;
+    res.stabNoi = 0; props.forEach(function (p) { res.stabNoi += p.stabNoi; });
     res.totalCost = 0; res.totalLoan = 0; res.basisCost = 0;
     props.forEach(function (p) { res.totalCost += p.uses.total; res.totalLoan += p.sources.loan; res.basisCost += p.uses.price - p.uses.sellerCredit + p.uses.rehab + p.uses.acqFee; });
-    // Yield on cost as the deck defines it: stabilized (year 3) NOI over net price, renovation and acquisition fee.
+    // Yield on cost as the deck defines it: stabilized NOI over net price, renovation and acquisition fee.
     res.yieldOnCost = res.stabNoi / res.basisCost;
+    res.lpProfit = totalLP - res.equity;
     return res;
   }
 
