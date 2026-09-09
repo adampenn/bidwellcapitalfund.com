@@ -228,12 +228,13 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
 
           <div class="card">
             <div class="card-head">
-              <h3>Cash back to you, by year</h3>
+              <h3>Cash back to you, running total</h3>
               <div class="legend">
                 <span><i style="background:var(--c-cash)"></i>Cash flow</span>
                 <span><i style="background:var(--c-refi)"></i>Refinance proceeds</span>
                 <span><i style="background:var(--c-sale)"></i>Sale proceeds</span>
                 <span id="legend-call" hidden><i style="background:var(--c-call)"></i>Capital call</span>
+                <span><i class="legend-line"></i>Your investment</span>
               </div>
             </div>
             <div class="chart-wrap"><canvas id="chart-dist" role="img" aria-label="Annual distributions on your investment"></canvas></div>
@@ -592,13 +593,16 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     evEl.hidden = !ev.length;
 
     /* Chart */
-    var labels = [], cash = [], refi = [], sale = [], call = [];
+    var labels = [], cash = [], refi = [], sale = [], call = [], invLine = [];
+    var cCash = 0, cRefi = 0, cSale = 0, cCall = 0;
     res.years.forEach(function (r) {
       labels.push('Yr ' + r.year);
-      cash.push(Math.round(r.lpCash * share));
-      refi.push(Math.round(r.lpRefi * share));
-      sale.push(Math.round(r.lpSale * share));
-      call.push(-Math.round(r.deficit * share));
+      cCash += r.lpCash * share; cRefi += r.lpRefi * share; cSale += r.lpSale * share; cCall += r.deficit * share;
+      cash.push(Math.round(cCash));
+      refi.push(Math.round(cRefi));
+      sale.push(Math.round(cSale));
+      call.push(-Math.round(cCall));
+      invLine.push(Math.round(inv));
     });
     var hasCall = callOnInv > 0;
     document.getElementById('legend-call').hidden = !hasCall;
@@ -609,6 +613,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
       { label: 'Sale proceeds', data: sale, backgroundColor: cssVar('--c-sale'), stack: 'a', borderRadius: 3 }
     ];
     if (hasCall) ds.push({ label: 'Capital call', data: call, backgroundColor: cssVar('--c-call'), stack: 'a', borderRadius: 3 });
+    ds.push({ type: 'line', label: 'Your ' + money(inv), data: invLine, borderColor: cssVar('--text-secondary'), borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, fill: false, order: -1 });
     if (!chart) {
       chart = new Chart(document.getElementById('chart-dist'), {
         type: 'bar',
@@ -619,7 +624,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
           plugins: {
             legend: { display: false },
             tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + money(c.parsed.y); },
-              footer: function (items) { var t = 0; items.forEach(function (i) { t += i.parsed.y; }); return 'Total: ' + money(t); } } }
+              footer: function (items) { var t = 0; items.forEach(function (i) { if (i.dataset.type !== 'line') t += i.parsed.y; }); return 'Total so far: ' + money(t); } } }
           },
           scales: {
             x: { stacked: true, grid: { display: false }, ticks: { color: ink, font: { family: 'DM Sans' }, maxRotation: 0 } },
@@ -981,6 +986,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   .events li.warn b { color: #b9463b; }
   .legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.78rem; color: var(--text-secondary); }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.4rem; vertical-align: -1px; }
+  .legend i.legend-line { height: 0; width: 14px; border-top: 2px dashed var(--text-secondary); border-radius: 0; vertical-align: 2px; }
   .chart-wrap { height: 300px; position: relative; }
   @media (max-width: 640px) { .chart-wrap { height: 240px; } }
   .table-note { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
