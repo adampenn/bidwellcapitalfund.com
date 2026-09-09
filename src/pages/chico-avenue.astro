@@ -15,6 +15,7 @@
  * To change the code: node -e "console.log(require('crypto').createHash('sha256').update('newcode').digest('hex'))"
  */
 const PORTAL_URL = 'https://bidwellcapital.invportal.com/';
+const OFFERING_URL = 'https://bidwellcapital.invportal.com/app/offering-detail/6a838d2dbe73b41cde69e270';
 const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
 ---
 
@@ -394,7 +395,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
             <li>Operating Agreement</li>
             <li>Subscription Agreement</li>
           </ul>
-          <a href={PORTAL_URL} target="_blank" rel="noopener" class="btn btn-primary">Open the investor portal ↗</a>
+          <a href={OFFERING_URL} target="_blank" rel="noopener" class="btn btn-primary">Open the offering in the portal ↗</a>
         </div>
         <div class="card doc-card">
           <h3>Presentation and underwriting file</h3>
