@@ -261,19 +261,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
             </div>
           </div>
 
-          <div class="card">
-            <h3>How the model works, and what it leaves out</h3>
-            <ul class="how">
-              <li>Year 1 is today's rent roll. Year 2 steps up part way (the appraiser's market rents at Royal Arms, a conservative step at 1017). Year 3 is our target rent, and after that rents grow at whatever rate you set. We carry 4% vacancy plus 3% credit loss every year.</li>
-              <li>Cash flow is split 80% to you and 20% to us each quarter. When we refinance or sell, you get your capital back in full before anything is split.</li>
-              <li>A refinance is sized on the prior year's income at the cap rate you set, and the loan is the lower of the loan-to-value and what 1.25x coverage allows. We charge a 1% refinance and guaranty fee and assume 1% closing costs. If the fees would eat the cash-out, the model skips that refinance.</li>
-              <li>Our fees are in: 2% acquisition fee on the contract price ($84,200), 5.5% of collections for property management, 1% of revenues for asset management, and the 1% refinance and guaranty fee. There is no fee when we sell.</li>
-              <li>Not in the model: interest on a short-term bridge loan from Wes Hill if subscriptions come in after closing (Supplement No. 1, Section 4), paying him back the $250,000 deposit he put up, legal and offering costs, any prepayment penalty if we refinance 1017 with a different bank inside five years, and your taxes.</li>
-              <li>We raise $148,851 of operating reserves at closing and hold them. The model never spends them and never gives them back, which is conservative. If a building runs short, that shows up as a capital call.</li>
-              <li>The model pays out once a year at year end. Real distributions are quarterly. The sale assumes a buyer pays the same cap rate used for the refinances.</li>
-            </ul>
-          </div>
-          <p class="fine">These are projections, unaudited, and depend on the assumptions shown. They are not a guarantee. Scenarios you build are yours, not ours, and we have not reviewed them. The Private Placement Memorandum, as supplemented, controls.</p>
+          <p class="fine">Projections, unaudited, based on the assumptions shown. Not a guarantee. Scenarios you build are yours, not ours. Our fees and 20% share are deducted; not included are bridge-loan interest if subscriptions come in after closing, offering costs, any loan prepayment penalty, and your taxes. Distributions are modeled once a year; actual distributions are quarterly. The Private Placement Memorandum, as supplemented, controls. See the disclaimer at the bottom of the page.</p>
         </div>
       </div>
     </div>
@@ -422,8 +410,9 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     </div>
   </section>
 
-  <footer class="foot">
+  <footer class="foot" id="disclaimer">
     <div class="wrap">
+      <h3>Disclaimer</h3>
       <p>Confidential. Prepared by Bidwell Capital Fund GP, LLC, Manager of Bidwell Chico Avenue Portfolio, LLC, for persons with a pre-existing relationship with the Manager. Do not copy, forward or post. This page is not an offer to sell or a solicitation of an offer to buy securities. Any offer is made only through the Private Placement Memorandum, as supplemented, the Operating Agreement and the Subscription Agreement, which control. Projections are estimates based on the assumptions shown and are not guarantees; figures are unaudited and reflect September 2026 underwriting. Past performance of other properties does not predict results. The Manager receives the fees described in the PPM and has conflicts of interest. Units are restricted securities and cannot be resold without registration or an exemption. No federal or state securities regulator has reviewed or approved these materials or this offering. Investments involve risk, including loss of principal.</p>
       <p class="foot-copy">&copy; {new Date().getFullYear()} Bidwell Capital. All rights reserved.</p>
     </div>
@@ -1101,8 +1090,9 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   @media (max-width: 700px) { .cta { padding: 3rem 0; } .cta-actions { width: 100%; } .cta-actions .btn { flex: 1; } }
 
   /* ---------- footer ---------- */
-  .foot { padding: 3rem 0; border-top: 1px solid var(--border); }
-  .foot p { font-size: 0.78rem; color: var(--text-tertiary); line-height: 1.6; max-width: 960px; }
+  .foot { padding: 3rem 0; border-top: 1px solid var(--border); background: var(--bg-secondary); }
+  .foot h3 { font-size: 1rem; margin-bottom: 0.6rem; }
+  .foot p { font-size: 0.84rem; color: var(--text-secondary); line-height: 1.65; max-width: 960px; }
   .foot-copy { margin-top: 1rem; }
 </style>
 </body>
