@@ -249,16 +249,9 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
             <p class="fine">Cash yield is your cash flow for the year divided by your original investment. NOI is net operating income (rent less operating costs) for the whole portfolio; coverage is NOI divided by loan payments, and lenders typically require at least 1.25x.</p>
           </div>
 
-          <div class="two-col">
-            <div class="card">
-              <h3>Sources and uses</h3>
-              <table class="su" id="table-su"></table>
-            </div>
-            <div class="card">
-              <h3>What we get paid</h3>
-              <p class="card-lede">All of this is already taken out of the returns above. Property management is paid to us (Bidwell Capital Fund GP, LLC), not to a third party.</p>
-              <table class="su" id="table-gp"></table>
-            </div>
+          <div class="card">
+            <h3>Sources and uses</h3>
+            <table class="su" id="table-su"></table>
           </div>
 
           <p class="fine">Projections, unaudited, based on the assumptions shown. Not a guarantee. Scenarios you build are yours, not ours. Our fees and 20% share are deducted; not included are bridge-loan interest if subscriptions come in after closing, offering costs, any loan prepayment penalty, and your taxes. Distributions are modeled once a year; actual distributions are quarterly. The Private Placement Memorandum, as supplemented, controls. See the disclaimer at the bottom of the page.</p>
@@ -341,7 +334,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
       <div class="terms">
         <div class="card"><span class="section-label">Split</span><p>You get 80% of the cash flow, we get 20%. There is no preferred return, so we share from the first dollar.</p></div>
         <div class="card"><span class="section-label">Capital first</span><p>When we refinance or sell, you get all of your capital back before anything is split 80/20.</p></div>
-        <div class="card"><span class="section-label">Fees</span><p>2% acquisition fee on the contract price, $84,200 at closing. 5.5% of collections for property management, paid to us. 1% of revenues for asset management. 1% refinance and guaranty fee on each refinance. No fee when we sell. All of it is already out of the returns shown; the dollars are in "What we get paid" above.</p></div>
+        <div class="card"><span class="section-label">Fees</span><p>2% acquisition fee on the contract price, $84,200 at closing. 5.5% of collections for property management, paid to us. 1% of revenues for asset management. 1% refinance and guaranty fee on each refinance. No fee when we sell. All of it is already out of the returns shown. The dollar amounts over the hold are under "Fee detail" at the bottom of this section.</p></div>
         <div class="card"><span class="section-label">Distributions</span><p>Quarterly, once the buildings are producing. Year one is about 3.7% on your money while units turn, so do not count on much income the first year.</p></div>
         <div class="card"><span class="section-label">Offering</span><p>Up to $4,000,000 of Class A Units under Rule 506(b), same terms for everyone regardless of when you come in. $100,000 minimum, though we may accept less. Money sits at Chase and comes back without interest if we do not reach $600,000. Each subscription is split 32.46% to 1017 and 67.54% to Royal Arms, and if one building does not close, that piece is refunded rather than moved to the other. We expect to take about $2.23M to $2.5M. We plan to hold 5 to 10 years.</p></div>
         <div class="card"><span class="section-label">Debt</span><p>1017: $975,000 from Five Star Bank per their expression of interest, which is not yet a commitment. 5-year Treasury plus 2.25%, about 6.6% today, fixed for five years then reset, 10-year term, 12 months interest-only then 25-year amortization. I personally guarantee it, there is a 1.25x coverage covenant, and a prepayment penalty in years 1 to 5. Royal Arms: about $1.7M modeled at 6.5% with five years interest-only. No bank has issued a term sheet on Royal Arms yet.</p></div>
@@ -363,6 +356,12 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
         </ul>
         <p class="fine">Supplement No. 1 has eight more risk factors specific to these two buildings. Please read them.</p>
       </div>
+
+      <details class="more fee-detail" id="fee-detail">
+        <summary>Fee detail</summary>
+        <p class="fine">What the fees and 20% share in the terms above come to in dollars on the levers you have set. All of it is already taken out of the returns shown. Property management is paid to us (Bidwell Capital Fund GP, LLC), not to a third party.</p>
+        <table class="su" id="table-gp"></table>
+      </details>
     </div>
   </section>
 
@@ -660,17 +659,15 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     su += '<tr><td colspan="2" class="foot">†Year ' + (Math.max(2, Math.round(A.stabilizeYears)) + 1) + ' NOI divided by net price, renovation and acquisition fee. Offering and organizational expenses are not included above.</td></tr>';
     document.getElementById('table-su').innerHTML = su;
 
-    /* What Bidwell earns */
+    /* Fee detail (terms section). Line items only, no totals. */
     var g = res.gp;
-    var gpT = '<tr><th colspan="2">Over ' + N + ' years, base on these levers</th></tr>';
+    var gpT = '<tr><th colspan="2">Over ' + N + ' years on these levers</th></tr>';
     gpT += '<tr><td>Acquisition fee at closing</td><td>' + money(g.acqFee) + '</td></tr>';
     gpT += '<tr><td>Property management, 5.5% of collections</td><td>' + money(g.pmFee) + '</td></tr>';
     gpT += '<tr><td>Asset management, 1% of revenues</td><td>' + money(g.amFee) + '</td></tr>';
     gpT += '<tr><td>Refinance and guaranty fees</td><td>' + money(g.refiFee) + '</td></tr>';
     gpT += '<tr><td>20% share of cash flow</td><td>' + money(g.promoteCash) + '</td></tr>';
     gpT += '<tr><td>20% share of sale profit</td><td>' + money(g.promoteSale) + '</td></tr>';
-    gpT += '<tr class="sum"><td>Total to the Manager</td><td>' + money(g.total) + '</td></tr>';
-    gpT += '<tr class="sum"><td>Total profit to investors</td><td>' + money(res.lpProfit) + '</td></tr>';
     document.getElementById('table-gp').innerHTML = gpT;
 
     /* Rent hint */
@@ -1007,8 +1004,6 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   table.pf td.low { color: #b9463b; font-weight: 600; }
   table.pf tr.last td, table.pf tr.last th { background: var(--accent-subtle); }
   table.pf tfoot td, table.pf tfoot th { border-bottom: 0; border-top: 2px solid var(--border-strong); color: var(--text-primary); font-weight: 500; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-  @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
   table.su { width: 100%; border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
   table.su th { text-align: left; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); padding: 0.8rem 0 0.3rem; }
   table.su td { padding: 0.3rem 0; color: var(--text-secondary); border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -1075,6 +1070,10 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   @media (max-width: 560px) { .terms { grid-template-columns: 1fr; } }
   .terms .card p { font-size: 0.88rem; line-height: 1.6; }
   .risks { max-width: 860px; }
+  details.fee-detail { max-width: 560px; margin-top: 2.5rem; }
+  details.fee-detail > summary { color: var(--text-tertiary); font-weight: 500; }
+  details.fee-detail > summary::before { border-color: var(--text-tertiary); }
+  details.fee-detail > .fine { margin: 0 0 0.75rem; }
 
   /* ---------- documents ---------- */
   .docs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
