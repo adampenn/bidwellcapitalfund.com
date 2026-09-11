@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+// Render serves 404.html for any path it cannot find. Static hosting is
+// case sensitive, so /Chico-Avenue or /Track-Record would land here. The
+// inline script lowercases the path (and drops a trailing slash) and sends
+// the visitor to the real page. It uses no list of routes on purpose: the
+// access-gated pages must never be enumerated in public markup.
+---
+
+<Layout title="Page not found - Bidwell Capital" description="That page does not exist.">
+  <script is:inline>
+    (function () {
+      var p = window.location.pathname;
+      var q = p.toLowerCase();
+      if (q.length > 1 && q.charAt(q.length - 1) === '/') q = q.slice(0, -1);
+      if (q !== p) window.location.replace(q + window.location.search + window.location.hash);
+    })();
+  </script>
+  <section class="hero-sm">
+    <div class="container">
+      <span class="section-label fade-up fade-up-1">404</span>
+      <h1 class="fade-up fade-up-2">Page not found</h1>
+      <p class="fade-up fade-up-3">That address does not match a page on this site. Check the link you were sent, or head back to the homepage.</p>
+      <p class="fade-up fade-up-3" style="margin-top: 1.5rem;">
+        <a href="/" class="btn btn-primary">Back to the homepage</a>
+      </p>
+    </div>
+  </section>
+</Layout>
