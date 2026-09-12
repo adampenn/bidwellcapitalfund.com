@@ -75,10 +75,10 @@
       price: 2760000,
       sellerCredit: 154000,
       loan: 1696500,
-      rate: 0.065,
+      rate: 0.0673,      // Chase term sheet, rate locked September 2026
       ioMonths: 60,
       amortMonths: 360,
-      termMonths: 60,    // modeled loan matures at five years; no term sheet yet
+      termMonths: 60,    // Chase: five-year term, interest-only throughout
       fixedMonths: 60,
       rentCurrent: 303360,
       rentMarket: 350220,
@@ -87,7 +87,7 @@
       rubs: 14400,
       rehab: 371885.5,
       closingCosts: 51361,
-      reserves: 116840,
+      reserves: 118791,
       refiYears: [4, 9],
       expenses: [
         { key: 'Pool maintenance', v: 4035 },
@@ -128,7 +128,8 @@
     refiRate: 0.065,     // rate on refinance and reset loans
     refiLTV: 0.65,       // refinance loan-to-value
     dscrMin: 1.25,       // lender coverage test on refinance sizing
-    hold: 10,            // sale at end of this year
+    hold: 5,             // page default; the underwriting sheets tie out at a 10-year hold
+    adu: false,          // legalize unit 25 at Royal Arms (studio ADU); off in the base case
     rehabOverrun: 0,     // renovation budget vs. plan, fraction
     mgmtPct: 0.055,      // property management, share of EGI
     amPct: 0.01,         // asset management, share of EGI
@@ -163,6 +164,17 @@
   }
 
   function runProperty(p, A) {
+    if (p.id === 'ra' && A.adu) {
+      /* Unit 25: the old bridge room, converted under state ADU law (ministerial,
+         no parking requirement for conversions within the existing structure).
+         $40K budget, leases as a remodeled studio at $1,100 from year 2. */
+      p = JSON.parse(JSON.stringify(p));
+      p.units = 25;
+      p.rehab += 40000;
+      p.rentMarket += 13200;
+      p.rentTarget += 13200;
+      p.expenses.push({ key: 'ADU operating costs', v: 1450 });
+    }
     var N = A.hold;
     var y, m;
     var out = { id: p.id, name: p.name, units: p.units, years: [], equity: 0, sources: {}, uses: {} };

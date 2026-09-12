@@ -106,7 +106,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
       <div class="block-head">
         <span class="section-label">The model</span>
         <h2>The numbers behind the offering</h2>
-        <p>These start at our underwriting. Change anything and the returns update on whatever amount you put in. At our assumptions this matches the per-building sheets we sent the lender. If you move away from them, the model gets stricter than the sheets: a refinance has to pass a 1.25x coverage test, the loans reset or mature on their own schedule, and if a building runs short the shortfall shows up as a capital call.</p>
+        <p>These start at our underwriting. Change anything and the returns update on whatever amount you put in. At our assumptions and a 10-year hold this matches the per-building sheets we sent the lenders; the page starts at a 5-year hold. If you move away from them, the model gets stricter than the sheets: a refinance has to pass a 1.25x coverage test, the loans reset or mature on their own schedule, and if a building runs short the shortfall shows up as a capital call.</p>
       </div>
 
       <div class="model-grid">
@@ -145,8 +145,8 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
               <div class="lever-hint">Lower cap rate means a higher building value. Also used to size the refinances.</div>
             </div>
             <div class="lever">
-              <div class="lever-label"><span id="lbl-hold">Sell after</span><output id="out-hold" for="inp-hold">10 years</output></div>
-              <input type="range" id="inp-hold" min="3" max="10" step="1" value="10" aria-labelledby="lbl-hold" />
+              <div class="lever-label"><span id="lbl-hold">Sell after</span><output id="out-hold" for="inp-hold">5 years</output></div>
+              <input type="range" id="inp-hold" min="3" max="10" step="1" value="5" aria-labelledby="lbl-hold" />
               <div class="lever-hint">The plan is a 5 to 10 year hold at the Manager's discretion.</div>
             </div>
           </div>
@@ -197,7 +197,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
               <div class="lever">
                 <div class="lever-label"><span id="lbl-rateDelta">Purchase loan rates</span><output id="out-rateDelta" for="inp-rateDelta"></output></div>
                 <input type="range" id="inp-rateDelta" min="-1" max="2" step="0.125" value="0" aria-labelledby="lbl-rateDelta" />
-                <div class="lever-hint">1017: Five Star Bank expression of interest, about 6.6%, 12 months interest-only, five-year fixed then reset. Royal Arms: 6.5% modeled, five years interest-only; no term sheet yet.</div>
+                <div class="lever-hint">1017: Five Star Bank expression of interest, about 6.6%, 12 months interest-only, five-year fixed then reset. Royal Arms: Chase, rate locked at 6.73%, five years interest-only.</div>
               </div>
               <div class="lever lever-toggle">
                 <label class="toggle"><input type="checkbox" id="inp-refiOn" checked /><span class="toggle-track"></span><span>Include the refinances</span></label>
@@ -206,6 +206,10 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
               <div class="lever lever-toggle" id="lever-refi2">
                 <label class="toggle"><input type="checkbox" id="inp-refi2On" checked /><span class="toggle-track"></span><span>Include the second refinances in year 9</span></label>
                 <div class="lever-hint">Returns most of the remaining capital before sale but costs fees, so it trims the IRR slightly.</div>
+              </div>
+              <div class="lever lever-toggle" id="lever-adu">
+                <label class="toggle"><input type="checkbox" id="inp-adu" /><span class="toggle-track"></span><span>Legalize unit 25 at Royal Arms</span></label>
+                <div class="lever-hint">A 25th studio exists at Royal Arms as unpermitted space, the old bridge room, with a kitchen and bath already in it. State ADU law now allows the conversion with no parking requirement. $40,000 budget, $1,100 rent starting year 2. Not in the base case or the offering projections.</div>
               </div>
               <div class="lever" id="lever-refiRate">
                 <div class="lever-label"><span id="lbl-refiRate">Refinance rate</span><output id="out-refiRate" for="inp-refiRate">6.50%</output></div>
@@ -337,7 +341,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
         <div class="card"><span class="section-label">Fees</span><p>2% acquisition fee on the contract price, $84,200 at closing. 5.5% of collections for property management, paid to us. 1% of revenues for asset management. 1% refinance and guaranty fee on each refinance. No fee when we sell. All of it is already out of the returns shown. The dollar amounts over the hold are under "Fee detail" at the bottom of this section.</p></div>
         <div class="card"><span class="section-label">Distributions</span><p>Quarterly, once the buildings are producing. Year one is about 3.7% on your money while units turn, so do not count on much income the first year.</p></div>
         <div class="card"><span class="section-label">Offering</span><p>Up to $4,000,000 of Class A Units under Rule 506(b), same terms for everyone regardless of when you come in. $100,000 minimum, though we may accept less. Money sits at Chase and comes back without interest if we do not reach $600,000. Each subscription is split 32.46% to 1017 and 67.54% to Royal Arms, and if one building does not close, that piece is refunded rather than moved to the other. We expect to take about $2.23M to $2.5M. We plan to hold 5 to 10 years.</p></div>
-        <div class="card"><span class="section-label">Debt</span><p>1017: $975,000 from Five Star Bank per their expression of interest, which is not yet a commitment. 5-year Treasury plus 2.25%, about 6.6% today, fixed for five years then reset, 10-year term, 12 months interest-only then 25-year amortization. I personally guarantee it, there is a 1.25x coverage covenant, and a prepayment penalty in years 1 to 5. Royal Arms: about $1.7M modeled at 6.5% with five years interest-only. No bank has issued a term sheet on Royal Arms yet.</p></div>
+        <div class="card"><span class="section-label">Debt</span><p>1017: $975,000 from Five Star Bank per their expression of interest, which is not yet a commitment. 5-year Treasury plus 2.25%, about 6.6% today, fixed for five years then reset, 10-year term, 12 months interest-only then 25-year amortization. I personally guarantee it, there is a 1.25x coverage covenant, and a prepayment penalty in years 1 to 5. Royal Arms: $1,696,500 from Chase, rate locked at 6.73%, five years interest-only. I personally guarantee that one too. Final loan documents are not signed on either loan.</p></div>
         <div class="card"><span class="section-label">Structure</span><p>Bidwell Chico Avenue Portfolio, LLC owns 1017 directly and owns Royal Arms through a subsidiary so each building can have its own lender. Bidwell Capital Fund GP, LLC is the manager. We manage the buildings ourselves and do not hold a California broker license; the PPM risk factors cover this.</p></div>
         <div class="card"><span class="section-label">Sponsor alignment</span><p>We plan to put in at least $10,000 on the same terms as everyone else. The amount is not fixed and may come out of the acquisition fee. I personally guarantee the 1017 loan and get the 1% guaranty fee above for it. We run the buildings ourselves. The PPM lists our fees and conflicts.</p></div>
       </div>
@@ -453,7 +457,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     up:   { rentAdj: 0.05, stabilizeYears: 2, rentGrowth: 0.035, vacancy: 0.03, expGrowth: 0.025, capRate: 0.06, rateDelta: -0.0025, refiRate: 0.06, refiLTV: 0.65, rehabOverrun: 0 }
   };
   var state = { selection: 'both', investment: 100000 };
-  var levers = ['rentAdj', 'stabilizeYears', 'rentGrowth', 'vacancy', 'expGrowth', 'rehabOverrun', 'capRate', 'rateDelta', 'refiRate', 'refiLTV', 'refiOn', 'refi2On', 'hold'];
+  var levers = ['rentAdj', 'stabilizeYears', 'rentGrowth', 'vacancy', 'expGrowth', 'rehabOverrun', 'capRate', 'rateDelta', 'refiRate', 'refiLTV', 'refiOn', 'refi2On', 'adu', 'hold'];
   var inputs = {
     rentAdj: { el: 'inp-rentAdj', out: 'out-rentAdj', scale: 100, fmt: function (v) { return (v > 0 ? '+' : '') + (v * 100).toFixed(1).replace(/\.0$/, '') + '%'; } },
     stabilizeYears: { el: 'inp-stab', out: 'out-stab', scale: 1, fmt: function (v) { return v + ' years (year ' + (v + 1) + ')'; } },
@@ -467,7 +471,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     refiLTV: { el: 'inp-refiLTV', out: 'out-refiLTV', scale: 100, fmt: function (v) { return Math.round(v * 100) + '%'; } },
     hold: { el: 'inp-hold', out: 'out-hold', scale: 1, fmt: function (v) { return v + ' years'; } }
   };
-  var toggles = { refiOn: 'inp-refiOn', refi2On: 'inp-refi2On' };
+  var toggles = { refiOn: 'inp-refiOn', refi2On: 'inp-refi2On', adu: 'inp-adu' };
 
   function readLevers() {
     var A = {};
