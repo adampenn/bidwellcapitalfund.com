@@ -67,14 +67,14 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
       <nav class="topnav" aria-label="Sections">
         <a href="#model">Model</a>
         <a href="#plan">Business plan</a>
+        <a href="#documents">Documents</a>
         <a href="#properties">Properties</a>
         <a href="#terms">Terms</a>
-        <a href="#documents">Documents</a>
       </nav>
       <a href={PORTAL_URL} target="_blank" rel="noopener" class="btn btn-outline btn-sm">Investor Portal ↗</a>
     </div>
     <nav class="subnav" aria-label="Sections">
-      <a href="#model">Model</a><a href="#plan">Plan</a><a href="#properties">Properties</a><a href="#terms">Terms</a><a href="#documents">Documents</a>
+      <a href="#model">Model</a><a href="#plan">Plan</a><a href="#documents">Documents</a><a href="#properties">Properties</a><a href="#terms">Terms</a>
     </nav>
   </header>
 
@@ -96,6 +96,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
       <div class="hero-actions">
         <a href="#model" class="btn btn-primary">Run the numbers</a>
         <a href="#plan" class="btn btn-outline">Read the plan</a>
+        <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
       </div>
     </div>
   </section>
@@ -316,8 +317,38 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
     </div>
   </section>
 
+  <!-- ============================================================ DOCUMENTS -->
+  <section id="documents" class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <span class="section-label">Documents</span>
+        <h2>Documents</h2>
+      </div>
+      <div class="docs">
+        <div class="card doc-card">
+          <h3>Offering documents</h3>
+          <p>These are in the investor portal under the Chico Avenue Portfolio offering. Log in with the email we invited you with.</p>
+          <ul class="doclist">
+            <li>Private Placement Memorandum</li>
+            <li>Supplement No. 1 to the PPM (September 8, 2026)</li>
+            <li>Operating Agreement</li>
+            <li>Subscription Agreement</li>
+          </ul>
+          <a href={OFFERING_URL} target="_blank" rel="noopener" class="btn btn-primary">Open the offering in the portal ↗</a>
+        </div>
+        <div class="card doc-card">
+          <h3>Presentation and underwriting file</h3>
+          <p>The deck from the September webinar.</p>
+          <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
+          <p>If you want the full file, I will send it: the per-building pro formas behind this page, the Royal Arms appraisal, the inspection reports and the seller credit packages. Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> with "Chico Avenue underwriting file".</p>
+          <button type="button" class="btn btn-outline" id="btn-copy-email" data-email="team@bidwellcapitalfund.com">Copy email address</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============================================================ PROPERTIES -->
-  <section id="properties" class="block">
+  <section id="properties" class="block block-alt">
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">The properties</span>
@@ -328,7 +359,7 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
   </section>
 
   <!-- ============================================================ TERMS -->
-  <section id="terms" class="block block-alt">
+  <section id="terms" class="block">
     <div class="wrap">
       <div class="block-head">
         <span class="section-label">Terms</span>
@@ -366,36 +397,6 @@ const DECK_URL = '/chico-avenue/Chico-Avenue-Portfolio-Investor-Deck.pdf';
         <p class="fine">What the fees and 20% share in the terms above come to in dollars on the levers you have set. All of it is already taken out of the returns shown. Property management is paid to us (Bidwell Capital Fund GP, LLC), not to a third party.</p>
         <table class="su" id="table-gp"></table>
       </details>
-    </div>
-  </section>
-
-  <!-- ============================================================ DOCUMENTS -->
-  <section id="documents" class="block">
-    <div class="wrap">
-      <div class="block-head">
-        <span class="section-label">Documents</span>
-        <h2>Documents</h2>
-      </div>
-      <div class="docs">
-        <div class="card doc-card">
-          <h3>Offering documents</h3>
-          <p>These are in the investor portal under the Chico Avenue Portfolio offering. Log in with the email we invited you with.</p>
-          <ul class="doclist">
-            <li>Private Placement Memorandum</li>
-            <li>Supplement No. 1 to the PPM (September 8, 2026)</li>
-            <li>Operating Agreement</li>
-            <li>Subscription Agreement</li>
-          </ul>
-          <a href={OFFERING_URL} target="_blank" rel="noopener" class="btn btn-primary">Open the offering in the portal ↗</a>
-        </div>
-        <div class="card doc-card">
-          <h3>Presentation and underwriting file</h3>
-          <p>The deck from the September webinar.</p>
-          <a href={DECK_URL} target="_blank" rel="noopener" class="btn btn-outline">Download the deck (PDF)</a>
-          <p>If you want the full file, I will send it: the per-building pro formas behind this page, the Royal Arms appraisal, the inspection reports and the seller credit packages. Email <a href="mailto:team@bidwellcapitalfund.com?subject=Chico%20Avenue%20Portfolio%20underwriting%20file">team@bidwellcapitalfund.com</a> with "Chico Avenue underwriting file".</p>
-          <button type="button" class="btn btn-outline" id="btn-copy-email" data-email="team@bidwellcapitalfund.com">Copy email address</button>
-        </div>
-      </div>
     </div>
   </section>
 
