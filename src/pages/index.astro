@@ -17,7 +17,7 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Stats -->
-  <section class="section">
+  <section class="stats-section">
     <div class="container">
       <div class="grid-3">
         <div class="stat-card card fade-up fade-up-2">
@@ -188,10 +188,7 @@ import Layout from '../layouts/Layout.astro';
 
 <style>
   .hero {
-    padding: 6rem 0 4rem;
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
+    padding: 6rem 0 3.5rem;
   }
 
   @media (max-width: 768px) {
@@ -216,6 +213,10 @@ import Layout from '../layouts/Layout.astro';
     gap: 1rem;
     margin-top: 2rem;
     flex-wrap: wrap;
+  }
+
+  .stats-section {
+    padding-bottom: 1rem;
   }
 
   .stat-card {
@@ -249,10 +250,6 @@ import Layout from '../layouts/Layout.astro';
       gap: 4rem;
       align-items: start;
     }
-  }
-
-  .intro-narrow {
-    max-width: 56rem;
   }
 
   .intro-narrow h2 {
