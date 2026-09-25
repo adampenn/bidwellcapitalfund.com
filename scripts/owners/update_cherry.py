@@ -18,6 +18,8 @@ SHEET_ID = "1mFb58dJGkTPzbUn2LHABlvHY4_IjnAoNWj0eGkJLQpw"
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT.parent / "src" / "data" / "owners" / "946-cherry.json"
 PRO_FORMA_MONTHLY_NOI = {1: 8072, 2: 8643}  # pro forma annual NOI / 12, by operating year
+BASIS = 1_460_000  # purchase price
+LP_CAPITAL = 485_000
 
 
 def sheet(rng):
@@ -94,6 +96,29 @@ def main():
         row = dash.get(label)
         return row[idx].strip() if row and len(row) > idx else ""
 
+    prev = json.loads(OUT.read_text()) if OUT.exists() else {}
+    prev_tags = {u["unit"]: u["tag"] for u in prev.get("rentRoll", {}).get("units", []) if u.get("tag")}
+    for u in units:
+        if u["unit"] in prev_tags:
+            u["tag"] = prev_tags[u["unit"]]
+
+    t12 = money(dash_val("T-12 NOI (avg-to-date annualized)"))
+    t12_var = dash_val("T-12 NOI (avg-to-date annualized)", 2).replace("%", "")
+    implied = money(dash_val("Implied Value (T-12 NOI / cap)"))
+    reserves = money(dash_val("Reserves Balance (cash)"))
+
+    # Equity waterfall off implied value: loan payoff, LP capital back, 80/20 split.
+    equity = prev.get("equity")
+    loan = money(dash_val("Loan Balance"))
+    if equity and implied and loan:
+        profit = implied - loan - LP_CAPITAL
+        equity = dict(equity, impliedValue=round(implied), segments=[
+            {"label": "Loan payoff", "value": round(loan), "color": "gray"},
+            {"label": "LP capital returned", "value": LP_CAPITAL, "color": "blue"},
+            {"label": "LP profit share (80%)", "value": round(profit * 0.8), "color": "aqua"},
+            {"label": "GP promote (20%)", "value": round(profit * 0.2), "color": "orange"},
+        ])
+
     doc = {
         "id": "946-cherry",
         "name": "946 Cherry St",
@@ -101,20 +126,22 @@ def main():
         "units": len(units),
         "asOf": month_keys[-1],
         "operatingMonth": op_month,
+        "summary": prev.get("summary", ""),
         "kpis": [
             {"label": "T-12 NOI (annualized)",
-             "value": dash_val("T-12 NOI (avg-to-date annualized)") or "—",
-             "delta": "vs pro forma " + (dash_val("T-12 NOI (avg-to-date annualized)", 2) or ""),
+             "value": f"${t12 / 1000:.1f}K" if t12 else "—",
+             "delta": f"+{round(float(t12_var))}% vs pro forma" if t12_var else "",
              "good": True},
             {"label": "Occupancy", "value": dash_val("Occupancy %"), "delta": "", "good": True},
             {"label": "Avg scheduled rent", "value": f"${round(s_to / len(units))}",
              "delta": f"+{round((s_to - s_from) / s_from * 100)}% since acquisition", "good": True},
             {"label": "Delinquency", "value": dash_val("Accounts Receivable (delinquency)"),
              "delta": "", "good": None},
-            {"label": "Cash reserves", "value": dash_val("Reserves Balance (cash)"),
+            {"label": "Cash reserves", "value": f"${reserves / 1000:.1f}K" if reserves else "",
              "delta": "", "good": None},
-            {"label": "Implied value (7% cap)", "value": dash_val("Implied Value (T-3 NOI / cap)"),
-             "delta": "", "good": True},
+            {"label": "Implied value (7% cap)", "value": f"${implied / 1e6:.2f}M" if implied else "",
+             "delta": f"+{round((implied / BASIS - 1) * 100)}% vs $1.46M basis" if implied else "",
+             "good": True},
         ],
         "noi": {
             "labels": labels,
@@ -128,15 +155,22 @@ def main():
             "avgTo": round(s_to / len(units)),
             "units": units,
         },
-        "highlights": json.loads(OUT.read_text())["highlights"] if OUT.exists() else [],
+        "highlights": prev.get("highlights", []),
     }
+    # keep the page's section order: rehab and equity sit between noi and rentRoll
+    extra = {k: v for k, v in (("rehab", prev.get("rehab")), ("equity", equity)) if v}
+    doc = OrderedDict(
+        [(k, v) for k, v in doc.items() if k != "rentRoll" and k != "highlights"]
+        + list(extra.items())
+        + [("rentRoll", doc["rentRoll"]), ("highlights", doc["highlights"])]
+    )
 
-    OUT.write_text(json.dumps(doc, indent=2) + "\n")
+    OUT.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
     print(f"Wrote {OUT} — {month_keys[-1]}, {len(units)} units, "
           f"{sum(1 for u in units if u['type'] == 'turned')} turned / "
           f"{sum(1 for u in units if u['type'] == 'bump')} bumped / "
           f"{sum(1 for u in units if u['type'] == 'pending')} pending")
-    print("Highlights are carried over — edit the 'highlights' array in the JSON by hand.")
+    print("summary, highlights, rehab and delinquency/occupancy deltas carry over or stay blank — edit them in the JSON by hand.")
 
 
 if __name__ == "__main__":
