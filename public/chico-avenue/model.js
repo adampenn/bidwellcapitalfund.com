@@ -32,7 +32,8 @@
       sellerCredit: 75000,
       loan: 975000,
       rate: 0.066,
-      ioMonths: 12,
+      ioMonths: 18,      // FSB expression of interest 9/3/26: 18 months interest-only
+      prepay: [0.05, 0.04, 0.03, 0.02, 0.01], // FSB: 5/4/3/2/1% if refinanced by a third party in years 1-5
       amortMonths: 300,
       termMonths: 120,   // FSB expression of interest: 10-year term
       fixedMonths: 60,   // rate fixed five years, then resets
@@ -44,7 +45,6 @@
       rehab: 225000,
       closingCosts: 37095,
       reserves: 32011,
-      refiYears: [5, 9],
       expenses: [
         { key: 'Electric & gas', v: 5665.14 },
         { key: 'Pest control', v: 1230 },
@@ -88,7 +88,6 @@
       rehab: 371885.5,
       closingCosts: 51361,
       reserves: 118791,
-      refiYears: [4, 9],
       expenses: [
         { key: 'Pool maintenance', v: 4035 },
         { key: 'Electric & gas', v: 6000 },
@@ -125,6 +124,8 @@
     rateDelta: 0,        // shift applied to both acquisition loan rates
     refiOn: true,        // model the cash-out refinances at all
     refi2On: true,       // model the second refinances in year 9
+    refiYear: 5,         // year both buildings do the cash-out refinance (at the start of the year)
+    refi2Year: 9,        // second refinance, only when at least two years after the first
     refiRate: 0.065,     // rate on refinance and reset loans
     refiLTV: 0.65,       // refinance loan-to-value
     dscrMin: 1.25,       // lender coverage test on refinance sizing
@@ -228,13 +229,17 @@
     };
     var capBal = equity;
     var totalLP = 0, totalRoc = 0;
-    var refiSchedule = p.refiYears.filter(function (yr, idx) { return idx === 0 ? A.refiOn : (A.refiOn && A.refi2On); });
+    var refiSchedule = [];
+    if (A.refiOn) {
+      refiSchedule.push(A.refiYear);
+      if (A.refi2On && A.refi2Year >= A.refiYear + 2) refiSchedule.push(A.refi2Year);
+    }
 
     for (y = 1; y <= N; y++) {
       var row = { year: y, gpr: gpr[y], egi: egi[y], expenses: exp[y], noi: noi[y], pmFee: pmFee[y] };
       row.capBegin = capBal;
       row.refiLoan = 0; row.refiProceeds = 0; row.refiFees = 0; row.refiFeeGP = 0; row.roc = 0; row.refiExcess = 0;
-      row.refiConstraint = ''; row.event = '';
+      row.refiConstraint = ''; row.event = ''; row.prepay = 0;
       var monthsIn = (y - 1) * 12;
 
       /* Cash-out refinance at the beginning of the year, sized on prior-year NOI */
@@ -245,8 +250,10 @@
         var byDscr = noi[y - 1] / A.dscrMin / constant;
         var newLoan = Math.min(byLtv, byDscr);
         var cashOut = newLoan - loan.bal;
-        var fees = newLoan * (A.refiFeePct + A.refiCostPct);
+        var prepay = loan.original && p.prepay && y - 1 < p.prepay.length ? loan.bal * p.prepay[y - 1] : 0;
+        var fees = newLoan * (A.refiFeePct + A.refiCostPct) + prepay;
         if (cashOut > fees) {
+          row.prepay = prepay;
           var net = cashOut - fees;
           row.refiLoan = newLoan; row.refiProceeds = cashOut; row.refiFees = fees; row.refiFeeGP = newLoan * A.refiFeePct;
           row.refiConstraint = byDscr < byLtv ? 'DSCR' : 'LTV';
