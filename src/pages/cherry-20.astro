@@ -1,0 +1,8 @@
+---
+// 946 Cherry St (Bidwell Cherry 20) asset-management page. Access-code-gated,
+// noindex, not linked in nav. Layout and charts live in PropertyPortal.
+import PropertyPortal from '../components/PropertyPortal.astro';
+import property from '../data/owners/946-cherry.json';
+import archive from '../data/owners/946-cherry-updates.json';
+---
+<PropertyPortal property={property} updates={archive.updates} accessCode="bidwell2026" />

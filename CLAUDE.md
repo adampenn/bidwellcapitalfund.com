@@ -46,15 +46,15 @@ Building an internal tool at `/rcr-timeline` for modeling Oklahoma oil well deve
 - `src/styles/global.css` - Global styles
 - `bidwell-rebuild-prompt.md` - Full design system reference
 
-## Asset Management Portal (/portfolio)
-- Access-code-gated standalone page (same pattern as /rcr-timeline), not linked in nav.
-- `src/pages/portfolio.astro` — tabs per property, KPI tiles, NOI vs pro forma chart, rent-by-unit arrow chart, monthly-update archive.
-- Data: `src/data/owners/portfolio.json` (property index), `<id>.json` (snapshot), `<id>-updates.json` (email archive). The property's Asset Mgmt Google Sheet is the source of truth — regenerate snapshots with `scripts/owners/update_cherry.py` (requires gog CLI), never edit numbers by hand.
-- Access code is a constant near the top of the inline script in portfolio.astro.
-- Monthly flow: update sheet → run script → edit `highlights` in the JSON → append new update email to `<id>-updates.json` → commit + push.
+## Property asset-management pages (/cherry-20, one per property)
+- Access-code-gated standalone pages (same pattern as /rcr-timeline), not linked in nav, noindex. One page per property; 946 Cherry St lives at `/cherry-20`. `/portfolio` is a redirect to `/cherry-20` for links in past investor emails.
+- `src/components/PropertyPortal.astro` holds the layout, charts and auth gate: KPI tiles, NOI vs pro forma chart, rent-by-unit arrow chart, optional rehab gallery, value & equity bar, monthly-update archive.
+- Each property page (e.g. `src/pages/cherry-20.astro`) is a thin wrapper that passes `property` (`src/data/owners/<id>.json`), `updates` (`<id>-updates.json`) and `accessCode`. To add a property: create its two JSON files and a new page file.
+- The property's Asset Mgmt Google Sheet is the source of truth. For Cherry, regenerate with `scripts/owners/update_cherry.py` (requires gog CLI); it carries over the hand-edited `summary`, `highlights`, `rehab`, and unit `tag`s and recomputes the equity waterfall. Never edit numbers by hand.
+- Monthly flow: update sheet → run script → edit `summary`, `highlights` and KPI deltas in the JSON → append the new update email to `<id>-updates.json` → commit + push.
 
 ## Chico Avenue Portfolio investor page (/chico-avenue)
-- Access-code-gated standalone page (same pattern as /rcr-timeline and /portfolio), not linked in nav, noindex. Rule 506(b): never link it publicly or list it in the sitemap.
+- Access-code-gated standalone page (same pattern as /rcr-timeline and /cherry-20), not linked in nav, noindex. Rule 506(b): never link it publicly or list it in the sitemap.
 - `src/pages/chico-avenue.astro`: lever panel + results (KPIs, distribution chart, year-by-year table, sources and uses), business plan, property cards, terms, documents. Access code is compared as a SHA-256 hash (`ACCESS_HASH` in the inline script); generate a new hash with `node -e "console.log(require('crypto').createHash('sha256').update('newcode').digest('hex'))"`.
 - `public/chico-avenue/model.js`: the pro forma engine, a port of the two live per-building underwriting sheets (1017 Esplanade `1owZNekEJAvd6DCWbHcKJWqHsENhY_1t_TuTitNRPGYo`, Royal Arms `1Z8noS75eqEjsNks9dOA7ge_uyP07UPBFUYECOC9NILE`, "Pro Forma" tabs). At the underwriting assumptions it reproduces each sheet's 10-year LP IRR, distributions, refi proceeds and sale analysis to the dollar. Two sheet conventions matter: property taxes grow 2% (Prop 13), and amortizing payments are sized over amortization months minus interest-only months.
 - When the sheets change, re-pull the inputs into `PROPERTIES` in model.js and re-run the tie-out (`node` against the file; see the git history for the check script). Do not hand-edit numbers in the page copy without updating the engine.
