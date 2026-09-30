@@ -14,15 +14,15 @@
       "good": null
     },
     {
-      "label": "Wells selling oil",
-      "value": "5 of 11",
-      "delta": "2 more ready for production",
+      "label": "Capital in producing wells",
+      "value": "$540K",
+      "delta": "31% of deployed · $425K more ready",
       "good": true
     },
     {
-      "label": "Oil sold, Jul 2026",
-      "value": "2,181 bbl",
-      "delta": "+51% vs Jun (8/8ths)",
+      "label": "Our oil sold, Jul 2026",
+      "value": "261 bbl",
+      "delta": "+59% vs Jun, fund's share",
       "good": true
     },
     {
@@ -66,6 +66,17 @@
       822,
       1440,
       2181
+    ],
+    "own": [
+      139,
+      187,
+      222,
+      144,
+      145,
+      182,
+      114,
+      164,
+      261
     ],
     "price": [
       56.18,
@@ -172,8 +183,31 @@
       "status": "Viola zone perforated and acidized; swabbing with early oil shows",
       "firstSales": null,
       "cumBbl": 0,
+      "ownCum": 0,
       "netIncome": 0,
       "bbl": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "netByMonth": [
         0,
         0,
         0,
@@ -193,8 +227,31 @@
       "status": "Next in line; the workover rig moves over once Buxton 1's completion wraps",
       "firstSales": null,
       "cumBbl": 0,
+      "ownCum": 0,
       "netIncome": 0,
       "bbl": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "netByMonth": [
         0,
         0,
         0,
@@ -214,6 +271,7 @@
       "status": "Online since March 2026",
       "firstSales": "Mar 2026",
       "cumBbl": 1473,
+      "ownCum": 39,
       "netIncome": 2111,
       "bbl": [
         0,
@@ -225,6 +283,28 @@
         161.1,
         319.4,
         347.9
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        4.4,
+        12.5,
+        4.2,
+        8.4,
+        9.1
+      ],
+      "netByMonth": [
+        0,
+        0,
+        0,
+        0,
+        271,
+        827,
+        119,
+        456,
+        438
       ]
     },
     {
@@ -235,6 +315,7 @@
       "status": "Online since May 2026",
       "firstSales": "May 2026",
       "cumBbl": 971,
+      "ownCum": 26,
       "netIncome": 1076,
       "bbl": [
         0,
@@ -246,6 +327,28 @@
         160.1,
         332.7,
         478.3
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        4.2,
+        8.7,
+        12.6
+      ],
+      "netByMonth": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -80,
+        484,
+        672
       ]
     },
     {
@@ -256,6 +359,7 @@
       "status": "Online since May 2026",
       "firstSales": "Jun 2026",
       "cumBbl": 152,
+      "ownCum": 28,
       "netIncome": 1075,
       "bbl": [
         0,
@@ -267,6 +371,28 @@
         0,
         151.8,
         0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        27.9,
+        0.0
+      ],
+      "netByMonth": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1075,
+        0
       ]
     },
     {
@@ -277,8 +403,31 @@
       "status": "OCC approval received; electrical hookup in progress",
       "firstSales": null,
       "cumBbl": 0,
+      "ownCum": 0,
       "netIncome": 0,
       "bbl": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "netByMonth": [
         0,
         0,
         0,
@@ -298,6 +447,7 @@
       "status": "Online since November 2025",
       "firstSales": "Nov 2025",
       "cumBbl": 6598,
+      "ownCum": 1386,
       "netIncome": 62763,
       "bbl": [
         663.0,
@@ -309,6 +459,28 @@
         500.8,
         473.8,
         848.0
+      ],
+      "ownBbl": [
+        139.2,
+        187.3,
+        221.6,
+        144.4,
+        140.9,
+        169.4,
+        105.2,
+        99.5,
+        178.1
+      ],
+      "netByMonth": [
+        5169,
+        6654,
+        8480,
+        2294,
+        8318,
+        11426,
+        6813,
+        4738,
+        8871
       ]
     },
     {
@@ -319,8 +491,31 @@
       "status": "Gas-line tie-in underway",
       "firstSales": null,
       "cumBbl": 0,
+      "ownCum": 0,
       "netIncome": 0,
       "bbl": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "netByMonth": [
         0,
         0,
         0,
@@ -340,8 +535,31 @@
       "status": "Frac being scheduled",
       "firstSales": null,
       "cumBbl": 0,
+      "ownCum": 0,
       "netIncome": 0,
       "bbl": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "netByMonth": [
         0,
         0,
         0,
@@ -361,6 +579,7 @@
       "status": "Online since June 2026",
       "firstSales": "Jun 2026",
       "cumBbl": 669,
+      "ownCum": 81,
       "netIncome": 4117,
       "bbl": [
         0,
@@ -372,6 +591,28 @@
         0,
         162.1,
         506.9
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        19.6,
+        61.2
+      ],
+      "netByMonth": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1085,
+        3032
       ]
     },
     {
@@ -382,8 +623,31 @@
       "status": "Evaluating initial completion results; second acid treatment planned",
       "firstSales": null,
       "cumBbl": 0,
+      "ownCum": 0,
       "netIncome": 0,
       "bbl": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ownBbl": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "netByMonth": [
         0,
         0,
         0,

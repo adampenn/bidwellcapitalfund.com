@@ -124,7 +124,7 @@ const OWNERS_DATA = { fund, updates, accessCode };
   details.update summary:hover { color: var(--copper); }
   details.update summary .dt { font-weight: 400; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
   details.update[open] summary { border-bottom: 1px solid var(--line); }
-  details.update .body { padding: 4px 18px 16px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); max-width: 780px; }
+  details.update .body { padding: 4px 18px 16px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
   details.update .body p { margin: 10px 0; }
   details.update .body h3 { font-family: var(--serif); font-weight: 400; font-size: 20px; color: var(--ink); margin: 22px 0 6px; }
   details.update .body h3 strong { font-weight: 400; }
@@ -133,7 +133,26 @@ const OWNERS_DATA = { fund, updates, accessCode };
   details.update .body ul { padding-left: 20px; }
   details.update .body a { color: var(--copper); }
   details.update .body figure { margin: 14px 0; }
-  details.update .body img { display: block; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); }
+  details.update .body img { display: block; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; }
+
+  /* ---- Image viewer: click an archive image to open, click again for 100% ---- */
+  #viewer { position: fixed; inset: 0; z-index: 2000; background: rgba(15,14,12,0.94); display: none; overflow: auto; cursor: zoom-in; }
+  #viewer.open { display: flex; }
+  #viewer img { margin: auto; max-width: 96vw; max-height: 94vh; object-fit: contain; border-radius: 4px; background: #fff; }
+  #viewer.zoomed { cursor: zoom-out; }
+  #viewer.zoomed img { max-width: none; max-height: none; }
+  #viewer-close { position: fixed; top: 14px; right: 18px; z-index: 2001; width: 40px; height: 40px; border-radius: 50%; border: 0;
+    background: rgba(242,239,232,0.14); color: var(--dark-text); font-size: 22px; line-height: 40px; cursor: pointer; display: none; }
+  #viewer.open + #viewer-close { display: block; }
+  #viewer-hint { position: fixed; bottom: 14px; left: 0; right: 0; text-align: center; font-size: 12.5px; color: var(--dark-text-2); pointer-events: none; display: none; }
+  #viewer.open ~ #viewer-hint { display: block; }
+
+  /* ---- Chart view toggle ---- */
+  .card-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 18px; }
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; flex-shrink: 0; margin-bottom: 12px; }
+  .seg button { font: 500 12.5px var(--sans); padding: 6px 12px; border: 0; background: var(--card); color: var(--ink-2); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line-strong); }
+  .seg button.on { background: var(--ink); color: var(--paper); }
   details.update .body figcaption { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; }
 
   footer.pg { margin: 48px 0 0; padding: 22px 0 40px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); line-height: 1.6; }
@@ -194,7 +213,10 @@ const OWNERS_DATA = { fund, updates, accessCode };
       <p class="eyebrow">Barrels sold each month, by well</p>
       <h2 class="blk-title">Oil production and price</h2>
       <div class="card">
-        <div class="legend" id="prod-legend"></div>
+        <div class="card-head">
+          <div class="legend" id="prod-legend"></div>
+          <div class="seg" id="prod-seg"><button data-mode="own" class="on">Fund's share</button><button data-mode="gross">Whole well</button></div>
+        </div>
         <div style="position:relative;height:320px;"><canvas id="prodChart"></canvas></div>
         <div class="chart-note" id="prod-note"></div>
       </div>
@@ -202,11 +224,16 @@ const OWNERS_DATA = { fund, updates, accessCode };
 
     <section class="blk" id="income">
       <p class="eyebrow">The fund's working-interest share</p>
-      <h2 class="blk-title">Fund revenue and net income</h2>
+      <h2 class="blk-title">Revenue, expenses and net income</h2>
       <div class="card">
         <div class="legend" id="inc-legend"></div>
-        <div style="position:relative;height:280px;"><canvas id="incChart"></canvas></div>
+        <div style="position:relative;height:340px;"><canvas id="incChart"></canvas></div>
         <div class="chart-note">Oil revenue net of production taxes, less the fund's share of lease operating expenses, by production month. Recent months are preliminary until final expense billing arrives.</div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="legend" id="niw-legend"></div>
+        <div style="position:relative;height:320px;"><canvas id="niwChart"></canvas></div>
+        <div class="chart-note">Net income to the fund by well and production month.</div>
       </div>
     </section>
 
@@ -237,6 +264,10 @@ const OWNERS_DATA = { fund, updates, accessCode };
       <h2 class="blk-title">Update archive</h2>
       <div id="updates"></div>
     </section>
+
+    <div id="viewer" role="dialog" aria-label="Image viewer"><img alt=""></div>
+    <button id="viewer-close" aria-label="Close">&times;</button>
+    <div id="viewer-hint">Click the image to zoom · Esc to close</div>
 
     <footer class="pg">Prepared by Bidwell Capital. Production and revenue from operator run statements and joint-interest billing; the most recent one to two months are preliminary and revise as billing arrives. Distributions from fund bank records.</footer>
   </div>
@@ -329,17 +360,22 @@ const OWNERS_DATA = { fund, updates, accessCode };
     selling.forEach(function (w, i) { color[w.name] = WELL_COLORS[i]; });
 
     // ---- Production: stacked barrels by well + realized price ----
-    var p = d.production, labels = p.labels.map(mon);
+    // Defaults to the fund's working-interest barrels; the letters quote whole-well (8/8ths) volumes.
+    var p = d.production, labels = p.labels.map(mon), prodMode = 'own';
     document.getElementById('prod-legend').innerHTML = selling.map(function (w) {
       return '<span>' + sw(color[w.name]) + w.name + '</span>';
     }).join('') +
       '<span>' + swLine(C.ink) + 'Realized price ($/bbl)</span>' +
       '<span>' + swLine(C.gray, true) + '$' + p.underwritingPrice + ' underwriting price</span>';
-    document.getElementById('prod-note').textContent = p.note || '';
-
-    new Chart(document.getElementById('prodChart'), {
+    function prodNote() {
+      document.getElementById('prod-note').textContent = prodMode === 'own'
+        ? 'Barrels are the fund’s working-interest share of each well’s oil sales, by production month. Switch to Whole well to match the volumes quoted in the monthly letters. Rush Creek pays about two months after production.'
+        : (p.note || '');
+    }
+    function prodSeries(w) { return (prodMode === 'own' ? w.ownBbl : w.bbl).map(function (v) { return v || null; }); }
+    var prodChart = new Chart(document.getElementById('prodChart'), {
       data: { labels: labels, datasets: selling.map(function (w) {
-        return { type: 'bar', label: w.name, data: w.bbl.map(function (v) { return v || null; }),
+        return { type: 'bar', label: w.name, data: prodSeries(w),
           backgroundColor: color[w.name], stack: 'bbl', yAxisID: 'y', borderColor: '#fff', borderWidth: 1, maxBarThickness: 44 };
       }).concat([
         { type: 'line', label: 'Realized price', data: p.price, yAxisID: 'y2', borderColor: C.ink, backgroundColor: C.ink,
@@ -357,45 +393,134 @@ const OWNERS_DATA = { fund, updates, accessCode };
               return c.dataset.yAxisID === 'y2' ? 'Realized price: $' + c.parsed.y.toFixed(2) + '/bbl'
                 : c.dataset.label + ': ' + Math.round(c.parsed.y).toLocaleString() + ' bbl';
             },
-            footer: function (items) { return 'Total: ' + p.total[items[0].dataIndex].toLocaleString() + ' bbl'; }
+            footer: function (items) {
+              return 'Total: ' + (prodMode === 'own' ? p.own : p.total)[items[0].dataIndex].toLocaleString() + ' bbl';
+            }
           } } },
         scales: {
           x: { stacked: true, grid: { display: false }, ticks: { color: C.gray } },
           y: { stacked: true, grid: { color: C.grid }, border: { display: false },
-            title: { display: true, text: 'Barrels (8/8ths)', color: C.gray, font: { size: 11 } },
+            title: { display: true, text: 'Barrels, fund’s share', color: C.gray, font: { size: 11 } },
             ticks: { color: C.gray, callback: function (v) { return v.toLocaleString(); } } },
           y2: { position: 'right', min: 0, suggestedMax: 110, grid: { display: false }, border: { display: false },
             ticks: { color: C.gray, callback: function (v) { return '$' + v; } } }
         }
       }
     });
+    prodNote();
+    document.querySelectorAll('#prod-seg button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        prodMode = b.getAttribute('data-mode');
+        document.querySelectorAll('#prod-seg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+        selling.forEach(function (w, i) { prodChart.data.datasets[i].data = prodSeries(w); });
+        prodChart.options.scales.y.title.text = prodMode === 'own' ? 'Barrels, fund’s share' : 'Barrels, whole well (8/8ths)';
+        prodChart.update();
+        prodNote();
+      });
+    });
 
-    // ---- Fund income: net income + expenses stack to revenue ----
-    var inc = d.income;
+    // Value labels drawn on the bars, like the charts in the monthly letters.
+    function short$(v) { return (v < 0 ? '($' : '$') + Math.abs(Math.round(v)).toLocaleString() + (v < 0 ? ')' : ''); }
+    function labelPlugin(id, draw) { return { id: id, afterDatasetsDraw: function (chart) {
+      var ctx = chart.ctx; ctx.save(); ctx.textAlign = 'center'; draw(chart, ctx); ctx.restore();
+    } }; }
+    var small = window.innerWidth < 640;
+
+    // ---- Fund income: revenue up, expenses down, net income as a stepped line ----
+    var inc = d.income, G = { rev: '#4f8a52', exp: '#c0473a', net: '#898781' };
     document.getElementById('inc-legend').innerHTML =
-      '<span>' + sw(C.blue) + 'Net income to the fund</span>' +
-      '<span>' + sw('#cfcac0') + 'Operating expenses</span>' +
-      '<span style="color:' + C.ink2 + ';">Bar height = net revenue. Total net income ' +
+      '<span>' + sw(G.rev) + 'Fund revenue</span>' +
+      '<span>' + sw(G.exp) + 'Fund expenses</span>' +
+      '<span>' + swLine(G.net, true) + 'Fund net income</span>' +
+      '<span style="color:' + C.ink2 + ';font-weight:600;">Net income to date ' +
       money(inc.net.reduce(function (a, b) { return a + b; }, 0)) + '</span>';
     new Chart(document.getElementById('incChart'), {
-      type: 'bar',
       data: { labels: inc.labels.map(mon), datasets: [
-        { label: 'Net income', data: inc.net, backgroundColor: C.blue, stack: 's', maxBarThickness: 44 },
-        { label: 'Operating expenses', data: inc.expenses.map(function (v) { return -v; }), backgroundColor: '#cfcac0', stack: 's', maxBarThickness: 44 }
+        { type: 'bar', label: 'Revenue', data: inc.revenue, backgroundColor: G.rev, stack: 's', maxBarThickness: 64, order: 2 },
+        { type: 'bar', label: 'Expenses', data: inc.expenses, backgroundColor: G.exp, stack: 's', maxBarThickness: 64, order: 2 },
+        { type: 'line', label: 'Net income', data: inc.net, stack: 'net', stepped: 'middle', borderColor: G.net, borderDash: [6, 4],
+          borderWidth: 2, pointRadius: 0, fill: 'origin', backgroundColor: 'rgba(137,135,129,0.22)', order: 3 }
       ] },
       options: {
         responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 22 } },
         interaction: { mode: 'index', intersect: false },
         plugins: { legend: { display: false }, tooltip: { callbacks: {
-          label: function (c) { return c.dataset.label + ': ' + money(c.parsed.y); },
-          footer: function (items) { return 'Net revenue: ' + money(inc.revenue[items[0].dataIndex]); }
+          label: function (c) { return c.dataset.label + ': ' + short$(c.parsed.y); }
         } } },
         scales: {
           x: { stacked: true, grid: { display: false }, ticks: { color: C.gray } },
           y: { stacked: true, grid: { color: C.grid }, border: { display: false },
-            ticks: { color: C.gray, callback: function (v) { return '$' + Math.round(v / 1000) + 'K'; } } }
+            ticks: { color: C.gray, callback: function (v) { return (v < 0 ? '-$' : '$') + Math.abs(v / 1000) + 'K'; } } }
         }
-      }
+      },
+      plugins: [labelPlugin('incLabels', function (chart, ctx) {
+        if (small) return;  // too crowded on a phone; tapping a bar shows the values
+        var rev = chart.getDatasetMeta(0).data, exp = chart.getDatasetMeta(1).data;
+        var fs = small ? 9.5 : 11.5;
+        rev.forEach(function (bar, i) {
+          ctx.font = 'italic ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = G.rev; ctx.textBaseline = 'bottom';
+          ctx.fillText(short$(inc.revenue[i]), bar.x, bar.y - 4);
+          if (!small && bar.base - bar.y > 26) {
+            ctx.font = '600 ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = '#fff'; ctx.textBaseline = 'top';
+            ctx.fillText(short$(inc.net[i]), bar.x, bar.y + 8);
+          }
+          if (inc.expenses[i]) {
+            ctx.font = 'italic ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = G.exp; ctx.textBaseline = 'top';
+            ctx.fillText(short$(inc.expenses[i]), exp[i].x, exp[i].y + 4);
+          }
+        });
+      })]
+    });
+
+    // ---- Net income by well ----
+    var earners = selling.filter(function (w) { return w.netByMonth.some(Boolean); });
+    document.getElementById('niw-legend').innerHTML = earners.map(function (w) {
+      return '<span>' + sw(color[w.name]) + w.name + '</span>';
+    }).join('');
+    new Chart(document.getElementById('niwChart'), {
+      type: 'bar',
+      data: { labels: inc.labels.map(mon), datasets: earners.map(function (w) {
+        return { label: w.name, data: w.netByMonth.map(function (v) { return v || null; }), backgroundColor: color[w.name],
+          stack: 'w', borderColor: '#fff', borderWidth: 1, maxBarThickness: 64 };
+      }) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 20 } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: {
+          filter: function (i) { return i.raw != null; },
+          callbacks: {
+            label: function (c) { return c.dataset.label + ': ' + short$(c.parsed.y); },
+            footer: function (items) { return 'Total: ' + short$(inc.net[items[0].dataIndex]); }
+          } } },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: C.gray } },
+          y: { stacked: true, grid: { color: C.grid }, border: { display: false },
+            ticks: { color: C.gray, callback: function (v) { return (v < 0 ? '-$' : '$') + Math.abs(v / 1000) + 'K'; } } }
+        }
+      },
+      plugins: [labelPlugin('niwLabels', function (chart, ctx) {
+        if (small) return;
+        var fs = 11;
+        var tops = inc.labels.map(function () { return Infinity; });
+        chart.data.datasets.forEach(function (ds, di) {
+          chart.getDatasetMeta(di).data.forEach(function (bar, i) {
+            var v = ds.data[i];
+            if (v == null) return;
+            if (v > 0) tops[i] = Math.min(tops[i], bar.y);
+            if (!small && Math.abs(bar.base - bar.y) >= 16) {
+              ctx.font = '600 ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
+              ctx.fillText(short$(v), bar.x, (bar.y + bar.base) / 2);
+            }
+          });
+        });
+        ctx.font = fs + 'px DM Sans, system-ui'; ctx.fillStyle = C.ink2; ctx.textBaseline = 'bottom';
+        tops.forEach(function (y, i) {
+          var x = chart.getDatasetMeta(0).data[i].x;
+          if (isFinite(y)) ctx.fillText(short$(inc.net[i]), x, y - 4);
+        });
+      })]
     });
 
     // ---- Distributions: monthly per $100K + cumulative ----
@@ -436,7 +561,7 @@ const OWNERS_DATA = { fund, updates, accessCode };
       return order.indexOf(g) < 0 && a.indexOf(g) === i;
     }));
     var rows = '<thead><tr><th>Well</th><th class="num">Working interest</th><th class="num">Fund cost</th>' +
-      '<th>First sales</th><th class="num">Oil sold to date</th><th class="num">Net income to fund</th><th>Status</th></tr></thead><tbody>';
+      '<th>First sales</th><th class="num">Our oil sold to date</th><th class="num">Net income to fund</th><th>Status</th></tr></thead><tbody>';
     groups.forEach(function (g) {
       var ws = d.wells.filter(function (w) { return w.group === g; }).sort(function (a, b) {
         return (a.bbl.findIndex(Boolean) + 99) % 99 - (b.bbl.findIndex(Boolean) + 99) % 99;
@@ -449,7 +574,7 @@ const OWNERS_DATA = { fund, updates, accessCode };
           '<td class="num">' + (w.wi * 100).toFixed(w.wi * 100 % 1 ? 3 : 0).replace(/\.?0+$/, '') + '%</td>' +
           '<td class="num">' + money(w.cost) + '</td>' +
           '<td style="white-space:nowrap;">' + (w.firstSales || '&ndash;') + '</td>' +
-          '<td class="num">' + (w.cumBbl ? w.cumBbl.toLocaleString() + ' bbl' : '&ndash;') + '</td>' +
+          '<td class="num">' + (w.cumBbl ? w.ownCum.toLocaleString() + ' bbl' : '&ndash;') + '</td>' +
           '<td class="num">' + (w.cumBbl ? money(w.netIncome) : '&ndash;') + '</td>' +
           '<td>' + (w.status || '') + '</td></tr>';
       });
@@ -466,6 +591,28 @@ const OWNERS_DATA = { fund, updates, accessCode };
             '<span class="dt">' + u.sentDate + '</span></summary><div class="body">' + u.html + '</div></details>';
         }).join('')
       : '<div class="card" style="color:var(--ink-3);font-size:14px;">No updates archived yet.</div>';
+
+    // Archive images open full screen; click toggles fit / 100% (pan by scrolling).
+    var viewer = document.getElementById('viewer'), vimg = viewer.querySelector('img');
+    function closeViewer() { viewer.classList.remove('open', 'zoomed'); document.body.style.overflow = ''; }
+    document.getElementById('updates').addEventListener('click', function (e) {
+      var img = e.target.closest('.body img');
+      if (!img || img.closest('a')) return;  // linked images (video thumbnails) keep their link
+      vimg.src = img.currentSrc || img.src;
+      viewer.classList.add('open');
+      viewer.scrollTo(0, 0);
+      document.body.style.overflow = 'hidden';
+    });
+    viewer.addEventListener('click', function (e) {
+      if (e.target !== vimg) { closeViewer(); return; }
+      var r = vimg.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+      viewer.classList.toggle('zoomed');
+      if (viewer.classList.contains('zoomed')) {
+        viewer.scrollTo(fx * vimg.naturalWidth - window.innerWidth / 2, fy * vimg.naturalHeight - window.innerHeight / 2);
+      }
+    });
+    document.getElementById('viewer-close').addEventListener('click', closeViewer);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
   }
 })();
 </script>

@@ -38,11 +38,11 @@ MONTH_RE = re.compile(r"^[A-Z][a-z]{2} 20\d\d$")
 
 
 def sheet(rng):
-    res = subprocess.run(
-        ["gog", "sheets", "get", SHEET_ID, rng, "--json"],
-        capture_output=True, text=True, check=True,
-    )
-    return json.loads(res.stdout).get("values", [])
+    for attempt in range(3):  # the Sheets API throws the odd transient error
+        res = subprocess.run(["gog", "sheets", "get", SHEET_ID, rng, "--json"], capture_output=True, text=True)
+        if res.returncode == 0:
+            return json.loads(res.stdout).get("values", [])
+    sys.exit(f"gog sheets get {rng} failed: {res.stderr.strip()}")
 
 
 def num(s):
@@ -140,8 +140,11 @@ def build():
         s = short(w["name"])
         w["bbl"] = [round(v, 1) for v in series(bbl_hdr, bbl_rows, s)]
         w["cost"] = round(num(cost_row[bbl_hdr.index(s)]))
-        w["netIncome"] = round(sum(series(ni_hdr, ni_rows, s)))
+        w["netByMonth"] = [round(v) for v in series(ni_hdr, ni_rows, s)]
+        w["netIncome"] = sum(w["netByMonth"])
+        w["ownBbl"] = [round(v * w["wi"], 1) for v in w["bbl"]]  # the fund's working-interest barrels
         w["cumBbl"] = round(sum(w["bbl"]))
+        w["ownCum"] = round(sum(w["ownBbl"]))
         first = next((labels[i] for i, v in enumerate(w["bbl"]) if v), None)
         w["firstSales"] = first
         p = prev_wells.get(w["name"], {})
@@ -168,20 +171,22 @@ def build():
 
     # ---- KPIs ------------------------------------------------------------
     total = [round(sum(w["bbl"][i] for w in wells)) for i in range(len(labels))]
-    producing = sum(1 for w in wells if w["group"] == "Producing")
-    ready = sum(1 for w in wells if w["group"] == "Ready for production")
+    own = [round(sum(w["ownBbl"][i] for w in wells)) for i in range(len(labels))]
+    # Well counts overstate small positions (two producers are 2.625% WI), so weight by fund cost.
+    producing_cost = sum(w["cost"] for w in wells if w["group"] == "Producing")
+    ready_cost = sum(w["cost"] for w in wells if w["group"] == "Ready for production")
     paid = [d for d in dist if d["lp"]]
     cum_lp = sum(d["lp"] for d in dist)
     cum_100k = sum(d["per100k"] for d in dist)
     deployed = sum(w["cost"] for w in wells)
-    last, prior = total[-1], total[-2]
+    last, prior = own[-1], own[-2]
     kpis = [
         {"label": "Capital raised", "value": fmt_money(fund_size),
          "delta": f"{fmt_money(deployed)} deployed across {len(wells)} wells", "good": None},
-        {"label": "Wells selling oil", "value": f"{producing} of {len(wells)}",
-         "delta": f"{ready} more ready for production", "good": True},
-        {"label": f"Oil sold, {paid_through}", "value": f"{last:,} bbl",
-         "delta": f"{(last - prior) / prior:+.0%} vs {labels[-2].split()[0]} (8/8ths)", "good": last >= prior},
+        {"label": "Capital in producing wells", "value": f"${producing_cost / 1000:,.0f}K",
+         "delta": f"{producing_cost / deployed:.0%} of deployed · ${ready_cost / 1000:,.0f}K more ready", "good": True},
+        {"label": f"Our oil sold, {paid_through}", "value": f"{last:,} bbl",
+         "delta": f"{(last - prior) / prior:+.0%} vs {labels[-2].split()[0]}, fund's share", "good": last >= prior},
         {"label": f"Realized oil price, {labels[-1].split()[0]}", "value": f"${price[-1]:.2f}",
          "delta": f"vs ${UNDERWRITING_PRICE} underwriting", "good": price[-1] >= UNDERWRITING_PRICE},
         {"label": "Distributed to LPs", "value": fmt_money(cum_lp),
@@ -200,7 +205,7 @@ def build():
         "summary": prev.get("summary", ""),
         "kpis": kpis,
         "production": {
-            "labels": labels, "total": total, "price": price,
+            "labels": labels, "total": total, "own": own, "price": price,
             "underwritingPrice": UNDERWRITING_PRICE,
             "note": prev.get("production", {}).get("note", ""),
         },
@@ -211,7 +216,7 @@ def build():
             "lp": [round(d["lp"], 2) for d in dist],
             "note": prev.get("distributions", {}).get("note", ""),
         },
-        "wells": [{k: w[k] for k in ("name", "wi", "cost", "group", "status", "firstSales", "cumBbl", "netIncome", "bbl")}
+        "wells": [{k: w[k] for k in ("name", "wi", "cost", "group", "status", "firstSales", "cumBbl", "ownCum", "netIncome", "bbl", "ownBbl", "netByMonth")}
                   for w in wells],
         "highlights": prev.get("highlights", []),
     }
@@ -253,8 +258,10 @@ def local_image(src):
                            capture_output=True, text=True, check=True).stdout.split(";")[0]
     ext = {"image/png": "png", "image/gif": "gif", "image/webp": "webp"}.get(ctype, "jpg")
     tmp.rename(IMG_DIR / f"{key}.{ext}")
-    if sys.platform == "darwin":  # email photos come in at full camera size
-        subprocess.run(["sips", "-Z", "1000", "-s", "formatOptions", "70", str(IMG_DIR / f"{key}.{ext}")], capture_output=True)
+    # Kit serves charts at ~2048px and photos at up to camera size; keep full detail for the
+    # zoom viewer and only trim oversized photos.
+    if sys.platform == "darwin" and ext == "jpg" and (IMG_DIR / f"{key}.{ext}").stat().st_size > 900_000:
+        subprocess.run(["sips", "-Z", "2400", "-s", "formatOptions", "82", str(IMG_DIR / f"{key}.{ext}")], capture_output=True)
     return f"/oil-fund-6/updates/{key}.{ext}"
 
 
