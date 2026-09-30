@@ -133,7 +133,7 @@ const OWNERS_DATA = { fund, updates, accessCode };
   details.update .body ul { padding-left: 20px; }
   details.update .body a { color: var(--copper); }
   details.update .body figure { margin: 14px 0; }
-  details.update .body img { display: block; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; }
+  details.update .body img { display: block; width: auto; max-width: min(100%, 560px); max-height: 380px; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; }
 
   /* ---- Image viewer: click an archive image to open, click again for 100% ---- */
   #viewer { position: fixed; inset: 0; z-index: 2000; background: rgba(15,14,12,0.94); display: none; overflow: auto; cursor: zoom-in; }
