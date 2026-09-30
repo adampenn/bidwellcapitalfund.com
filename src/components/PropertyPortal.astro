@@ -332,12 +332,13 @@ const OWNERS_DATA = { property, updates, accessCode };
     }));
 
     var rr = d.rentRoll, units = rr.units;
-    var counts = { turned: 0, bump: 0, pending: 0 };
+    var counts = { turned: 0, bump: 0, pending: 0, vacant: 0 };
     units.forEach(function (u) { counts[u.type]++; });
     document.getElementById('rent-legend').innerHTML =
       '<span>' + arrowSvg(C.blue) + 'Turned: new tenant at market (' + counts.turned + ')</span>' +
       '<span>' + arrowSvg(C.orange) + 'Renewal bump: same tenant (' + counts.bump + ')</span>' +
       '<span><span style="width:9px;height:9px;border-radius:50%;background:' + C.gray + ';display:inline-block;"></span>Not yet turned (' + counts.pending + ')</span>' +
+      (counts.vacant ? '<span><span style="width:9px;height:9px;border-radius:50%;border:1.5px solid ' + C.gray + ';box-sizing:border-box;display:inline-block;"></span>Vacant, being leased (' + counts.vacant + ')</span>' : '') +
       '<span><span style="width:14px;border-top:1.5px dashed ' + C.gray + ';display:inline-block;"></span>Market rent ($' + rr.marketRent + ')</span>' +
       '<span style="color:' + C.ink2 + ';">Building average $' + rr.avgFrom + ' → $' + rr.avgTo + '</span>';
 
@@ -357,7 +358,12 @@ const OWNERS_DATA = { property, updates, accessCode };
       ctx.textBaseline = 'middle';
       units.forEach(function (u, i) {
         var py = y.getPixelForValue(i), delta = u.to - u.from;
-        if (u.type === 'pending') {
+        if (u.type === 'vacant') {
+          ctx.strokeStyle = C.gray; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(x.getPixelForValue(u.to), py, 4.5, 0, 7); ctx.stroke();
+          ctx.fillStyle = C.gray; ctx.textAlign = 'left';
+          ctx.fillText('vacant · last rent $' + u.to, x.getPixelForValue(u.to) + 12, py);
+        } else if (u.type === 'pending') {
           ctx.fillStyle = C.gray;
           ctx.beginPath(); ctx.arc(x.getPixelForValue(u.from), py, 4.5, 0, 7); ctx.fill();
           ctx.textAlign = 'left';
@@ -389,6 +395,7 @@ const OWNERS_DATA = { property, updates, accessCode };
           title: function (items) { return units[items[0].dataIndex].unit; },
           label: function (c) {
             var u = units[c.dataIndex], delta = u.to - u.from;
+            if (u.type === 'vacant') return 'Vacant and being leased; last rent $' + u.to;
             if (u.type === 'pending') return '$' + u.from + ', unchanged since acquisition';
             var kind = u.type === 'turned' ? 'turned to new tenant' : 'renewal bump, same tenant';
             return '$' + u.from + ' → $' + u.to.toLocaleString() + ' (+' + Math.round(delta / u.from * 100) + '%), ' + kind;
