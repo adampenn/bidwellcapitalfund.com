@@ -1,0 +1,620 @@
+---
+/**
+ * Oil fund investor page: private, access-code-gated, one per fund.
+ * Standalone (does not use the site Layout), noindex, not linked in nav.
+ * Same look and auth gate as PropertyPortal, with oil-fund sections:
+ * production by well, fund income, distributions, well-by-well status.
+ *
+ * Data flow: the fund's Production Tracker Google Sheet is the source of
+ * truth. scripts/owners/update_<id>.py regenerates src/data/owners/<id>.json
+ * and archives each monthly Kit update into <id>-updates.json. Commit + push
+ * to deploy (Render).
+ */
+interface Props {
+  fund: any;
+  updates: any[];
+  accessCode: string;
+}
+const { fund, updates, accessCode } = Astro.props;
+const OWNERS_DATA = { fund, updates, accessCode };
+---
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{`Bidwell Capital | ${fund.name}`}</title>
+<style is:global>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+
+  :root {
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --dark: #0f0e0c; --dark-2: #171614;
+    --dark-text: #f2efe8; --dark-text-2: #a09a8e;
+    --paper: #f8f7f4; --card: #ffffff;
+    --ink: #1a1915; --ink-2: #5c574d; --ink-3: #8a8479;
+    --line: rgba(26, 25, 21, 0.1); --line-strong: rgba(26, 25, 21, 0.18);
+    --copper: #a06b3a; --copper-bright: #c48a5a;
+    --copper-subtle: rgba(160, 107, 58, 0.1);
+    --good: #3f6212;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- Auth ---- */
+  #auth-screen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: var(--dark); }
+  .auth-container { text-align: center; width: 100%; max-width: 400px; padding: 2rem; }
+  .auth-brand { font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--copper-bright); margin-bottom: 20px; }
+  .auth-card { background: var(--dark-2); border: 1px solid rgba(242,239,232,0.08); border-radius: 12px; padding: 32px 28px; }
+  .auth-title { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 28px; color: var(--dark-text); }
+  .auth-sub { margin: 0 0 20px; color: var(--dark-text-2); font-size: 14px; }
+  .auth-card input {
+    width: 100%; padding: 12px 14px; font-size: 15px; font-family: var(--sans);
+    background: var(--dark); color: var(--dark-text);
+    border: 1px solid rgba(242,239,232,0.14); border-radius: 8px; margin-bottom: 10px;
+  }
+  .auth-card input::placeholder { color: var(--dark-text-2); }
+  .auth-error { color: #e08b7d; font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+  .auth-card button {
+    width: 100%; padding: 12px; font-size: 15px; font-weight: 600; font-family: var(--sans);
+    color: var(--dark); background: var(--copper-bright); border: 0; border-radius: 8px; cursor: pointer;
+  }
+  .auth-card button:hover { background: #d9a474; }
+  .auth-footer { font-size: 12px; color: var(--dark-text-2); margin-top: 16px; }
+
+  /* ---- Masthead ---- */
+  .masthead { background: var(--dark); color: var(--dark-text); padding: 56px 0 0; }
+  .mast-eyebrow { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--copper-bright); }
+  .mast-title { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 5vw, 56px); margin: 14px 0 12px; }
+  .mast-sum { max-width: 860px; color: var(--dark-text-2); font-size: 16px; line-height: 1.65; margin: 0 0 8px; }
+  .mast-meta { color: var(--dark-text-2); font-size: 13.5px; margin: 0 0 30px; }
+
+  /* ---- Section nav (sticky) ---- */
+  .secnav-wrap { position: sticky; top: 0; z-index: 100; background: rgba(248,247,244,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .secnav { display: flex; gap: 4px; overflow-x: auto; padding: 0 24px; max-width: 1200px; margin: 0 auto; }
+  .secnav a {
+    padding: 15px 14px; font-size: 14px; font-weight: 500; white-space: nowrap;
+    color: var(--ink-2); text-decoration: none; border-bottom: 2px solid transparent;
+  }
+  .secnav a.active { color: var(--copper); border-bottom-color: var(--copper); }
+  .secnav a:hover { color: var(--ink); }
+
+  /* ---- Sections ---- */
+  section.blk { padding: 36px 0 6px; scroll-margin-top: 56px; }
+  .eyebrow { font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--copper); margin: 0 0 6px; }
+  h2.blk-title { font-family: var(--serif); font-weight: 400; font-size: 26px; margin: 0 0 16px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .kpi .lb { font-size: 12px; color: var(--ink-3); }
+  .kpi .vl { font-family: var(--serif); font-size: 28px; margin-top: 4px; }
+  .kpi .dl { font-size: 12.5px; margin-top: 3px; color: var(--ink-2); }
+  .kpi .dl.good { color: var(--good); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 18px; font-size: 12.5px; color: var(--ink-2); margin-bottom: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .sw-line { width: 14px; display: inline-block; }
+  .chart-note { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; line-height: 1.5; }
+  ul.hl { margin: 0; padding-left: 20px; }
+  ul.hl li { margin: 8px 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+
+  /* ---- Wells table ---- */
+  .tbl-wrap { overflow-x: auto; }
+  table.wells { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px; }
+  table.wells th { text-align: left; font-weight: 500; font-size: 12px; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+  table.wells td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+  table.wells td.nm { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  table.wells .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.wells tr.grp td { padding: 16px 10px 6px; border-bottom: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper); }
+  table.wells tr:last-child td { border-bottom: 0; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+
+  /* ---- Update archive ---- */
+  details.update { border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  details.update summary {
+    padding: 14px 18px; cursor: pointer; font-size: 14.5px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; list-style: none;
+  }
+  details.update summary::-webkit-details-marker { display: none; }
+  details.update summary:hover { color: var(--copper); }
+  details.update summary .dt { font-weight: 400; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+  details.update[open] summary { border-bottom: 1px solid var(--line); }
+  details.update .body { padding: 4px 18px 16px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
+  details.update .body p { margin: 10px 0; }
+  details.update .body h3 { font-family: var(--serif); font-weight: 400; font-size: 20px; color: var(--ink); margin: 22px 0 6px; }
+  details.update .body h3 strong { font-weight: 400; }
+  details.update .body h4 { font-size: 15px; color: var(--ink); margin: 18px 0 4px; }
+  details.update .body strong { color: var(--ink); }
+  details.update .body ul { padding-left: 20px; }
+  details.update .body a { color: var(--copper); }
+  details.update .body figure { margin: 14px 0; }
+  details.update .body img { display: block; margin: 0 auto; width: auto; max-width: min(100%, 560px); max-height: 380px; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; }
+
+  /* ---- Image viewer: click an archive image to open, click again for 100% ---- */
+  #viewer { position: fixed; inset: 0; z-index: 2000; background: rgba(15,14,12,0.94); display: none; overflow: auto; cursor: zoom-in; }
+  #viewer.open { display: flex; }
+  #viewer img { margin: auto; max-width: 96vw; max-height: 94vh; object-fit: contain; border-radius: 4px; background: #fff; }
+  #viewer.zoomed { cursor: zoom-out; }
+  #viewer.zoomed img { max-width: none; max-height: none; }
+  #viewer-close { position: fixed; top: 14px; right: 18px; z-index: 2001; width: 40px; height: 40px; border-radius: 50%; border: 0;
+    background: rgba(242,239,232,0.14); color: var(--dark-text); font-size: 22px; line-height: 40px; cursor: pointer; display: none; }
+  #viewer.open + #viewer-close { display: block; }
+  #viewer-hint { position: fixed; bottom: 14px; left: 0; right: 0; text-align: center; font-size: 12.5px; color: var(--dark-text-2); pointer-events: none; display: none; }
+  #viewer.open ~ #viewer-hint { display: block; }
+
+  /* ---- Chart view toggle ---- */
+  .card-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 18px; }
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; flex-shrink: 0; margin-bottom: 12px; }
+  .seg button { font: 500 12.5px var(--sans); padding: 6px 12px; border: 0; background: var(--card); color: var(--ink-2); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line-strong); }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+  details.update .body figcaption { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; text-align: center; }
+
+  footer.pg { margin: 48px 0 0; padding: 22px 0 40px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); line-height: 1.6; }
+  @media (max-width: 640px) {
+    .container { padding: 0 16px; }
+    .kpi .vl { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-container">
+    <div class="auth-brand">Bidwell Capital</div>
+    <div class="auth-card">
+      <h2 class="auth-title">Investor Portal</h2>
+      <p class="auth-sub">Enter the access code to continue.</p>
+      <input type="password" id="auth-input" placeholder="Access code" autocomplete="off" />
+      <div id="auth-error" class="auth-error"></div>
+      <button id="auth-btn">Unlock</button>
+    </div>
+    <p class="auth-footer">For fund investors only.</p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+
+  <div class="masthead">
+    <div class="container">
+      <div class="mast-eyebrow">Bidwell Capital · Investor Portal</div>
+      <h1 class="mast-title" id="mast-title"></h1>
+      <p class="mast-sum" id="mast-sum"></p>
+      <p class="mast-meta" id="mast-meta"></p>
+    </div>
+  </div>
+
+  <div class="secnav-wrap">
+    <nav class="secnav">
+      <a href="#snapshot">Overview</a>
+      <a href="#production">Production</a>
+      <a href="#income">Fund income</a>
+      <a href="#distributions">Distributions</a>
+      <a href="#wells">Wells</a>
+      <a href="#month">This month</a>
+      <a href="#updates-sec">Update archive</a>
+    </nav>
+  </div>
+
+  <div class="container">
+
+    <section class="blk" id="snapshot">
+      <p class="eyebrow">Where the fund stands</p>
+      <h2 class="blk-title">Overview</h2>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="blk" id="production">
+      <p class="eyebrow">Barrels sold each month, by well</p>
+      <h2 class="blk-title">Oil production and price</h2>
+      <div class="card">
+        <div class="card-head">
+          <div class="legend" id="prod-legend"></div>
+          <div class="seg" id="prod-seg"><button data-mode="own" class="on">Fund's share</button><button data-mode="gross">Whole well</button></div>
+        </div>
+        <div style="position:relative;height:320px;"><canvas id="prodChart"></canvas></div>
+        <div class="chart-note" id="prod-note"></div>
+      </div>
+    </section>
+
+    <section class="blk" id="income">
+      <p class="eyebrow">The fund's working-interest share</p>
+      <h2 class="blk-title">Revenue, expenses and net income</h2>
+      <div class="card">
+        <div class="legend" id="inc-legend"></div>
+        <div style="position:relative;height:340px;"><canvas id="incChart"></canvas></div>
+        <div class="chart-note">Oil revenue net of production taxes, less the fund's share of lease operating expenses, by production month. Recent months are preliminary until final expense billing arrives.</div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="legend" id="niw-legend"></div>
+        <div style="position:relative;height:320px;"><canvas id="niwChart"></canvas></div>
+        <div class="chart-note">Net income to the fund by well and production month.</div>
+      </div>
+    </section>
+
+    <section class="blk" id="distributions">
+      <p class="eyebrow">Cash paid to limited partners</p>
+      <h2 class="blk-title">Distributions per $100,000 invested</h2>
+      <div class="card">
+        <div class="legend" id="dist-legend"></div>
+        <div style="position:relative;height:260px;"><canvas id="distChart"></canvas></div>
+        <div class="chart-note" id="dist-note"></div>
+      </div>
+    </section>
+
+    <section class="blk" id="wells">
+      <p class="eyebrow">All eleven wells</p>
+      <h2 class="blk-title">Well-by-well status</h2>
+      <div class="card tbl-wrap"><table class="wells" id="wells-tbl"></table></div>
+    </section>
+
+    <section class="blk" id="month">
+      <p class="eyebrow">From the latest update</p>
+      <h2 class="blk-title">This month</h2>
+      <div class="card"><ul class="hl" id="highlights"></ul></div>
+    </section>
+
+    <section class="blk" id="updates-sec">
+      <p class="eyebrow">Every monthly letter since launch</p>
+      <h2 class="blk-title">Update archive</h2>
+      <div id="updates"></div>
+    </section>
+
+    <div id="viewer" role="dialog" aria-label="Image viewer"><img alt=""></div>
+    <button id="viewer-close" aria-label="Close">&times;</button>
+    <div id="viewer-hint">Click the image to zoom · Esc to close</div>
+
+    <footer class="pg">Prepared by Bidwell Capital. Production and revenue from operator run statements and joint-interest billing; the most recent one to two months are preliminary and revise as billing arrives. Distributions from fund bank records.</footer>
+  </div>
+</div>
+
+<script type="application/json" id="owners-data" set:html={JSON.stringify(OWNERS_DATA)}></script>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script is:inline>
+(function () {
+  var DATA = JSON.parse(document.getElementById('owners-data').textContent);
+  var ACCESS_CODE = DATA.accessCode;
+  var AUTH_KEY = 'owners_auth_' + DATA.fund.id;
+  var authScreen = document.getElementById('auth-screen');
+  var authInput = document.getElementById('auth-input');
+  var authError = document.getElementById('auth-error');
+  var app = document.getElementById('app');
+
+  function unlock() {
+    if (authInput.value.trim() === ACCESS_CODE) {
+      try { sessionStorage.setItem(AUTH_KEY, '1'); } catch (e) {}
+      authScreen.style.display = 'none';
+      app.style.display = '';
+      boot();
+    } else {
+      authError.textContent = 'Incorrect access code. Please try again.';
+      authInput.value = '';
+      authInput.focus();
+    }
+  }
+  document.getElementById('auth-btn').addEventListener('click', unlock);
+  authInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') unlock(); });
+  try {
+    if (sessionStorage.getItem(AUTH_KEY) === '1') {
+      authScreen.style.display = 'none';
+      app.style.display = '';
+      window.addEventListener('DOMContentLoaded', boot);
+      if (document.readyState !== 'loading') boot();
+    } else {
+      authInput.focus();
+    }
+  } catch (e) { authInput.focus(); }
+
+  var C = { blue: '#2a78d6', orange: '#eb6834', aqua: '#1baf7a', copper: '#c48a5a', violet: '#7c5cd6', gold: '#d9a514',
+            rose: '#d14d72', olive: '#8a9a2b', gray: '#898781', grid: '#e7e4dc', ink: '#1a1915', ink2: '#5c574d' };
+  var WELL_COLORS = [C.blue, C.orange, C.aqua, C.gold, C.violet, C.rose, C.olive, '#3b9ab2', '#b5832a', '#6b7a8f', '#a05a8c'];
+  var booted = false;
+
+  function money(v) { return '$' + Math.round(v).toLocaleString(); }
+  function sw(c) { return '<span class="sw" style="background:' + c + ';"></span>'; }
+  function swLine(c, dash) { return '<span class="sw-line" style="border-top:2px ' + (dash ? 'dashed' : 'solid') + ' ' + c + ';"></span>'; }
+  function mon(label) { return label.split(' ')[0] + " '" + label.split(' ')[1].slice(2); }
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    render();
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.secnav a'));
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          links.forEach(function (l) {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('section.blk').forEach(function (s) { obs.observe(s); });
+  }
+
+  function render() {
+    var d = DATA.fund;
+
+    document.getElementById('mast-title').textContent = d.name;
+    document.getElementById('mast-sum').textContent = d.summary || '';
+    document.getElementById('mast-meta').textContent =
+      'Operated by ' + d.operator + ' · ' + d.location + ' · ' + d.wells.length + ' wells · distributions through ' +
+      d.asOf + ' · production through ' + d.paidThrough;
+
+    document.getElementById('kpis').innerHTML = d.kpis.map(function (k) {
+      return '<div class="kpi"><div class="lb">' + k.label + '</div><div class="vl">' + k.value +
+        '</div><div class="dl' + (k.good ? ' good' : '') + '">' + (k.delta || '&nbsp;') + '</div></div>';
+    }).join('');
+
+    // Colors follow first-sales order so the earliest producer is always blue.
+    var selling = d.wells.filter(function (w) { return w.cumBbl > 0; }).sort(function (a, b) {
+      return a.bbl.findIndex(Boolean) - b.bbl.findIndex(Boolean);
+    });
+    var color = {};
+    selling.forEach(function (w, i) { color[w.name] = WELL_COLORS[i]; });
+
+    // ---- Production: stacked barrels by well + realized price ----
+    // Defaults to the fund's working-interest barrels; the letters quote whole-well (8/8ths) volumes.
+    var p = d.production, labels = p.labels.map(mon), prodMode = 'own';
+    document.getElementById('prod-legend').innerHTML = selling.map(function (w) {
+      return '<span>' + sw(color[w.name]) + w.name + '</span>';
+    }).join('') +
+      '<span>' + swLine(C.ink) + 'Realized price ($/bbl)</span>' +
+      '<span>' + swLine(C.gray, true) + '$' + p.underwritingPrice + ' underwriting price</span>';
+    function prodNote() {
+      document.getElementById('prod-note').textContent = prodMode === 'own'
+        ? 'Barrels are the fund’s working-interest share of each well’s oil sales, by production month. Switch to Whole well to match the volumes quoted in the monthly letters. Rush Creek pays about two months after production.'
+        : (p.note || '');
+    }
+    function prodSeries(w) { return (prodMode === 'own' ? w.ownBbl : w.bbl).map(function (v) { return v || null; }); }
+    var prodChart = new Chart(document.getElementById('prodChart'), {
+      data: { labels: labels, datasets: selling.map(function (w) {
+        return { type: 'bar', label: w.name, data: prodSeries(w),
+          backgroundColor: color[w.name], stack: 'bbl', yAxisID: 'y', borderColor: '#fff', borderWidth: 1, maxBarThickness: 44 };
+      }).concat([
+        { type: 'line', label: 'Realized price', data: p.price, yAxisID: 'y2', borderColor: C.ink, backgroundColor: C.ink,
+          borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#fff', tension: 0, order: -1 },
+        { type: 'line', label: 'Underwriting price', data: labels.map(function () { return p.underwritingPrice; }), yAxisID: 'y2',
+          borderColor: C.gray, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, order: -1 }
+      ]) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: {
+          filter: function (i) { return i.raw != null && i.dataset.label !== 'Underwriting price'; },
+          callbacks: {
+            label: function (c) {
+              return c.dataset.yAxisID === 'y2' ? 'Realized price: $' + c.parsed.y.toFixed(2) + '/bbl'
+                : c.dataset.label + ': ' + Math.round(c.parsed.y).toLocaleString() + ' bbl';
+            },
+            footer: function (items) {
+              return 'Total: ' + (prodMode === 'own' ? p.own : p.total)[items[0].dataIndex].toLocaleString() + ' bbl';
+            }
+          } } },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: C.gray } },
+          y: { stacked: true, grid: { color: C.grid }, border: { display: false },
+            title: { display: true, text: 'Barrels, fund’s share', color: C.gray, font: { size: 11 } },
+            ticks: { color: C.gray, callback: function (v) { return v.toLocaleString(); } } },
+          y2: { position: 'right', min: 0, suggestedMax: 110, grid: { display: false }, border: { display: false },
+            ticks: { color: C.gray, callback: function (v) { return '$' + v; } } }
+        }
+      }
+    });
+    prodNote();
+    document.querySelectorAll('#prod-seg button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        prodMode = b.getAttribute('data-mode');
+        document.querySelectorAll('#prod-seg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+        selling.forEach(function (w, i) { prodChart.data.datasets[i].data = prodSeries(w); });
+        prodChart.options.scales.y.title.text = prodMode === 'own' ? 'Barrels, fund’s share' : 'Barrels, whole well (8/8ths)';
+        prodChart.update();
+        prodNote();
+      });
+    });
+
+    // Value labels drawn on the bars, like the charts in the monthly letters.
+    function short$(v) { return (v < 0 ? '($' : '$') + Math.abs(Math.round(v)).toLocaleString() + (v < 0 ? ')' : ''); }
+    function labelPlugin(id, draw) { return { id: id, afterDatasetsDraw: function (chart) {
+      var ctx = chart.ctx; ctx.save(); ctx.textAlign = 'center'; draw(chart, ctx); ctx.restore();
+    } }; }
+    var small = window.innerWidth < 640;
+
+    // ---- Fund income: revenue up, expenses down, net income as a stepped line ----
+    var inc = d.income, G = { rev: '#4f8a52', exp: '#c0473a', net: '#898781' };
+    document.getElementById('inc-legend').innerHTML =
+      '<span>' + sw(G.rev) + 'Fund revenue</span>' +
+      '<span>' + sw(G.exp) + 'Fund expenses</span>' +
+      '<span>' + swLine(G.net, true) + 'Fund net income</span>' +
+      '<span style="color:' + C.ink2 + ';font-weight:600;">Net income to date ' +
+      money(inc.net.reduce(function (a, b) { return a + b; }, 0)) + '</span>';
+    new Chart(document.getElementById('incChart'), {
+      data: { labels: inc.labels.map(mon), datasets: [
+        { type: 'bar', label: 'Revenue', data: inc.revenue, backgroundColor: G.rev, stack: 's', maxBarThickness: 64, order: 2 },
+        { type: 'bar', label: 'Expenses', data: inc.expenses, backgroundColor: G.exp, stack: 's', maxBarThickness: 64, order: 2 },
+        { type: 'line', label: 'Net income', data: inc.net, stack: 'net', stepped: 'middle', borderColor: G.net, borderDash: [6, 4],
+          borderWidth: 2, pointRadius: 0, fill: 'origin', backgroundColor: 'rgba(137,135,129,0.22)', order: 3 }
+      ] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 22 } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          label: function (c) { return c.dataset.label + ': ' + short$(c.parsed.y); }
+        } } },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: C.gray } },
+          y: { stacked: true, grid: { color: C.grid }, border: { display: false },
+            ticks: { color: C.gray, callback: function (v) { return (v < 0 ? '-$' : '$') + Math.abs(v / 1000) + 'K'; } } }
+        }
+      },
+      plugins: [labelPlugin('incLabels', function (chart, ctx) {
+        if (small) return;  // too crowded on a phone; tapping a bar shows the values
+        var rev = chart.getDatasetMeta(0).data, exp = chart.getDatasetMeta(1).data;
+        var fs = small ? 9.5 : 11.5;
+        rev.forEach(function (bar, i) {
+          ctx.font = 'italic ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = G.rev; ctx.textBaseline = 'bottom';
+          ctx.fillText(short$(inc.revenue[i]), bar.x, bar.y - 4);
+          if (!small && bar.base - bar.y > 26) {
+            ctx.font = '600 ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = '#fff'; ctx.textBaseline = 'top';
+            ctx.fillText(short$(inc.net[i]), bar.x, bar.y + 8);
+          }
+          if (inc.expenses[i]) {
+            ctx.font = 'italic ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = G.exp; ctx.textBaseline = 'top';
+            ctx.fillText(short$(inc.expenses[i]), exp[i].x, exp[i].y + 4);
+          }
+        });
+      })]
+    });
+
+    // ---- Net income by well ----
+    var earners = selling.filter(function (w) { return w.netByMonth.some(Boolean); });
+    document.getElementById('niw-legend').innerHTML = earners.map(function (w) {
+      return '<span>' + sw(color[w.name]) + w.name + '</span>';
+    }).join('');
+    new Chart(document.getElementById('niwChart'), {
+      type: 'bar',
+      data: { labels: inc.labels.map(mon), datasets: earners.map(function (w) {
+        return { label: w.name, data: w.netByMonth.map(function (v) { return v || null; }), backgroundColor: color[w.name],
+          stack: 'w', borderColor: '#fff', borderWidth: 1, maxBarThickness: 64 };
+      }) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 20 } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: {
+          filter: function (i) { return i.raw != null; },
+          callbacks: {
+            label: function (c) { return c.dataset.label + ': ' + short$(c.parsed.y); },
+            footer: function (items) { return 'Total: ' + short$(inc.net[items[0].dataIndex]); }
+          } } },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: C.gray } },
+          y: { stacked: true, grid: { color: C.grid }, border: { display: false },
+            ticks: { color: C.gray, callback: function (v) { return (v < 0 ? '-$' : '$') + Math.abs(v / 1000) + 'K'; } } }
+        }
+      },
+      plugins: [labelPlugin('niwLabels', function (chart, ctx) {
+        if (small) return;
+        var fs = 11;
+        var tops = inc.labels.map(function () { return Infinity; });
+        chart.data.datasets.forEach(function (ds, di) {
+          chart.getDatasetMeta(di).data.forEach(function (bar, i) {
+            var v = ds.data[i];
+            if (v == null) return;
+            if (v > 0) tops[i] = Math.min(tops[i], bar.y);
+            if (!small && Math.abs(bar.base - bar.y) >= 16) {
+              ctx.font = '600 ' + fs + 'px DM Sans, system-ui'; ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
+              ctx.fillText(short$(v), bar.x, (bar.y + bar.base) / 2);
+            }
+          });
+        });
+        ctx.font = fs + 'px DM Sans, system-ui'; ctx.fillStyle = C.ink2; ctx.textBaseline = 'bottom';
+        tops.forEach(function (y, i) {
+          var x = chart.getDatasetMeta(0).data[i].x;
+          if (isFinite(y)) ctx.fillText(short$(inc.net[i]), x, y - 4);
+        });
+      })]
+    });
+
+    // ---- Distributions: monthly per $100K + cumulative ----
+    // Start at the first paid month; the note covers the months before it.
+    var ds0 = d.distributions, first = ds0.per100k.findIndex(Boolean), cum = 0;
+    var ds = { labels: ds0.labels.slice(first), per100k: ds0.per100k.slice(first), lp: ds0.lp.slice(first), note: ds0.note };
+    var cumSeries = ds.per100k.map(function (v) { cum += v; return Math.round(cum * 100) / 100; });
+    document.getElementById('dist-legend').innerHTML =
+      '<span>' + sw(C.copper) + 'Monthly distribution per $100K</span>' +
+      '<span>' + swLine(C.ink) + 'Cumulative per $100K</span>' +
+      '<span style="color:' + C.ink2 + ';font-weight:600;">Total to LPs ' + money(ds.lp.reduce(function (a, b) { return a + b; }, 0)) + '</span>';
+    document.getElementById('dist-note').textContent =
+      'Rush Creek pays about two months after oil is sold, so each distribution reflects production from two months earlier. ' +
+      'Before July, revenue went to the fund’s origination fee and startup costs. ' + (ds.note || '');
+    new Chart(document.getElementById('distChart'), {
+      data: { labels: ds.labels.map(mon), datasets: [
+        { type: 'bar', label: 'Monthly', data: ds.per100k, backgroundColor: C.copper, maxBarThickness: 44 },
+        { type: 'line', label: 'Cumulative', data: cumSeries, borderColor: C.ink, backgroundColor: C.ink,
+          borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#fff', tension: 0, order: -1 }
+      ] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          label: function (c) { return c.dataset.label + ': $' + c.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: C.gray } },
+          y: { grid: { color: C.grid }, border: { display: false }, beginAtZero: true,
+            ticks: { color: C.gray, callback: function (v) { return '$' + v.toLocaleString(); } } }
+        }
+      }
+    });
+
+    // ---- Wells table, grouped by stage ----
+    var order = ['Producing', 'Ready for production', 'Completion in progress'];
+    var groups = order.concat(d.wells.map(function (w) { return w.group; }).filter(function (g, i, a) {
+      return order.indexOf(g) < 0 && a.indexOf(g) === i;
+    }));
+    var rows = '<thead><tr><th>Well</th><th class="num">Working interest</th><th class="num">Fund cost</th>' +
+      '<th>First sales</th><th class="num">Our oil sold to date</th><th class="num">Net income to fund</th><th>Status</th></tr></thead><tbody>';
+    groups.forEach(function (g) {
+      var ws = d.wells.filter(function (w) { return w.group === g; }).sort(function (a, b) {
+        return (a.bbl.findIndex(Boolean) + 99) % 99 - (b.bbl.findIndex(Boolean) + 99) % 99;
+      });
+      if (!ws.length) return;
+      rows += '<tr class="grp"><td colspan="7">' + g + ' (' + ws.length + ')</td></tr>';
+      ws.forEach(function (w) {
+        var dot = color[w.name] ? '<span class="dot" style="background:' + color[w.name] + ';"></span>' : '<span class="dot" style="background:#e3dfd6;"></span>';
+        rows += '<tr><td class="nm">' + dot + w.name + '</td>' +
+          '<td class="num">' + (w.wi * 100).toFixed(w.wi * 100 % 1 ? 3 : 0).replace(/\.?0+$/, '') + '%</td>' +
+          '<td class="num">' + money(w.cost) + '</td>' +
+          '<td style="white-space:nowrap;">' + (w.firstSales || '&ndash;') + '</td>' +
+          '<td class="num">' + (w.cumBbl ? w.ownCum.toLocaleString() + ' bbl' : '&ndash;') + '</td>' +
+          '<td class="num">' + (w.cumBbl ? money(w.netIncome) : '&ndash;') + '</td>' +
+          '<td>' + (w.status || '') + '</td></tr>';
+      });
+    });
+    document.getElementById('wells-tbl').innerHTML = rows + '</tbody>';
+
+    document.getElementById('highlights').innerHTML =
+      (d.highlights || []).map(function (h) { return '<li>' + h + '</li>'; }).join('');
+
+    var updates = DATA.updates || [];
+    document.getElementById('updates').innerHTML = updates.length
+      ? updates.map(function (u, i) {
+          return '<details class="update"' + (i === 0 ? ' open' : '') + '><summary>' + u.title +
+            '<span class="dt">' + u.sentDate + '</span></summary><div class="body">' + u.html + '</div></details>';
+        }).join('')
+      : '<div class="card" style="color:var(--ink-3);font-size:14px;">No updates archived yet.</div>';
+
+    // Archive images open full screen; click toggles fit / 100% (pan by scrolling).
+    var viewer = document.getElementById('viewer'), vimg = viewer.querySelector('img');
+    function closeViewer() { viewer.classList.remove('open', 'zoomed'); document.body.style.overflow = ''; }
+    document.getElementById('updates').addEventListener('click', function (e) {
+      var img = e.target.closest('.body img');
+      if (!img || img.closest('a')) return;  // linked images (video thumbnails) keep their link
+      vimg.src = img.currentSrc || img.src;
+      viewer.classList.add('open');
+      viewer.scrollTo(0, 0);
+      document.body.style.overflow = 'hidden';
+    });
+    viewer.addEventListener('click', function (e) {
+      if (e.target !== vimg) { closeViewer(); return; }
+      var r = vimg.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+      viewer.classList.toggle('zoomed');
+      if (viewer.classList.contains('zoomed')) {
+        viewer.scrollTo(fx * vimg.naturalWidth - window.innerWidth / 2, fy * vimg.naturalHeight - window.innerHeight / 2);
+      }
+    });
+    document.getElementById('viewer-close').addEventListener('click', closeViewer);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
+  }
+})();
+</script>
+</body>
+</html>

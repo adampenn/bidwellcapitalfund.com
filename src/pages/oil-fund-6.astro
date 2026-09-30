@@ -1,0 +1,8 @@
+---
+// Bidwell Oil Fund VI (Rush Creek) investor page. Access-code-gated,
+// noindex, not linked in nav. Layout and charts live in FundPortal.
+import FundPortal from '../components/FundPortal.astro';
+import fund from '../data/owners/oil-fund-6.json';
+import archive from '../data/owners/oil-fund-6-updates.json';
+---
+<FundPortal fund={fund} updates={archive.updates} accessCode="rushcreek" />
