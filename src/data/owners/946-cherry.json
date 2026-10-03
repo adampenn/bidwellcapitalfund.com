@@ -3,44 +3,44 @@
   "name": "946 Cherry St",
   "city": "Chico, CA",
   "units": 20,
-  "asOf": "Aug 2026",
-  "operatingMonth": 13,
-  "summary": "Year 2 opened with NOI 67% ahead of pro forma for the month, the insurance renewal 47% under budget, and the building fully occupied through August.",
+  "asOf": "Sep 2026",
+  "operatingMonth": 14,
+  "summary": "September NOI of $13,713 ran 59% ahead of pro forma. Trailing-12 NOI is 40% ahead of plan, occupancy was 93.3% for the month, and the implied value sits 42% above basis.",
   "kpis": [
     {
-      "label": "T-12 NOI (annualized)",
-      "value": "$133.5K",
-      "delta": "+29% vs pro forma",
+      "label": "T-12 NOI",
+      "value": "$144.7K",
+      "delta": "+40% vs pro forma",
       "good": true
     },
     {
       "label": "Occupancy",
-      "value": "99.7%",
-      "delta": "2 units listed at $950 after 8/31 move-outs",
-      "good": true
+      "value": "93.3%",
+      "delta": "1 unit vacant at month end",
+      "good": false
     },
     {
       "label": "Avg scheduled rent",
-      "value": "$830",
-      "delta": "+19% since acquisition",
+      "value": "$835",
+      "delta": "+20% since acquisition",
       "good": true
     },
     {
       "label": "Delinquency",
-      "value": "$1,705",
-      "delta": "2 units, 1 on a catch-up plan",
+      "value": "$819",
+      "delta": "2 units past due",
       "good": null
     },
     {
       "label": "Cash reserves",
-      "value": "$43.5K",
+      "value": "$51.8K",
       "delta": "",
       "good": null
     },
     {
       "label": "Implied value (7% cap)",
-      "value": "$1.91M",
-      "delta": "+31% vs $1.46M basis",
+      "value": "$2.07M",
+      "delta": "+42% vs $1.46M basis",
       "good": true
     }
   ],
@@ -57,7 +57,8 @@
       "May",
       "Jun",
       "Jul",
-      "Aug"
+      "Aug",
+      "Sep"
     ],
     "actual": [
       11368,
@@ -71,7 +72,8 @@
       12224,
       12124,
       13014,
-      14458
+      14458,
+      13713
     ],
     "proFormaMonthly": 8643,
     "note": "December includes a one-time management-fee credit."
@@ -124,11 +126,11 @@
     ]
   },
   "equity": {
-    "impliedValue": 1907120,
+    "impliedValue": 2067295,
     "segments": [
       {
         "label": "Loan payoff",
-        "value": 1019981,
+        "value": 1018859,
         "color": "gray"
       },
       {
@@ -138,12 +140,12 @@
       },
       {
         "label": "LP profit share (80%)",
-        "value": 321711,
+        "value": 450749,
         "color": "aqua"
       },
       {
         "label": "GP promote (20%)",
-        "value": 80428,
+        "value": 112687,
         "color": "orange"
       }
     ],
@@ -152,7 +154,7 @@
   "rentRoll": {
     "marketRent": 900,
     "avgFrom": 696,
-    "avgTo": 830,
+    "avgTo": 835,
     "units": [
       {
         "unit": "Unit 1",
@@ -200,7 +202,7 @@
         "unit": "Unit 8",
         "from": 725,
         "to": 725,
-        "type": "pending"
+        "type": "vacant"
       },
       {
         "unit": "Unit 9",
@@ -278,11 +280,11 @@
     ]
   },
   "highlights": [
-    "August NOI of $14,458 was 67% ahead of the $8,643 Year 2 pro forma; trailing-3 NOI annualizes to $158.4K.",
-    "Insurance renewed at $7,909 versus $14,864 budgeted, a 47% cut worth about $580 a month.",
-    "Units 1, 3 and 7 re-leased at $900 plus $45 RUBS; building fully occupied through August.",
-    "Units 8 and 20 moved out 8/31 and are listed at $950 to test demand above the $900 standard; Unit 20 paid an $1,800 lease-break fee.",
-    "Internet plan at 4 of 20 units ($120/mo), past the 3-subscriber breakeven on the $65 line.",
-    "Q3 distribution pays October 1."
+    "September NOI $13,713 vs $8,643 pro forma (+59%); trailing-3 NOI annualizes to $164.7K.",
+    "Revenue $19,170 vs $14,057 pro forma; operating expenses $5,457 vs $5,415.",
+    "Occupancy 93.3% for the month; 1 unit vacant at month end.",
+    "Average rent per occupied unit $835, up 20% since acquisition.",
+    "Cash reserves $51,789; $16,141 of principal paid down since acquisition.",
+    "LP distributions paid to date: $18,188."
   ]
 }
