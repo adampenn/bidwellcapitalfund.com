@@ -5,12 +5,12 @@
   "units": 20,
   "asOf": "Sep 2026",
   "operatingMonth": 14,
-  "summary": "September NOI of $13,713 ran 59% ahead of pro forma. Trailing-12 NOI is 40% ahead of plan, occupancy was 93.3% for the month, and the implied value sits 42% above basis.",
+  "summary": "September NOI of $13,553 ran 57% ahead of pro forma. Trailing-12 NOI is 39% ahead of plan, occupancy was 93.3% for the month, and the implied value sits 41% above basis.",
   "kpis": [
     {
       "label": "T-12 NOI",
-      "value": "$144.7K",
-      "delta": "+40% vs pro forma",
+      "value": "$144.6K",
+      "delta": "+39% vs pro forma",
       "good": true
     },
     {
@@ -33,14 +33,14 @@
     },
     {
       "label": "Cash reserves",
-      "value": "$51.8K",
+      "value": "$51.6K",
       "delta": "",
       "good": null
     },
     {
       "label": "Implied value (7% cap)",
       "value": "$2.07M",
-      "delta": "+42% vs $1.46M basis",
+      "delta": "+41% vs $1.46M basis",
       "good": true
     }
   ],
@@ -73,7 +73,7 @@
       12124,
       13014,
       14458,
-      13713
+      13553
     ],
     "proFormaMonthly": 8643,
     "note": "December includes a one-time management-fee credit."
@@ -126,7 +126,7 @@
     ]
   },
   "equity": {
-    "impliedValue": 2067295,
+    "impliedValue": 2065010,
     "segments": [
       {
         "label": "Loan payoff",
@@ -140,12 +140,12 @@
       },
       {
         "label": "LP profit share (80%)",
-        "value": 450749,
+        "value": 448921,
         "color": "aqua"
       },
       {
         "label": "GP promote (20%)",
-        "value": 112687,
+        "value": 112230,
         "color": "orange"
       }
     ],
@@ -280,11 +280,11 @@
     ]
   },
   "highlights": [
-    "September NOI $13,713 vs $8,643 pro forma (+59%); trailing-3 NOI annualizes to $164.7K.",
-    "Revenue $19,170 vs $14,057 pro forma; operating expenses $5,457 vs $5,415.",
+    "September NOI $13,553 vs $8,643 pro forma (+57%); trailing-3 NOI annualizes to $164.1K.",
+    "Revenue $19,170 vs $14,057 pro forma; operating expenses $5,617 vs $5,415.",
     "Occupancy 93.3% for the month; 1 unit vacant at month end.",
     "Average rent per occupied unit $835, up 20% since acquisition.",
-    "Cash reserves $51,789; $16,141 of principal paid down since acquisition.",
+    "Cash reserves $51,629; $16,141 of principal paid down since acquisition.",
     "LP distributions paid to date: $18,188."
   ]
 }
