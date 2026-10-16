@@ -30,7 +30,7 @@
       built: 1973,
       price: 1450000,
       sellerCredit: 75000,
-      loan: 975000,
+      loan: 810000,      // Five Star final sizing 10/15/26
       rate: 0.068,       // Five Star: rate locked 9/28/26
       ioMonths: 18,      // FSB expression of interest 9/3/26: 18 months interest-only
       prepay: [0.05, 0.04, 0.03, 0.02, 0.01], // FSB: 5/4/3/2/1% if refinanced by a third party in years 1-5
@@ -43,8 +43,8 @@
       laundry: 4650,
       rubs: 6480,
       rehab: 225000,
-      closingCosts: 37095,
-      reserves: 32499,
+      closingCosts: 35445,
+      reserves: 29694,
       expenses: [
         { key: 'Electric & gas', v: 5665.14 },
         { key: 'Pest control', v: 1230 },
@@ -87,12 +87,12 @@
       rubs: 14400,
       rehab: 371885.5,
       closingCosts: 51361,
-      reserves: 118791,
+      reserves: 116103,
       expenses: [
         { key: 'Pool maintenance', v: 4035 },
         { key: 'Electric & gas', v: 6000 },
         { key: 'Pest control', v: 1500 },
-        { key: 'Insurance', v: 20377 },
+        { key: 'Insurance', v: 15000 },
         { key: 'Legal & accounting', v: 2500 },
         { key: 'Real estate taxes', v: 31740 },
         { key: 'Landscaping', v: 2160 },
