@@ -32,7 +32,7 @@
       sellerCredit: 75000,
       loan: 810000,      // Five Star final sizing 10/15/26
       rate: 0.068,       // Five Star: rate locked 9/28/26
-      ioMonths: 18,      // FSB expression of interest 9/3/26: 18 months interest-only
+      ioMonths: 12,      // FSB final terms (sheet 10/15/26): 12 months interest-only
       prepay: [0.05, 0.04, 0.03, 0.02, 0.01], // FSB: 5/4/3/2/1% if refinanced by a third party in years 1-5
       amortMonths: 300,
       termMonths: 120,   // FSB expression of interest: 10-year term
@@ -44,7 +44,7 @@
       rubs: 6480,
       rehab: 225000,
       closingCosts: 35445,
-      reserves: 29694,
+      reserves: 29693.772501105,
       expenses: [
         { key: 'Electric & gas', v: 5665.14 },
         { key: 'Pest control', v: 1230 },
@@ -74,7 +74,7 @@
       built: 1962,
       price: 2760000,
       sellerCredit: 154000,
-      loan: 1696500,
+      loan: 1665000,     // Chase final sizing per 10/22/26 settlement statement
       rate: 0.0673,      // Chase term sheet, rate locked September 2026
       ioMonths: 60,
       amortMonths: 360,
@@ -86,8 +86,8 @@
       laundry: 6000,
       rubs: 14400,
       rehab: 371885.5,
-      closingCosts: 51361,
-      reserves: 116103,
+      closingCosts: 51046,
+      reserves: 115042.682,
       expenses: [
         { key: 'Pool maintenance', v: 4035 },
         { key: 'Electric & gas', v: 6000 },
