@@ -32,7 +32,7 @@
       sellerCredit: 75000,
       loan: 810000,      // Five Star final sizing 10/15/26
       rate: 0.068,       // Five Star: rate locked 9/28/26
-      ioMonths: 12,      // FSB final terms (sheet 10/15/26): 12 months interest-only
+      ioMonths: 18,      // FSB: 18 months interest-only (Adam confirmed 10/22/26; sheet briefly said 12, corrected)
       prepay: [0.05, 0.04, 0.03, 0.02, 0.01], // FSB: 5/4/3/2/1% if refinanced by a third party in years 1-5
       amortMonths: 300,
       termMonths: 120,   // FSB expression of interest: 10-year term
