@@ -134,10 +134,50 @@ import Layout from '../layouts/Layout.astro';
                 <span class="re-deal-stat-value">In-House</span>
               </div>
             </div>
-            <div class="re-deal-description">
+            <div class="deal-split">
+              <div class="re-deal-description">
               <p>Two apartment buildings on the Esplanade in downtown Chico, 36 units total: Royal Arms and 1017 Esplanade. Both came from a long-held estate, each in its own escrow, and closed in October 2026 at about $111,000 a door after $229,000 of repair credits negotiated off the inspection reports.</p>
               <p style="margin-top: 0.75rem;">The plan is the same one we run at Cherry St, ten blocks away: our own team manages the buildings, utilities are billed back to residents where the leases and California law allow, and units are renovated and re-leased at market as they turn.</p>
               <p style="margin-top: 0.75rem;">Investors receive regular updates on leasing, renovations, collections, and operations.</p>
+              </div>
+              <!-- Property Exterior -->
+              <div class="re-deal-hero">
+                <img src="/photos/chico-avenue/royal-arms-exterior.jpg" alt="Royal Arms Apartments - Chico, CA" loading="lazy" />
+              </div>
+            </div>
+
+            <!-- Property Photos -->
+            <div class="before-after-section">
+              <div class="properties-grid">
+                <div class="property-ba">
+                  <h4 class="property-ba-title">Royal Arms</h4>
+                  <div class="photo-grid">
+                  <div class="ba-img">
+                    <img src="/photos/chico-avenue/royal-arms-pool.jpg" alt="Royal Arms pool courtyard" loading="lazy" />
+                  </div>
+                  <div class="ba-img">
+                    <img src="/photos/chico-avenue/royal-arms-courtyard-aerial.jpg" alt="Royal Arms courtyard from above" loading="lazy" />
+                  </div>
+                  <div class="ba-img">
+                    <img src="/photos/chico-avenue/royal-arms-entry.jpg" alt="Royal Arms street entry" loading="lazy" />
+                  </div>
+                  </div>
+                </div>
+                <div class="property-ba">
+                  <h4 class="property-ba-title">1017 Esplanade</h4>
+                  <div class="photo-grid">
+                  <div class="ba-img">
+                    <img src="/photos/chico-avenue/1017-esplanade-front.jpg" alt="1017 Esplanade front entry" loading="lazy" />
+                  </div>
+                  <div class="ba-img">
+                    <img src="/photos/chico-avenue/1017-esplanade-corner.jpg" alt="1017 Esplanade from the corner of W Sacramento Ave" loading="lazy" />
+                  </div>
+                  <div class="ba-img">
+                    <img src="/photos/chico-avenue/1017-esplanade-location.jpg" alt="1017 Esplanade location near downtown Chico and Chico State" loading="lazy" />
+                  </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </article>
@@ -1044,6 +1084,12 @@ import Layout from '../layouts/Layout.astro';
 
   .lightbox-close:hover {
     background: rgba(255, 255, 255, 0.25);
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
   }
 
   .re-deal-photos:empty {
