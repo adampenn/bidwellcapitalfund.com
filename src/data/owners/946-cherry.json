@@ -3,44 +3,44 @@
   "name": "946 Cherry St",
   "city": "Chico, CA",
   "units": 20,
-  "asOf": "Sep 2026",
-  "operatingMonth": 14,
-  "summary": "September NOI of $13,553 ran 57% ahead of pro forma. Trailing-12 NOI is 39% ahead of plan, occupancy was 93.3% for the month, and the implied value sits 41% above basis.",
+  "asOf": "Oct 2026",
+  "operatingMonth": 15,
+  "summary": "October NOI of $12,651 ran 46% ahead of pro forma. Trailing-12 NOI is 44% ahead of plan, occupancy was 90.8% for the month, and the implied value sits 46% above basis.",
   "kpis": [
     {
       "label": "T-12 NOI",
-      "value": "$144.6K",
-      "delta": "+39% vs pro forma",
+      "value": "$149.1K",
+      "delta": "+44% vs pro forma",
       "good": true
     },
     {
       "label": "Occupancy",
-      "value": "93.3%",
+      "value": "90.8%",
       "delta": "1 unit vacant at month end",
       "good": false
     },
     {
       "label": "Avg scheduled rent",
-      "value": "$835",
-      "delta": "+20% since acquisition",
+      "value": "$842",
+      "delta": "+21% since acquisition",
       "good": true
     },
     {
       "label": "Delinquency",
-      "value": "$819",
-      "delta": "2 units past due",
+      "value": "$1,007",
+      "delta": "5 units past due",
       "good": null
     },
     {
       "label": "Cash reserves",
-      "value": "$49.8K",
+      "value": "$37.4K",
       "delta": "",
       "good": null
     },
     {
       "label": "Implied value (7% cap)",
-      "value": "$2.07M",
-      "delta": "+41% vs $1.46M basis",
+      "value": "$2.13M",
+      "delta": "+46% vs $1.46M basis",
       "good": true
     }
   ],
@@ -58,7 +58,8 @@
       "Jun",
       "Jul",
       "Aug",
-      "Sep"
+      "Sep",
+      "Oct"
     ],
     "actual": [
       11368,
@@ -73,7 +74,8 @@
       12124,
       13014,
       14458,
-      13553
+      13553,
+      12651
     ],
     "proFormaMonthly": 8643,
     "note": "December includes a one-time management-fee credit."
@@ -126,11 +128,11 @@
     ]
   },
   "equity": {
-    "impliedValue": 2065010,
+    "impliedValue": 2129379,
     "segments": [
       {
         "label": "Loan payoff",
-        "value": 1018859,
+        "value": 1017909,
         "color": "gray"
       },
       {
@@ -140,12 +142,12 @@
       },
       {
         "label": "LP profit share (80%)",
-        "value": 448921,
+        "value": 501176,
         "color": "aqua"
       },
       {
         "label": "GP promote (20%)",
-        "value": 112230,
+        "value": 125294,
         "color": "orange"
       }
     ],
@@ -154,7 +156,7 @@
   "rentRoll": {
     "marketRent": 900,
     "avgFrom": 696,
-    "avgTo": 835,
+    "avgTo": 842,
     "units": [
       {
         "unit": "Unit 1",
@@ -201,8 +203,8 @@
       {
         "unit": "Unit 8",
         "from": 725,
-        "to": 725,
-        "type": "vacant"
+        "to": 900,
+        "type": "turned"
       },
       {
         "unit": "Unit 9",
@@ -239,7 +241,7 @@
         "unit": "Unit 14",
         "from": 725,
         "to": 781,
-        "type": "bump"
+        "type": "vacant"
       },
       {
         "unit": "Unit 15",
@@ -256,7 +258,7 @@
       {
         "unit": "Unit 17",
         "from": 725,
-        "to": 764,
+        "to": 781,
         "type": "bump"
       },
       {
@@ -280,11 +282,11 @@
     ]
   },
   "highlights": [
-    "September NOI $13,553 vs $8,643 pro forma (+57%); trailing-3 NOI annualizes to $164.1K.",
-    "Revenue $19,170 vs $14,057 pro forma; operating expenses $5,617 vs $5,415.",
-    "Occupancy 93.3% for the month; 1 unit vacant at month end.",
-    "Average rent per occupied unit $835, up 20% since acquisition.",
-    "Cash reserves $49,796; $16,141 of principal paid down since acquisition.",
-    "LP distributions paid to date: $18,188."
+    "October NOI $12,651 vs $8,643 pro forma (+46%); trailing-3 NOI annualizes to $162.7K.",
+    "Revenue $17,060 vs $14,057 pro forma; operating expenses $4,408 vs $5,415.",
+    "Occupancy 90.8% for the month; 1 unit vacant at month end.",
+    "Average rent per occupied unit $842, up 21% since acquisition.",
+    "Cash reserves $37,449; $17,091 of principal paid down since acquisition.",
+    "LP distributions paid to date: $27,281."
   ]
 }
